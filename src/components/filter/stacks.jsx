@@ -1,4 +1,4 @@
-const language = [
+const stacks = [
     'React',
     'Vue',
     'Angular',
@@ -10,4 +10,4 @@ const language = [
     'Spring',
 ]
 
-export default language
+export default stacks

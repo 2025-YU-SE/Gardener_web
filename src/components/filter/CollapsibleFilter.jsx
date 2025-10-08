@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
-import { FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown, FaCheck } from 'react-icons/fa';
 
 function CollapsibleFilter({ title, options }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState([]);
 
   const toggleFilter = () => {
     setIsOpen(!isOpen);
+  };
+
+  // 옵션 선택/해제
+  const toggleOption = (value) => {
+    setSelectedOptions(prev => 
+      prev.includes(value) 
+        ? prev.filter(item => item !== value)
+        : [...prev, value]
+    );
   };
 
   return (
@@ -13,30 +23,40 @@ function CollapsibleFilter({ title, options }) {
       {/* 필터 제목 부분 */}
       <button
         onClick={toggleFilter}
-        className="w-full flex justify-between items-center p-3 font-semibold text-left"
+        className="w-full flex justify-between items-center p-3 px-7 font-semibold text-left"
       >
         <span>{title}</span>
         {/* 눌렀을 때 아이콘 회전 */}
         <FaChevronDown
-          className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`transform transition-transform duration-400 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {/* isOpen 조건부 렌더링 */}
       {isOpen && (
-        <div className="border-t p-2 bg-white rounded-b-2xl">
+        <div className="border-t p-2 pb-2 bg-white rounded-b-2xl">
           <ul>
             {options && options.length > 0 ? (
               options.map((option, index) => {
                 const displayText = typeof option === 'string' ? option : option.label;
                 const value = typeof option === 'string' ? option : option.value;
+                const isSelected = selectedOptions.includes(value);
                 
                 return (
                   <li
                     key={value || index}
-                    className="p-2 rounded-md cursor-pointer flex items-center space-x-2"
+                    className="p-2 px-5 rounded-md cursor-pointer flex items-center space-x-2"
+                    onClick={() => toggleOption(value)}
                   >
-                    <button className="w-4 h-4 border border-gray-400 rounded-sm bg-white"></button>
+                    <button 
+                      className={`w-4 h-4 border border-gray-400 rounded-sm transition-colors flex items-center justify-center ${
+                        isSelected ? 'bg-green-500 border-green-500' : 'bg-white'
+                      }`}
+                    >
+                      {isSelected && (
+                        <FaCheck className="text-white text-xs" />
+                      )}
+                    </button>
                     <span>{displayText}</span>
                   </li>
                 );
