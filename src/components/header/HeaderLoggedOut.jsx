@@ -11,7 +11,7 @@ const HeaderLoggedOut = () => {
         <div className="text-[20px] font-semibold">Code Gardener</div>
       </Link>
 
-      <div className="flex-1 pl-[280px] flex items-center space-x-20 text-[14px] font-medium">
+      <div className="flex-1 pl-[250px] flex items-center space-x-20 text-[14px] font-medium">
         <Link to="/posts">코드 정원</Link>
         <Link to="/upload">코드 심기</Link>
         <Link to="/leader-board">리더보드</Link>
