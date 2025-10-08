@@ -21,7 +21,7 @@ function Posts() {
   
   const [posts, setPosts] = useState(samplePosts);
 
-  // 좋아요 토글 함수
+  // 좋아요
   const toggleLike = (postId) => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
@@ -36,7 +36,7 @@ function Posts() {
     );
   };
 
-  // 북마크 토글 함수
+  // 북마크
   const toggleBookmark = (postId) => {
     setPosts(prevPosts => 
       prevPosts.map(post => 
@@ -165,7 +165,10 @@ function Posts() {
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                   <div className="flex items-center space-x-6">
                     {/* 좋아요 */}
-                    <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors">
+                    <button 
+                      onClick={() => toggleLike(post.id)}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
+                    >
                       {post.isLiked ? 
                         <FaHeart className="text-red-500" /> : 
                         <FaRegHeart />
@@ -173,7 +176,10 @@ function Posts() {
                       <span className="text-sm font-medium">{post.likes}</span>
                     </button>
                     {/* 스크랩 */}
-                    <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
+                    <button 
+                      onClick={() => toggleBookmark(post.id)}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+                    >
                       {post.isBookmarked ? 
                         <FaBookmark className="text-blue-500" /> : 
                         <FaRegBookmark />
