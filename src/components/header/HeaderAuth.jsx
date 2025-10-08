@@ -2,13 +2,15 @@ import React from "react";
 import logo from "../../assets/logo.svg";
 import { Link } from "react-router-dom";
 
+// 로그인/회원가입 화면용 헤더
 const HeaderAuth = () => {
   return (
     <div className="flex items-center justify-between w-full h-[60px] bg-[#E8FCEF]">
-      <Link className="flex items-center space-x-1 pl-[100px]" to="/landing">
+      <Link className="flex items-center space-x-1 pl-[80px]" to="/landing">
         <img src={logo} alt="logo" className="w-[60px] h-[60px]" />
         <div className="text-[20px] font-semibold">Code Gardener</div>
       </Link>
+
       <div className="flex space-x-8 pr-28">
         <Link
           className="flex justify-center items-center text-[12px]"

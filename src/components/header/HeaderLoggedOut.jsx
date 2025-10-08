@@ -2,6 +2,7 @@ import React from "react";
 import logo from "../../assets/logo.svg";
 import { Link } from "react-router-dom";
 
+// 비로그인 사용자용 헤더
 const HeaderLoggedOut = () => {
   return (
     <div className="flex items-center justify-between w-full h-[60px]">
@@ -14,7 +15,7 @@ const HeaderLoggedOut = () => {
         <Link to="/posts">코드 정원</Link>
         <Link to="/upload">코드 심기</Link>
         <Link to="/leader-board">리더보드</Link>
-        <Link to="*">메뉴4</Link>
+        <Link to="*">메뉴4</Link> {/*추후 메뉴 수정*/}
       </div>
 
       <div className="flex space-x-8 pr-28">
