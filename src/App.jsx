@@ -13,11 +13,17 @@ import MyPaged from './pages/MyPaged.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function App() {
+  // const { isAuthed } = useAuth()
+
   return (
     <BrowserRouter>
       <Routes>
         {/* 리디렉션 */}
         <Route path="/" element={<Navigate to="/landing" replace />} />
+        
+        {/* 로그인 시 메인 페이지로 리디렉션 
+        <Route path="/" element={<Navigate to={isAuthed ? '/main' : '/landing'} replace />} /> 
+        */}
 
         {/* 비로그인 시 */}
         <Route path="/landing" element={<Landing />} />
