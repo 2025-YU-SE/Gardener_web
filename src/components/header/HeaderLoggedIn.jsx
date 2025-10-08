@@ -6,7 +6,7 @@ import { IoPersonCircle } from "react-icons/io5";
 // 로그인한 사용자용 헤더
 const HeaderLoggedIn = () => {
   return (
-    <div className="flex items-center justify-between w-full h-[60px]">
+    <div className="flex items-center justify-between w-full h-[60px] bg-white border-b-2">
       <Link className="flex items-center space-x-1 pl-[80px]" to="/main">
         <img src={logo} alt="logo" className="w-[60px] h-[60px]" />
         <div className="text-[20px] font-semibold">Code Gardener</div>
