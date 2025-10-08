@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 // 비로그인 사용자용 헤더
 const HeaderLoggedOut = () => {
   return (
-    <div className="flex items-center justify-between w-full h-[60px]">
+    <div className="flex items-center justify-between w-full h-[60px] bg-white border-b-2">
       <Link className="flex items-center space-x-1 pl-[80px]" to="/landing">
         <img src={logo} alt="logo" className="w-[60px] h-[60px]" />
         <div className="text-[20px] font-semibold">Code Gardener</div>
