@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FaSearch, FaHeart, FaRegHeart, FaBookmark, FaRegBookmark, FaComment, FaEye, FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight, FaChevronDown } from "react-icons/fa";
 import { IoMdMore, IoMdTime } from "react-icons/io";
 import Header from '../components/header/Header';
@@ -15,17 +16,22 @@ import {
 } from '../utils/pagination';
 
 function Posts() {
+  const navigate = useNavigate();
+  
   const [selectedCategory, setSelectedCategory] = useState('개발');
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(4); // 페이지당 4개 게시물
   
-  // 정렬 드롭다운 상태
   const [selectedSort, setSelectedSort] = useState('최신순');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const sortOptions = ['최신순', '조회순', '피드백 많은 순'];
   
   const [posts, setPosts] = useState(samplePosts);
+
+  const handlePostClick = (postId) => {
+    navigate(`/posts/${postId}`);
+  };
 
   // 좋아요
   const toggleLike = (postId) => {
@@ -192,8 +198,11 @@ function Posts() {
                   </button>
                 </div>
                 {/* 게시물 내용 */}
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2 min-h-[2.5rem]">
+                <div 
+                  className="mb-4 cursor-pointer"
+                  onClick={() => handlePostClick(post.id)}
+                >
+                  <h2 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2 min-h-[2.5rem] hover:font-extrabold">
                     {post.title}
                   </h2>
                   <p className="text-gray-700 text-base leading-relaxed line-clamp-2 min-h-[3rem] max-h-[3rem]">
