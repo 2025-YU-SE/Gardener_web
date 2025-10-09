@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { FaSearch, FaHeart, FaRegHeart, FaBookmark, FaRegBookmark, FaComment, FaEye, FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight } from "react-icons/fa";
+import React, { useState, useEffect } from 'react'
+import { FaSearch, FaHeart, FaRegHeart, FaBookmark, FaRegBookmark, FaComment, FaEye, FaAngleDoubleLeft, FaAngleDoubleRight, FaAngleLeft, FaAngleRight, FaChevronDown } from "react-icons/fa";
 import { IoMdMore, IoMdTime } from "react-icons/io";
 import Header from '../components/header/Header';
 import CollapsibleFilter from '../components/filter/CollapsibleFilter';
@@ -18,6 +18,12 @@ function Posts() {
   const [selectedCategory, setSelectedCategory] = useState('개발');
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(4); // 페이지당 4개 게시물
+  
+  // 정렬 드롭다운 상태
+  const [selectedSort, setSelectedSort] = useState('최신순');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  const sortOptions = ['최신순', '조회순', '피드백 많은 순'];
   
   const [posts, setPosts] = useState(samplePosts);
 
@@ -50,6 +56,20 @@ function Posts() {
       )
     );
   };
+
+  // 외부클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const totalPages = getTotalPages(posts, postsPerPage);
   const currentPosts = getCurrentPageData(posts, currentPage, postsPerPage);
@@ -113,11 +133,44 @@ function Posts() {
                 코딩테스트
               </button>
             </div>
-            <select className="p-2 w-[80px] bg-[#f9f9f9]">
-              <option value="category1">최신순</option>
-              <option value="category2">조회순</option>
-              <option value="category3">피드백 많은 순</option>
-            </select>
+            
+            {/* 정렬 */}
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center justify-between px-4 py-2 rounded-xl "
+              >
+                <span>{selectedSort}</span>
+                <FaChevronDown 
+                  className={`ml-2 transition-transform duration-200 ${
+                    isDropdownOpen ? 'rotate-180' : ''
+                  }`} 
+                  size={12}
+                />
+              </button>
+              
+              {/* 드롭다운 메뉴 */}
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 w-[130px] bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => {
+                        setSelectedSort(option);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                        selectedSort === option 
+                          ? 'bg-green-50 text-green-600 font-medium' 
+                          : 'text-gray-700'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           {/* 게시물 */}
           <div className="space-y-6 my-6" >
