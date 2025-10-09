@@ -1,5 +1,7 @@
 import React from "react";
 import Header from "../components/header/Header";
+import { Link } from "react-router-dom";
+import { IoCodeOutline } from "react-icons/io5";
 
 function Landing() {
   return (
@@ -18,6 +20,23 @@ function Landing() {
           <span className="flex justify-center text-[20px] text-[#626262]">
             정원에 새싹을 심고 가꿔보세요.
           </span>
+        </div>
+
+        {/* 버튼 */}
+        <div className="flex justify-center gap-6 text-[20px] text-white pt-16">
+          <Link
+            className="w-[250px] h-[63px] bg-[#16A34A] rounded-[6px] hover:bg-[#2bad5b] flex items-center justify-center space-x-2 text-white font-medium"
+            to="/upload"
+          >
+            <IoCodeOutline size={22} />
+            <span>새싹 심기 시작하기</span>
+          </Link>
+          <Link
+            className="w-[149px] h-[63px] bg-[#4D4D4D] rounded-[6px] hover:bg-[#575757] flex items-center justify-center"
+            to="/posts"
+          >
+            정원 둘러보기
+          </Link>
         </div>
       </div>
     </div>
