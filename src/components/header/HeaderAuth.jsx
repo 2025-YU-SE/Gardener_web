@@ -11,7 +11,7 @@ const HeaderAuth = () => {
         <div className="text-[20px] font-semibold">Code Gardener</div>
       </Link>
 
-      <div className="flex space-x-8 pr-28">
+      <div className="flex space-x-8 pr-32">
         <Link
           className="flex justify-center items-center text-[12px]"
           to="/sign-in"
