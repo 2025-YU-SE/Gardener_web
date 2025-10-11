@@ -24,7 +24,7 @@ function SignUp() {
         </div>
 
         <div className="flex flex-col items-center w-[499px] h-[562px] bg-white rounded-[16px] border border-[#B8B8B8] mt-12">
-          <h2 className="text-[30px] font-semibold mt-16 mb-8">회원가입</h2>
+          <h2 className="text-[30px] font-semibold mt-16 mb-6">회원가입</h2>
           <div className="flex flex-col items-center">
             {/* 아이디 */}
             <div className="flex flex-col mb-4">
@@ -82,7 +82,7 @@ function SignUp() {
             </div>
 
             {/* 비밀번호 확인 */}
-            <div className="flex flex-col mb-10">
+            <div className="flex flex-col mb-7">
               <input
                 type="password"
                 placeholder="비밀번호를 확인해주세요"
