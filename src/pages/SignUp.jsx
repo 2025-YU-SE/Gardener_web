@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "../components/header/Header";
 import illustration from "../assets/illustration.png";
+import { Link } from "react-router-dom";
 
 function SignUp() {
   return (
@@ -93,6 +94,17 @@ function SignUp() {
             <button className="w-[160px] h-[40px] bg-[#00C839] text-white text-[16px] py-2 rounded-[6px] font-medium hover:bg-[#0bdd47]">
               회원가입
             </button>
+
+            {/* 로그인으로 이동 링크 */}
+            <p className="text-[10px] text-[#B8B8B8] mt-4">
+              이미 계정이 있으신가요?{" "}
+              <a
+                href="/sign-in"
+                className="text-[#00C839] font-semibold hover:underline"
+              >
+                로그인
+              </a>
+            </p>
           </div>
         </div>
       </div>
