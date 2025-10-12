@@ -1,8 +1,9 @@
 import React from "react";
 
+// 리더보드 통계 지표 카드 컴포넌트
 function StatCard({ icon, value, unit, label }) {
   return (
-    <div className="flex flex-col items-start justify-center w-[300px] h-[138px] rounded-[10px] bg-white p-6 shadow-sm border border-[#E5E7EB]">
+    <div className="flex flex-col items-start justify-center w-[260px] h-[138px] rounded-[10px] bg-white p-6 shadow-sm border border-[#E5E7EB]">
       <img src={icon} alt="icon" className="w-[30px] h-[30px] mb-2" />
       <div className="flex items-end gap-[2px]">
         <span className="text-[24px] font-medium">

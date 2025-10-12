@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "../components/header/Header";
 import StatCard from "../components/leaderboard/StatCard";
+import LeaderboardTabs from "../components/leaderboard/LeaderboardTabs";
 import icon1 from "../assets/leaderboard_icon1.png";
 import icon2 from "../assets/leaderboard_icon2.png";
 import icon3 from "../assets/leaderboard_icon3.png";
@@ -18,7 +19,7 @@ function LeaderBoard() {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <Header />
-      <div className="mx-auto max-w-[1248px] mt-8">
+      <div className="mt-8">
         {/* 타이틀 + 소개 텍스트 */}
         <div className="text-center">
           <h1 className="text-[30px] font-semibold">리더보드</h1>
@@ -27,17 +28,22 @@ function LeaderBoard() {
           </p>
         </div>
 
-        {/* 지표 카드 4개 */}
-        <div className="flex justify-between gap-3 mt-6 w-full">
-          {stats.map((item, idx) => (
-            <StatCard
-              key={idx}
-              icon={item.icon}
-              value={item.value}
-              unit={item.unit}
-              label={item.label}
-            />
-          ))}
+        <div className="mx-auto max-w-[1080px] w-full">
+          {/* 지표 카드 4개 */}
+          <div className="mt-6 grid grid-cols-4 gap-3">
+            {stats.map((item, idx) => (
+              <StatCard
+                key={idx}
+                icon={item.icon}
+                value={item.value}
+                unit={item.unit}
+                label={item.label}
+              />
+            ))}
+          </div>
+
+          {/* 정렬 탭 */}
+          <LeaderboardTabs />
         </div>
       </div>
     </div>
