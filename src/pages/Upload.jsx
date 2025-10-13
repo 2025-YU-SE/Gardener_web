@@ -11,13 +11,45 @@ function Upload() {
           <div className="hover:font-bold border-b-2 border-transparent hover:border-black">개발</div>
           <div className="hover:font-bold border-b-2 border-transparent hover:border-black">코딩 테스트</div>
         </div>
-        <div className="border border-gray-300 w-3/5 h-96 flex flex-col gap-5 p-5">
-          <div className="border border-gray-300 h-10">  
+        <div className="w-3/5 flex flex-col gap-5 p-5">
+          <div className="border border-gray-300">  
             <div className="font-bold">
               필수항목
-            </div>  
-            <div className="text-sm text-gray-500">  
-              *표시는 필수 입력 사항입니다.
+            </div>
+            <div>
+              <h3>제목*</h3>
+              <input type="text" className="border border-gray-300 p-2 w-full" />
+            </div>
+            <div>
+              <h3>설명*</h3>
+              <textarea className="border border-gray-300 p-2 w-full" rows="4"></textarea>
+            </div>
+            <div>
+              <h3>프로그래밍 언어*</h3>
+              <select className="border border-gray-300 p-2 w-full">
+                <option value="">언어 선택</option>
+              </select>
+            </div>
+            <div>
+              <h3>기술 스택 / 프레임워크</h3>
+              <select className="border border-gray-300 p-2 w-full">
+                <option value="">언어 선택</option>
+              </select>
+            </div>
+            <div>
+              <div> 코드 입력</div>
+              <textarea className="border border-gray-300 p-2 w-full" rows="10"></textarea>
+            </div>
+            <div>
+              <h3>코드 설명(간단한 설명, 구현 의도 등)*</h3>
+              <textarea className="border border-gray-300 p-2 w-full" rows="4"></textarea>
+            </div>
+            <div>
+              <div>총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청</div>
+              <textarea className="border border-gray-300 p-2 w-full" rows="1"></textarea>
+              <textarea className="border border-gray-300 p-2 w-full" rows="1"></textarea>
+              <textarea className="border border-gray-300 p-2 w-full" rows="1"></textarea>
+
             </div>
           </div>
           <div className="border border-gray-300 flex-col items-center">
