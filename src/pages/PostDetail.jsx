@@ -3,6 +3,7 @@ import { FaHeart, FaComment, FaEye, FaStar } from 'react-icons/fa'
 import Header from '../components/header/Header'
 import { useParams } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
+import { sampleFeedbacks } from '../components/feedbackContext'
 
 function PostDetail() {
   const { postId } = useParams()
@@ -161,47 +162,48 @@ function PostDetail() {
                 </button>
               </div>
 
-              {/* 기존 피드백 댓글 */}
+          {/* 기존 피드백 댓글 */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">기존 피드백</h3>
-                <div className="space-y-4">
-                  {[1, 2].map((comment) => (
-                    <div key={comment} className="border-b border-gray-200 pb-4 last:border-b-0">
-                      <div className="flex items-center mb-2">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
-                          농
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 text-sm">농담곰</p>
-                          <p className="text-xs text-gray-500">3시간 전</p>
-                        </div>
+            <div className="space-y-4">
+              {sampleFeedbacks
+                .filter(f => f.postId === post.id)
+                .map((fb) => (
+                  <div key={fb.id} className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                        {fb.avatarInitial}
                       </div>
-                      <div className="flex mb-2">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <FaStar key={star} className="text-yellow-400 text-sm" />
-                        ))}
-                      </div>
-                      <p className="text-gray-700 text-sm leading-relaxed mb-3">
-                        성능 최적화 측면에서 몇 가지 개선점이 있습니다. filteredTodos 계산을 useMemo로 감싸고, 
-                        이벤트 핸들러들을 useCallback으로 최적화하면 리렌더링을 줄일 수 있을 것 같습니다.
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <FaHeart className="text-red-500" />
-                          <span>23</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <FaComment className="text-blue-500" />
-                          <span>13</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <FaEye className="text-gray-500" />
-                          <span>237</span>
-                        </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{fb.author}</p>
+                        <p className="text-xs text-gray-500">{fb.timeAgo}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex mb-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar key={star} className={`text-sm ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                      {fb.content}
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <FaHeart className="text-red-500" />
+                        <span>{fb.likes}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <FaComment className="text-blue-500" />
+                        <span>{fb.comments}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <FaEye className="text-gray-500" />
+                        <span>{fb.views}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
               </div>
             </div>
           </div>
