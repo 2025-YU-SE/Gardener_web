@@ -6,6 +6,7 @@ import icon1 from "../assets/leaderboard_icon1.png";
 import icon2 from "../assets/leaderboard_icon2.png";
 import icon3 from "../assets/leaderboard_icon3.png";
 import icon4 from "../assets/leaderboard_icon4.png";
+import RankingBoard from "../components/leaderboard/RankingBoard.jsx";
 
 function LeaderBoard() {
   // value값은 추후 연동해야함
@@ -44,6 +45,9 @@ function LeaderBoard() {
 
           {/* 정렬 탭 */}
           <LeaderboardTabs />
+
+          {/* 랭킹보드 */}
+          <RankingBoard />
         </div>
       </div>
     </div>
