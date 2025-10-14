@@ -1,10 +1,212 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { FaHeart, FaComment, FaEye, FaStar } from 'react-icons/fa'
+import Header from '../components/header/Header'
+import { useParams } from 'react-router-dom'
+import { samplePosts } from '../components/postcontext'
 
 function PostDetail() {
+  const { postId } = useParams()
+  const idNum = Number(postId)
+  const post = (Number.isNaN(idNum)
+    ? samplePosts[0]
+    : samplePosts.find(p => p.id === idNum)) || samplePosts[0]
+  const [selectedFeedbackType, setSelectedFeedbackType] = useState('일반 피드백')
+  const [rating, setRating] = useState(5)
+  const [feedbackContent, setFeedbackContent] = useState('')
+
+  const feedbackTypes = ['일반 피드백', '개선 제안', '버그 신고']
+
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold">Post Detail</h1>
-      <p>게시물 상세 페이지</p>
+    <div className="min-h-screen bg-[#F9FAFB]">
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* 게시물 정보 카드 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          {/* 게시물 제목 */}
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            {post.title}
+          </h1>
+          {/* 게시물 설명 */}
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            {post.content}
+          </p>
+          {/* 작성자 정보 */}
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+              {post.avatar || '👤'}
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">{post.author}</p>
+              <p className="text-sm text-gray-500">{post.timeAgo}</p>
+            </div>
+          </div>
+          {/* 태그 */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {post.tags?.map((tag) => (
+              <span 
+                key={tag}
+                className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          
+          {/* 통계 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6 mb-0">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <FaHeart className="text-red-500" />
+                <span>{post.likes}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-600">
+                <FaComment className="text-blue-500" />
+                <span>{post.comments}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-gray-600">
+                <FaEye className="text-gray-500" />
+                <span>{post.views}</span>
+              </div>
+            </div>
+            <div>
+              <button className='bg-green-600 text-white px-4 py-2 rounded-md'>AI 피드백</button>
+            </div>
+          </div>
+        </div>
+
+        {/* 하단 */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/*코드 에디터 */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"> 코드에디터 </div>
+          </div>
+
+          {/* 피드백 요청 + 작성 + 기존 피드백 */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+              {/* 피드백 요청 */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">피드백 요청</h3>
+                <div className="space-y-2">
+                  {[
+                    '성능 최적화에 대한 피드백을 원합니다',
+                    '코드 구조 개선 방안을 알고 싶습니다',
+                    '접근성(Accessibility) 개선 제안을 받고 싶습니다'
+                  ].map((request, index) => (
+                    <div
+                      key={index}
+                      className="text-sm text-gray-700 px-3 py-2 bg-gray-50 border border-gray-200 rounded"
+                    >
+                      {request}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 피드백 작성 */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">피드백 작성</h3>
+                {/* 피드백 유형 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">피드백 유형</label>
+                  <div className="flex space-x-2">
+                    {feedbackTypes.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setSelectedFeedbackType(type)}
+                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                          selectedFeedbackType === type
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* 평점 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">평점</label>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className="text-2xl transition-colors"
+                      >
+                        <FaStar 
+                          className={star <= rating ? 'text-yellow-400' : 'text-gray-300'} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* 피드백 내용 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">피드백 내용</label>
+                  <textarea
+                    value={feedbackContent}
+                    onChange={(e) => setFeedbackContent(e.target.value)}
+                    placeholder="새싹에 대한 피드백을 작성해주세요. 구체적이고 건설적인 피드백이 도움이 됩니다."
+                    rows="4"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">{feedbackContent.length}/1000자</p>
+                </div>
+                {/* 제출 버튼 */}
+                <button className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
+                  피드백 제출
+                </button>
+              </div>
+
+              {/* 기존 피드백 댓글 */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">기존 피드백</h3>
+                <div className="space-y-4">
+                  {[1, 2].map((comment) => (
+                    <div key={comment} className="border-b border-gray-200 pb-4 last:border-b-0">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                          농
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">농담곰</p>
+                          <p className="text-xs text-gray-500">3시간 전</p>
+                        </div>
+                      </div>
+                      <div className="flex mb-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FaStar key={star} className="text-yellow-400 text-sm" />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                        성능 최적화 측면에서 몇 가지 개선점이 있습니다. filteredTodos 계산을 useMemo로 감싸고, 
+                        이벤트 핸들러들을 useCallback으로 최적화하면 리렌더링을 줄일 수 있을 것 같습니다.
+                      </p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <FaHeart className="text-red-500" />
+                          <span>23</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaComment className="text-blue-500" />
+                          <span>13</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaEye className="text-gray-500" />
+                          <span>237</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
