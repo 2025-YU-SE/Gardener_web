@@ -24,21 +24,31 @@ function PostDetail() {
   const [postBookmarked, setPostBookmarked] = useState(Boolean(post.isBookmarked))
   const [postLikeCount, setPostLikeCount] = useState(post.likes ?? 0)
   const [postBookmarkCount, setPostBookmarkCount] = useState(post.bookmarks ?? 0)
+  const [likeBusy, setLikeBusy] = useState(false)
+  const [bookmarkBusy, setBookmarkBusy] = useState(false)
 
-  const togglePostLike = () => {
+  const togglePostLike = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation()
+    if (likeBusy) return
+    setLikeBusy(true)
     setPostLiked(prev => {
       const next = !prev
       setPostLikeCount(c => c + (next ? 1 : -1))
       return next
     })
+    setTimeout(() => setLikeBusy(false), 200)
   }
 
-  const togglePostBookmark = () => {
+  const togglePostBookmark = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation()
+    if (bookmarkBusy) return
+    setBookmarkBusy(true)
     setPostBookmarked(prev => {
       const next = !prev
       setPostBookmarkCount(c => c + (next ? 1 : -1))
       return next
     })
+    setTimeout(() => setBookmarkBusy(false), 200)
   }
 
   const [feedbackLikeState, setFeedbackLikeState] = useState({})
@@ -107,7 +117,7 @@ function PostDetail() {
               {/* 좋아요 */}
               <button
                 type="button"
-                onClick={togglePostLike}
+                onClick={(e) => togglePostLike(e)}
                 className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
                 aria-pressed={postLiked}
               >
@@ -117,7 +127,7 @@ function PostDetail() {
               {/* 스크랩 */}
               <button
                 type="button"
-                onClick={togglePostBookmark}
+                onClick={(e) => togglePostBookmark(e)}
                 className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
                 aria-pressed={postBookmarked}
               >
@@ -317,7 +327,7 @@ function PostDetail() {
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <button
                           type="button"
-                          onClick={() => toggleFeedbackLike(fb.id)}
+                          onClick={(e) => { e.stopPropagation(); toggleFeedbackLike(fb.id) }}
                           className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors"
                           aria-pressed={feedbackLikeState[fb.id]?.liked}
                         >
