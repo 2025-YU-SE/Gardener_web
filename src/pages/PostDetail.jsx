@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaHeart, FaRegHeart, FaBookmark, FaRegBookmark, FaComment, FaEye, FaStar } from 'react-icons/fa'
 import Header from '../components/header/Header'
 import { useParams } from 'react-router-dom'
@@ -35,6 +35,27 @@ function PostDetail() {
       const next = !prev
       setPostBookmarkCount(c => c + (next ? 1 : -1))
       return next
+    })
+  }
+
+  const [feedbackLikeState, setFeedbackLikeState] = useState({})
+
+  useEffect(() => {
+    const init = {}
+    sampleFeedbacks
+      .filter(f => f.postId === post.id)
+      .forEach(f => {
+        init[f.id] = { liked: false, count: f.likes ?? 0 }
+      })
+    setFeedbackLikeState(init)
+  }, [post.id])
+
+  const toggleFeedbackLike = (feedbackId) => {
+    setFeedbackLikeState(prev => {
+      const curr = prev[feedbackId] || { liked: false, count: 0 }
+      const nextLiked = !curr.liked
+      const nextCount = Math.max(0, curr.count + (nextLiked ? 1 : -1))
+      return { ...prev, [feedbackId]: { liked: nextLiked, count: nextCount } }
     })
   }
 
@@ -253,10 +274,19 @@ function PostDetail() {
                         {fb.content}
                       </p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <FaHeart className="text-red-500" />
-                          <span>{fb.likes}</span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleFeedbackLike(fb.id)}
+                          className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors"
+                          aria-pressed={feedbackLikeState[fb.id]?.liked}
+                        >
+                          {feedbackLikeState[fb.id]?.liked ? (
+                            <FaHeart className="text-red-500" />
+                          ) : (
+                            <FaRegHeart />
+                          )}
+                          <span className="text-sm font-medium">{feedbackLikeState[fb.id]?.count ?? fb.likes}</span>
+                        </button>
                         <div className="flex items-center space-x-1">
                           <FaComment className="text-gray-500" />
                           <span>{fb.comments}</span>
