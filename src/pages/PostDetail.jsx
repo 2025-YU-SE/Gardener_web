@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { FaHeart, FaRegHeart, FaBookmark, FaRegBookmark, FaComment, FaEye, FaStar } from 'react-icons/fa'
 import Header from '../components/header/Header'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
 
 function PostDetail() {
   const { postId } = useParams()
+  const navigate = useNavigate()
   const idNum = Number(postId)
   const post = (Number.isNaN(idNum)
     ? samplePosts[0]
@@ -292,7 +293,10 @@ function PostDetail() {
                 const list = showAllFeedbacks ? all : all.slice(0, INITIAL_COUNT)
                 return list.map((fb) => (
                   <div key={fb.id} className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
-                    <div className="rounded-md p-3 transition-all hover:bg-gray-50 hover:ring-1 hover:ring-gray-200">
+                    <div
+                      className="rounded-md p-3 transition-all hover:bg-gray-50 hover:ring-1 hover:ring-gray-200 cursor-pointer"
+                      onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
+                    >
                       <div className="flex items-center mb-2">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
                           {fb.avatarInitial}
