@@ -22,8 +22,6 @@ function PostDetail() {
 
   const [postLiked, setPostLiked] = useState(Boolean(post.isLiked))
   const [postBookmarked, setPostBookmarked] = useState(Boolean(post.isBookmarked))
-  const [postLikeCount, setPostLikeCount] = useState(post.likes ?? 0)
-  const [postBookmarkCount, setPostBookmarkCount] = useState(post.bookmarks ?? 0)
   const [likeBusy, setLikeBusy] = useState(false)
   const [bookmarkBusy, setBookmarkBusy] = useState(false)
 
@@ -31,11 +29,7 @@ function PostDetail() {
     if (e && e.stopPropagation) e.stopPropagation()
     if (likeBusy) return
     setLikeBusy(true)
-    setPostLiked(prev => {
-      const next = !prev
-      setPostLikeCount(c => c + (next ? 1 : -1))
-      return next
-    })
+    setPostLiked(prev => !prev)
     setTimeout(() => setLikeBusy(false), 200)
   }
 
@@ -43,11 +37,7 @@ function PostDetail() {
     if (e && e.stopPropagation) e.stopPropagation()
     if (bookmarkBusy) return
     setBookmarkBusy(true)
-    setPostBookmarked(prev => {
-      const next = !prev
-      setPostBookmarkCount(c => c + (next ? 1 : -1))
-      return next
-    })
+    setPostBookmarked(prev => !prev)
     setTimeout(() => setBookmarkBusy(false), 200)
   }
 
@@ -115,25 +105,35 @@ function PostDetail() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6 mb-0">
               {/* 좋아요 */}
-              <button
-                type="button"
-                onClick={(e) => togglePostLike(e)}
-                className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
-                aria-pressed={postLiked}
-              >
-                {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-                <span>{postLikeCount}</span>
-              </button>
+               <button
+                 type="button"
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   e.nativeEvent?.stopImmediatePropagation?.();
+                   togglePostLike(e);
+                 }}
+                 className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
+                 aria-pressed={postLiked}
+               >
+                 {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+                 <span>{postLiked ? (post.likes ?? 0) + 1 : (post.likes ?? 0)}</span>
+               </button>
               {/* 스크랩 */}
-              <button
-                type="button"
-                onClick={(e) => togglePostBookmark(e)}
-                className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
-                aria-pressed={postBookmarked}
-              >
-                {postBookmarked ? <FaBookmark className="text-blue-500" /> : <FaRegBookmark />}
-                <span>{postBookmarkCount}</span>
-              </button>
+               <button
+                 type="button"
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   e.nativeEvent?.stopImmediatePropagation?.();
+                   togglePostBookmark(e);
+                 }}
+                 className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+                 aria-pressed={postBookmarked}
+               >
+                 {postBookmarked ? <FaBookmark className="text-blue-500" /> : <FaRegBookmark />}
+                 <span>{postBookmarked ? (post.bookmarks ?? 0) + 1 : (post.bookmarks ?? 0)}</span>
+               </button>
               {/* 댓글 */}
               <div className="flex items-center space-x-2 text-gray-600">
                 <FaComment />
