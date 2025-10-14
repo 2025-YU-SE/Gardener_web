@@ -1,74 +1,179 @@
 import React from 'react'
 import Header from '../components/header/Header'
+import language from '../components/filter/language'
+import stacks from '../components/filter/stacks'
 
 function Upload() {
-  return (
-    <div>  
-      <Header/>
-      <div className="flex flex-col gap-10 mt-10 items-center">
-        <div className="font-bold text-2xl">코드 심기</div>
-        <div className='flex gap-10'>
-          <div className="hover:font-bold border-b-2 border-transparent hover:border-black">개발</div>
-          <div className="hover:font-bold border-b-2 border-transparent hover:border-black">코딩 테스트</div>
-        </div>
-        <div className="w-3/5 flex flex-col gap-5 p-5">
-          <div className="border border-gray-300">  
-            <div className="font-bold">
-              필수항목
-            </div>
-            <div>
-              <h3>제목*</h3>
-              <input type="text" className="border border-gray-300 p-2 w-full" />
-            </div>
-            <div>
-              <h3>설명*</h3>
-              <textarea className="border border-gray-300 p-2 w-full" rows="4"></textarea>
-            </div>
-            <div>
-              <h3>프로그래밍 언어*</h3>
-              <select className="border border-gray-300 p-2 w-full">
-                <option value="">언어 선택</option>
-              </select>
-            </div>
-            <div>
-              <h3>기술 스택 / 프레임워크</h3>
-              <select className="border border-gray-300 p-2 w-full">
-                <option value="">언어 선택</option>
-              </select>
-            </div>
-            <div>
-              <div> 코드 입력</div>
-              <textarea className="border border-gray-300 p-2 w-full" rows="10"></textarea>
-            </div>
-            <div>
-              <h3>코드 설명(간단한 설명, 구현 의도 등)*</h3>
-              <textarea className="border border-gray-300 p-2 w-full" rows="4"></textarea>
-            </div>
-            <div>
-              <div>총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청</div>
-              <textarea className="border border-gray-300 p-2 w-full" rows="1"></textarea>
-              <textarea className="border border-gray-300 p-2 w-full" rows="1"></textarea>
-              <textarea className="border border-gray-300 p-2 w-full" rows="1"></textarea>
 
+  return (
+    <div className="min-h-screen bg-[#F9FAFB]">  
+      <Header/>
+      <div className="flex flex-col items-center py-8 px-4">
+        <div className="w-full max-w-4xl">
+          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">코드 심기</h1>
+          
+          {/* 탭 메뉴 */}
+          <div className="flex justify-center mb-8">
+            <div className="flex border-b border-gray-200">
+              <button className="px-6 py-3 font-medium text-green-600 border-b-2 border-green-600">
+                개발
+              </button>
+              <button className="px-6 py-3 font-medium text-gray-500 hover:text-gray-700">
+                코딩테스트
+              </button>
             </div>
           </div>
-          <div className="border border-gray-300 flex-col items-center">
-            <div className="flex gap-2">  
-              <div className="font-bold">*선택사항</div>
-              <div className="text-sm text-gray-500">(필요한 경우에만 입력하세요)</div>
+
+          {/* 필수 항목 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <div className="flex items-center mb-6">
+              <div className="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+              <h2 className="text-xl font-bold text-gray-800">필수 항목</h2>
             </div>
-            <div>
-              <h3>사진 피드백 업로드</h3>
-              <input type="file"  className="border border-gray-300 p-2" />
-            </div>
-            <div>
-              <h3>GitHub 레포지토리 주소</h3>
-              <input type="text" className="border border-gray-300 p-2" />
+            
+            <div className="space-y-6">
+              {/* 제목 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  제목 *
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="코드 제목을 입력하세요"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {/* 설명 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  설명 *
+                </label>
+                <textarea 
+                  placeholder="코드에 대한 간단한 설명을 입력하세요"
+                  rows="4"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                ></textarea>
+              </div>
+
+              {/* 프로그래밍 언어 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  프로그래밍 언어 *
+                </label>
+                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+                  <option value="">언어를 선택하세요</option>
+                  {language.map(lang => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 기술 스택/프레임워크 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  기술 스택/프레임워크
+                </label>
+                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
+                  <option value="">기술 스택을 선택하세요</option>
+                  {stacks.map(stack => (
+                    <option key={stack} value={stack}>{stack}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 코드 입력 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  코드 입력 *
+                </label>
+                <div className="border border-gray-300 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center">
+                    <span className="text-sm text-gray-600">JavaScript</span>
+                  </div>
+                  <textarea 
+                    placeholder="코드를 입력하거나 위에서 파일을 업로드하세요..."
+                    rows="10"
+                    className="w-full px-4 py-3 border-0 focus:ring-0 outline-none resize-none font-mono text-sm"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* 코드 설명 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  코드를 설명하는 창 (간단한 설명, 구현 의도 등) *
+                </label>
+                <textarea 
+                  placeholder="코드의 목적, 구현 방식, 특별한 고려사항 등을 설명해주세요"
+                  rows="4"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                ></textarea>
+              </div>
+
+              {/* 피드백 요청 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청 *
+                </label>
+                <div className="space-y-2">
+                  <input 
+                    type="text" 
+                    placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="border border-gray-300 h-10 flex justify-between items-center px-5">
-            <div className="text-sm text-gray-500">  
-            *표시는 필수 입력 사항입니다.
+
+          {/* 선택사항 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+            <div className="flex items-center mb-6">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+              <h2 className="text-xl font-bold text-gray-800">선택사항</h2>
+              <span className="text-sm text-gray-500 ml-2">(필요한 경우에만 입력하세요)</span>
+            </div>
+            
+            <div className="space-y-6">
+              {/* 사진 피드백 업로드 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  사진 피드백 업로드
+                </label>
+                <button className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
+                  <span className="text-gray-600">이미지 추가</span>
+                </button>
+              </div>
+
+              {/* GitHub 레포지토리 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GitHub 레포지토리 주소
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="https://github.com/username/repository"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 하단 버튼 */}
+          <div className="flex justify-between items-center px-5 bg-white border border-gray-200 rounded-lg p-3 mb-6">
+            <div className="text-sm text-gray-500">
+              • 표시된 항목은 필수 입력 사항입니다.
             </div>
             <button className='m-2 px-4 py-1 rounded-md bg-[#16A34A] text-white'>코드 업로드</button>
           </div>
@@ -79,5 +184,3 @@ function Upload() {
 }
 
 export default Upload
-
-
