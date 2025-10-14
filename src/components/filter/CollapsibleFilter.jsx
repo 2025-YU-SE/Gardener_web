@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 
-function CollapsibleFilter({ title, options, roundedClass = "rounded-2xl", titleClass = "font-semibold" }) {
+function CollapsibleFilter({ title, options, roundedClass = "rounded-2xl", titleClass = "font-semibold", showSelected = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState([]);
 
@@ -25,7 +25,12 @@ function CollapsibleFilter({ title, options, roundedClass = "rounded-2xl", title
         onClick={toggleFilter}
         className={`w-full flex justify-between items-center p-3 px-7 ${titleClass} text-left`}
       >
-        <span>{title}</span>
+         <span>
+           {showSelected && selectedOptions.length > 0 
+             ? selectedOptions.join(', ') 
+             : title
+           }
+         </span>
         {/* 눌렀을 때 아이콘 회전 */}
         <FaChevronDown
           className={`transform transition-transform duration-400 ${isOpen ? 'rotate-180' : ''}`}

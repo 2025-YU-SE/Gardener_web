@@ -67,6 +67,7 @@ function Upload() {
                   options={language}
                   roundedClass="rounded-lg"
                   titleClass="font-normal text-gray-600"
+                  showSelected={true}
                 />
               </div>
 
@@ -80,6 +81,7 @@ function Upload() {
                   options={stacks}
                   roundedClass="rounded-lg"
                   titleClass="font-normal text-gray-600"
+                  showSelected={true}
                 />
               </div>
 
