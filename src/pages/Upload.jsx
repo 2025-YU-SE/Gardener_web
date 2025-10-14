@@ -194,20 +194,6 @@ function Upload() {
                   ></textarea>
                 </div>
 
-                {/* 파일 업로드 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    파일 업로드 *
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 hover:bg-green-50 transition-colors">
-                    <div className="text-gray-400 mb-2 flex justify-center">
-                      <MdOutlineUploadFile size={48} />
-                    </div>
-                    <p className="text-gray-600">파일 업로드</p>
-                    <p className="text-sm text-gray-500 mt-1">문제 파일을 드래그하거나 클릭하여 업로드하세요</p>
-                  </div>
-                </div>
-
                 {/* 프로그래밍 언어 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -272,6 +258,33 @@ function Upload() {
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                     />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 선택사항 코딩테스트 탭에서 표시 */}
+          {activeTab === '코딩테스트' && (
+            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+              <div className="flex items-center mb-6">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <h2 className="text-xl font-bold text-gray-800">선택사항</h2>
+                <span className="text-sm text-gray-500 ml-2">(필요한 경우에만 입력하세요)</span>
+              </div>
+
+              <div className="space-y-6">
+                {/* 파일 업로드 (선택) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    파일 업로드
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 hover:bg-green-50 transition-colors">
+                    <div className="text-gray-400 mb-2 flex justify-center">
+                      <MdOutlineUploadFile size={48} />
+                    </div>
+                    <p className="text-gray-600">파일 업로드</p>
+                    <p className="text-sm text-gray-500 mt-1">문제 파일을 드래그하거나 클릭하여 업로드하세요</p>
                   </div>
                 </div>
               </div>
