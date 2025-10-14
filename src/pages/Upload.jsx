@@ -1,4 +1,8 @@
 import React, { useState } from 'react'
+import { BsSend } from "react-icons/bs"
+import { FaGithub } from "react-icons/fa"
+import { GoPlus } from "react-icons/go"
+import { MdOutlineUploadFile } from "react-icons/md"
 import Header from '../components/header/Header'
 import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
@@ -44,7 +48,7 @@ function Upload() {
           {activeTab === '개발' && (
             <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
               <div className="flex items-center mb-6">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
                 <h2 className="text-xl font-bold text-gray-800">필수 항목</h2>
               </div>
               
@@ -111,7 +115,7 @@ function Upload() {
                       <span className="text-sm text-gray-600">JavaScript</span>
                     </div>
                     <textarea 
-                      placeholder="코드를 입력하거나 위에서 파일을 업로드하세요..."
+                      placeholder="코드를 입력하세요요"
                       rows="10"
                       className="w-full px-4 py-3 border-0 focus:ring-0 outline-none resize-none font-mono text-sm"
                     ></textarea>
@@ -161,7 +165,7 @@ function Upload() {
           {activeTab === '코딩테스트' && (
             <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
               <div className="flex items-center mb-6">
-                <div className="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
                 <h2 className="text-xl font-bold text-gray-800">필수 항목</h2>
               </div>
               
@@ -196,7 +200,8 @@ function Upload() {
                     파일 업로드 *
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 hover:bg-green-50 transition-colors">
-                    <div className="text-gray-400 mb-2">
+                    <div className="text-gray-400 mb-2 flex justify-center">
+                      <MdOutlineUploadFile size={48} />
                     </div>
                     <p className="text-gray-600">파일 업로드</p>
                     <p className="text-sm text-gray-500 mt-1">문제 파일을 드래그하거나 클릭하여 업로드하세요</p>
@@ -227,7 +232,7 @@ function Upload() {
                       <span className="text-sm text-gray-600">JavaScript</span>
                     </div>
                     <textarea 
-                      placeholder="코드를 입력하거나 위에서 파일을 업로드하세요..."
+                      placeholder="코드를 입력하세요..."
                       rows="10"
                       className="w-full px-4 py-3 border-0 focus:ring-0 outline-none resize-none font-mono text-sm"
                     ></textarea>
@@ -277,7 +282,7 @@ function Upload() {
           {activeTab === '개발' && (
             <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
               <div className="flex items-center mb-6">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <h2 className="text-xl font-bold text-gray-800">선택사항</h2>
                 <span className="text-sm text-gray-500 ml-2">(필요한 경우에만 입력하세요)</span>
               </div>
@@ -288,7 +293,8 @@ function Upload() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     사진 피드백 업로드
                   </label>
-                  <button className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors">
+                  <button className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors gap-2">
+                    <GoPlus className="text-gray-600" />
                     <span className="text-gray-600">이미지 추가</span>
                   </button>
                   {/* 추후 업로드 연동 */}
@@ -304,22 +310,30 @@ function Upload() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     GitHub 레포지토리 주소
                   </label>
-                  <input 
-                    type="text" 
-                    placeholder="https://github.com/username/repository"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FaGithub className="text-gray-400" />
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="https://github.com/username/repository"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {/* 하단 버튼 */}
-          <div className="flex justify-between items-center px-5 bg-white border border-gray-200 rounded-lg p-3 mb-6">
+          <div className="flex justify-between items-center py-5 px-5 bg-white border border-gray-200 rounded-lg p-3 mb-6">
             <div className="text-sm text-gray-500">
               • 표시된 항목은 필수 입력 사항입니다.
             </div>
-            <button className='m-2 px-4 py-1 rounded-md bg-[#16A34A] text-white'>코드 업로드</button>
+            <button className='m-2 px-4 py-2 rounded-md bg-[#16A34A] text-white flex items-center gap-2'>
+              <BsSend />
+              코드 업로드
+            </button>
           </div>
         </div>
       </div>
