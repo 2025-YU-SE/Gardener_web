@@ -17,6 +17,7 @@ function PostDetail() {
   const [showAllFeedbacks, setShowAllFeedbacks] = useState(false)
   const [feedbackSort, setFeedbackSort] = useState('latest')
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false)
+  const [isAIFeedbackOpen, setIsAIFeedbackOpen] = useState(false)
 
   const [postLiked, setPostLiked] = useState(Boolean(post.isLiked))
   const [postBookmarked, setPostBookmarked] = useState(Boolean(post.isBookmarked))
@@ -134,7 +135,13 @@ function PostDetail() {
               </div>
             </div>
             <div>
-              <button className='bg-green-600 text-white px-4 py-2 rounded-md'>AI 피드백</button>
+              <button
+                type="button"
+                onClick={() => setIsAIFeedbackOpen((v) => !v)}
+                className='bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors'
+              >
+                AI 피드백
+              </button>
             </div>
           </div>
         </div>
@@ -144,6 +151,14 @@ function PostDetail() {
           {/*코드 에디터 */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"> 코드에디터 </div>
+            {isAIFeedbackOpen && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">AI 피드백</h3>
+                <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                  {`코드 전반에서 변수 네이밍이 일관적이며 가독성이 좋습니다.\n\n개선 제안:\n- 불변성 보장을 위해 배열/객체 업데이트 시 전개 연산자를 사용하세요.\n- 연산이 잦은 파생 값은 useMemo로 감싸면 리렌더링 비용을 줄일 수 있습니다.\n- 이벤트 핸들러는 useCallback으로 메모이제이션하면 자식 컴포넌트 재렌더를 방지합니다.`}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 피드백 요청 + 작성 + 기존 피드백 */}
