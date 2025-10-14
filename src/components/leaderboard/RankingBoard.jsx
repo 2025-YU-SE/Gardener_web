@@ -127,7 +127,7 @@ function RankingBoard() {
   return (
     <div className="mt-8">
       {/* 상단 TOP 3 영역 */}
-      <div className="rounded-xl border border-[#E5E7EB] bg-white/70 p-4">
+      <div className="rounded-xl border border-[#E5E7EB] bg-white/70 pt-4 pb-10">
         <div className="text-center mb-4">
           <h3 className="text-[14px] font-semibold">🏆 명예의 전당 TOP 3</h3>
         </div>

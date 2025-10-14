@@ -48,6 +48,22 @@ function LeaderBoard() {
 
           {/* 랭킹보드 */}
           <RankingBoard />
+
+          {/* Footer */}
+          <div className="w-full flex justify-center my-8">
+            <div className="w-full max-w-[1248px] px-8 py-8 rounded-[10px] bg-gradient-to-r from-[#F0FDF4] to-[#EFF6FF] border border-[#E5E7EB] text-center shadow-sm">
+              <div className="flex justify-center items-center gap-2 mb-1">
+                <span className="text-[15px] font-medium text-[#4D4D4D]">
+                  🌱 함께 성장하는
+                  <span className="text-[#65C676]"> Code Gardener </span>
+                  커뮤니티
+                </span>
+              </div>
+              <p className="text-[12px] text-[#4A5565]">
+                총 15명의 개발자가 함께 코드를 키우고 있습니다
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
