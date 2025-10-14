@@ -16,6 +16,7 @@ function PostDetail() {
   const [feedbackContent, setFeedbackContent] = useState('')
   const [showAllFeedbacks, setShowAllFeedbacks] = useState(false)
   const [feedbackSort, setFeedbackSort] = useState('latest')
+  const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false)
 
   const [postLiked, setPostLiked] = useState(Boolean(post.isLiked))
   const [postBookmarked, setPostBookmarked] = useState(Boolean(post.isBookmarked))
@@ -170,58 +171,79 @@ function PostDetail() {
               {/* 피드백 작성 */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">피드백 작성</h3>
-                {/* 피드백 유형 */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">피드백 유형</label>
-                  <div className="flex space-x-2">
-                    {feedbackTypes.map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setSelectedFeedbackType(type)}
-                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                          selectedFeedbackType === type
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {type}
+                {!isFeedbackFormOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsFeedbackFormOpen(true)}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    피드백 작성하기
+                  </button>
+                ) : (
+                  <div>
+                    {/* 피드백 유형 */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">피드백 유형</label>
+                      <div className="flex space-x-2">
+                        {feedbackTypes.map((type) => (
+                          <button
+                            key={type}
+                            onClick={() => setSelectedFeedbackType(type)}
+                            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                              selectedFeedbackType === type
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* 평점 */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">평점</label>
+                      <div className="flex space-x-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() => setRating(star)}
+                            className="text-2xl transition-colors"
+                          >
+                            <FaStar 
+                              className={star <= rating ? 'text-yellow-400' : 'text-gray-300'} 
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {/* 피드백 내용 */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">피드백 내용</label>
+                      <textarea
+                        value={feedbackContent}
+                        onChange={(e) => setFeedbackContent(e.target.value)}
+                        placeholder="새싹에 대한 피드백을 작성해주세요. 구체적이고 건설적인 피드백이 도움이 됩니다."
+                        rows="4"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">{feedbackContent.length}/1000자</p>
+                    </div>
+                    {/* 제출/취소 */}
+                    <div className="flex gap-2">
+                      <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
+                        피드백 제출
                       </button>
-                    ))}
-                  </div>
-                </div>
-                {/* 평점 */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">평점</label>
-                  <div className="flex space-x-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
                       <button
-                        key={star}
-                        onClick={() => setRating(star)}
-                        className="text-2xl transition-colors"
+                        type="button"
+                        onClick={() => setIsFeedbackFormOpen(false)}
+                        className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
-                        <FaStar 
-                          className={star <= rating ? 'text-yellow-400' : 'text-gray-300'} 
-                        />
+                        취소
                       </button>
-                    ))}
+                    </div>
                   </div>
-                </div>
-                {/* 피드백 내용 */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">피드백 내용</label>
-                  <textarea
-                    value={feedbackContent}
-                    onChange={(e) => setFeedbackContent(e.target.value)}
-                    placeholder="새싹에 대한 피드백을 작성해주세요. 구체적이고 건설적인 피드백이 도움이 됩니다."
-                    rows="4"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">{feedbackContent.length}/1000자</p>
-                </div>
-                {/* 제출 버튼 */}
-                <button className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
-                  피드백 제출
-                </button>
+                )}
               </div>
 
           {/* 기존 피드백 댓글 */}
