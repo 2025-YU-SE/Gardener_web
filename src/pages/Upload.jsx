@@ -2,6 +2,7 @@ import React from 'react'
 import Header from '../components/header/Header'
 import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
+import CollapsibleFilter from '../components/filter/CollapsibleFilter'
 
 function Upload() {
 
@@ -61,12 +62,12 @@ function Upload() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   프로그래밍 언어 *
                 </label>
-                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
-                  <option value="">언어를 선택하세요</option>
-                  {language.map(lang => (
-                    <option key={lang} value={lang}>{lang}</option>
-                  ))}
-                </select>
+                <CollapsibleFilter 
+                  title="언어를 선택하세요" 
+                  options={language}
+                  roundedClass="rounded-lg"
+                  titleClass="font-normal text-gray-600"
+                />
               </div>
 
               {/* 기술 스택/프레임워크 */}
@@ -74,12 +75,12 @@ function Upload() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   기술 스택/프레임워크
                 </label>
-                <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none">
-                  <option value="">기술 스택을 선택하세요</option>
-                  {stacks.map(stack => (
-                    <option key={stack} value={stack}>{stack}</option>
-                  ))}
-                </select>
+                <CollapsibleFilter 
+                  title="기술 스택을 선택하세요" 
+                  options={stacks}
+                  roundedClass="rounded-lg"
+                  titleClass="font-normal text-gray-600"
+                />
               </div>
 
               {/* 코드 입력 */}
