@@ -14,6 +14,8 @@ function PostDetail() {
   const [selectedFeedbackType, setSelectedFeedbackType] = useState('일반 피드백')
   const [rating, setRating] = useState(5)
   const [feedbackContent, setFeedbackContent] = useState('')
+  const [showAllFeedbacks, setShowAllFeedbacks] = useState(false)
+  const [feedbackSort, setFeedbackSort] = useState('latest')
 
   const feedbackTypes = ['일반 피드백', '개선 제안', '버그 신고']
 
@@ -165,45 +167,87 @@ function PostDetail() {
           {/* 기존 피드백 댓글 */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">기존 피드백</h3>
+            {/* 정렬 옵션 */}
+            <div className="mb-3 flex items-center gap-2">
+              {[
+                { key: 'latest', label: '최신순' },
+                { key: 'recommended', label: '추천순' },
+                { key: 'detail', label: '상세 피드백 라인 순' },
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => setFeedbackSort(opt.key)}
+                  className={`px-3 py-1 rounded border text-sm ${
+                    feedbackSort === opt.key
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
             <div className="space-y-4">
-              {sampleFeedbacks
-                .filter(f => f.postId === post.id)
-                .map((fb) => (
+              {(() => {
+                const all = sampleFeedbacks.filter(f => f.postId === post.id)
+                const INITIAL_COUNT = 4
+                const list = showAllFeedbacks ? all : all.slice(0, INITIAL_COUNT)
+                return list.map((fb) => (
                   <div key={fb.id} className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0">
-                    <div className="flex items-center mb-2">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
-                        {fb.avatarInitial}
+                    <div className="rounded-md p-3 transition-all hover:bg-gray-50 hover:ring-1 hover:ring-gray-200">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold mr-2">
+                          {fb.avatarInitial}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">{fb.author}</p>
+                          <p className="text-xs text-gray-500">{fb.timeAgo}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">{fb.author}</p>
-                        <p className="text-xs text-gray-500">{fb.timeAgo}</p>
+                      <div className="flex mb-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FaStar key={star} className={`text-sm ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
+                        ))}
                       </div>
-                    </div>
-                    <div className="flex mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <FaStar key={star} className={`text-sm ${star <= fb.rating ? 'text-yellow-400' : 'text-gray-300'}`} />
-                      ))}
-                    </div>
-                    <p className="text-gray-700 text-sm leading-relaxed mb-3">
-                      {fb.content}
-                    </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <FaHeart className="text-red-500" />
-                        <span>{fb.likes}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <FaComment className="text-blue-500" />
-                        <span>{fb.comments}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <FaEye className="text-gray-500" />
-                        <span>{fb.views}</span>
+                      <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                        {fb.content}
+                      </p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <FaHeart className="text-red-500" />
+                          <span>{fb.likes}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaComment className="text-blue-500" />
+                          <span>{fb.comments}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaEye className="text-gray-500" />
+                          <span>{fb.views}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
+                ))
+              })()}
             </div>
+            {(() => {
+              const total = sampleFeedbacks.filter(f => f.postId === post.id).length
+              const INITIAL_COUNT = 4
+              if (showAllFeedbacks || total <= INITIAL_COUNT) return null
+              return (
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllFeedbacks(true)}
+                    className="w-full py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  >
+                    더보기
+                  </button>
+                </div>
+              )
+            })()}
               </div>
             </div>
           </div>
