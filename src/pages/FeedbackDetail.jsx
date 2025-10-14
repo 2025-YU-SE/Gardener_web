@@ -3,11 +3,12 @@ import Header from '../components/header/Header'
 import { FiChevronLeft } from 'react-icons/fi'
 import { FaHeart, FaRegHeart, FaComment, FaStar } from 'react-icons/fa'
 import { BsSend } from 'react-icons/bs'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
 
 function FeedbackDetail() {
+  const navigate = useNavigate()
   const { postId } = useParams()
   const idNum = Number(postId)
   const post = (Number.isNaN(idNum)
@@ -39,10 +40,10 @@ function FeedbackDetail() {
     <div className="min-h-screen bg-[#F9FAFB]">
       <Header />
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+        <button type="button" onClick={() => navigate(-1)} className="flex items-center gap-2 text-xs text-gray-500 mb-4 hover:text-gray-700">
           <FiChevronLeft className="text-gray-400" />
           <span>피드백으로 돌아가기</span>
-        </div>
+        </button>
 
         {/* 요약 */}
         <section className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
