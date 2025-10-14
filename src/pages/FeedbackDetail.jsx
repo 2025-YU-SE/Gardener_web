@@ -6,16 +6,23 @@ import { BsSend } from 'react-icons/bs'
 import { useParams, useNavigate } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
+import { sampleReplies } from '../components/replyContext'
 
 function FeedbackDetail() {
   const navigate = useNavigate()
-  const { postId } = useParams()
+  const { postId, feedbackId } = useParams()
   const idNum = Number(postId)
   const post = (Number.isNaN(idNum)
     ? samplePosts[0]
     : samplePosts.find(p => p.id === idNum)) || samplePosts[0]
-  const mainFeedback = (sampleFeedbacks.find(f => f.postId === post.id) || sampleFeedbacks[0])
-  const replyCount = sampleFeedbacks.filter(f => f.postId === post.id).length
+  const feedbackIdNum = Number(feedbackId)
+  const mainFeedback = (
+    (!Number.isNaN(feedbackIdNum) && sampleFeedbacks.find(f => f.id === feedbackIdNum && f.postId === post.id)) ||
+    sampleFeedbacks.find(f => f.postId === post.id) ||
+    sampleFeedbacks[0]
+  )
+  const replies = sampleReplies.filter(r => r.postId === post.id && r.parentFeedbackId === mainFeedback?.id)
+  const replyCount = replies.length
   const [detailLiked, setDetailLiked] = useState(false)
   const baseLikes = mainFeedback?.likes ?? 0
   const detailLikes = baseLikes + (detailLiked ? 1 : 0)
@@ -23,11 +30,11 @@ function FeedbackDetail() {
   const [replyLikeState, setReplyLikeState] = useState({})
   useEffect(() => {
     const init = {}
-    sampleFeedbacks.filter(f => f.postId === post.id).forEach(f => {
+    replies.forEach(f => {
       init[f.id] = { liked: false, count: f.likes ?? 0 }
     })
     setReplyLikeState(init)
-  }, [post.id])
+  }, [post.id, mainFeedback?.id])
   const toggleReplyLike = (id) => {
     setReplyLikeState(prev => {
       const curr = prev[id] || { liked: false, count: 0 }
@@ -121,16 +128,13 @@ function FeedbackDetail() {
           <section className="bg-white border border-gray-200 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">답글 ({replyCount}개)</h2>
             <div className="space-y-4">
-              {sampleFeedbacks.filter(f => f.postId === post.id).map((fb, idx, arr) => (
-                <div key={fb.id} className={`py-4 ${idx !== arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
+              {replies.map((fb, idx) => (
+                <div key={fb.id} className={`py-4 ${idx !== replies.length - 1 ? 'border-b border-gray-200' : ''}`}>
                   <div className="flex items-start">
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold mr-3">{fb.avatarInitial}</div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-semibold text-gray-900">{fb.author}</span>
-                        {fb.author === post.author && (
-                          <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs border border-green-100">원글 작성자</span>
-                        )}
                         <span className="text-gray-400">·</span>
                         <span className="text-gray-500">{fb.timeAgo}</span>
                       </div>
