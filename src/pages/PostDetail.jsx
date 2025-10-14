@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { FaHeart, FaRegHeart, FaComment, FaEye, FaStar } from 'react-icons/fa'
+import React, { useState } from 'react'
+import { FaHeart, FaRegHeart, FaBookmark, FaRegBookmark, FaComment, FaEye, FaStar } from 'react-icons/fa'
 import Header from '../components/header/Header'
 import { useParams } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
@@ -16,25 +16,26 @@ function PostDetail() {
   const [feedbackContent, setFeedbackContent] = useState('')
   const [showAllFeedbacks, setShowAllFeedbacks] = useState(false)
   const [feedbackSort, setFeedbackSort] = useState('latest')
-  const [feedbackItems, setFeedbackItems] = useState([])
-  const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false)
 
-  useEffect(() => {
-    const nextItems = sampleFeedbacks
-      .filter(f => f.postId === post.id)
-      .map(f => ({ ...f, isLiked: Boolean(f.isLiked) }))
-    setFeedbackItems(nextItems)
-  }, [post.id])
+  const [postLiked, setPostLiked] = useState(Boolean(post.isLiked))
+  const [postBookmarked, setPostBookmarked] = useState(Boolean(post.isBookmarked))
+  const [postLikeCount, setPostLikeCount] = useState(post.likes ?? 0)
+  const [postBookmarkCount, setPostBookmarkCount] = useState(post.bookmarks ?? 0)
 
-  const toggleFeedbackLike = (feedbackId) => {
-    setFeedbackItems(items =>
-      items.map(item => {
-        if (item.id !== feedbackId) return item
-        const nextLiked = !item.isLiked
-        const nextLikes = item.likes + (nextLiked ? 1 : -1)
-        return { ...item, isLiked: nextLiked, likes: nextLikes }
-      })
-    )
+  const togglePostLike = () => {
+    setPostLiked(prev => {
+      const next = !prev
+      setPostLikeCount(c => c + (next ? 1 : -1))
+      return next
+    })
+  }
+
+  const togglePostBookmark = () => {
+    setPostBookmarked(prev => {
+      const next = !prev
+      setPostBookmarkCount(c => c + (next ? 1 : -1))
+      return next
+    })
   }
 
   const feedbackTypes = ['일반 피드백', '개선 제안', '버그 신고']
@@ -79,14 +80,32 @@ function PostDetail() {
           {/* 통계 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6 mb-0">
+              {/* 좋아요 */}
+              <button
+                type="button"
+                onClick={togglePostLike}
+                className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
+                aria-pressed={postLiked}
+              >
+                {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+                <span>{postLikeCount}</span>
+              </button>
+              {/* 스크랩 */}
+              <button
+                type="button"
+                onClick={togglePostBookmark}
+                className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+                aria-pressed={postBookmarked}
+              >
+                {postBookmarked ? <FaBookmark className="text-blue-500" /> : <FaRegBookmark />}
+                <span>{postBookmarkCount}</span>
+              </button>
+              {/* 댓글 */}
               <div className="flex items-center space-x-2 text-gray-600">
-                <FaHeart className="text-red-500" />
-                <span>{post.likes}</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-600">
-                <FaComment className="text-blue-500" />
+                <FaComment />
                 <span>{post.comments}</span>
               </div>
+              {/* 조회수 */}
               <div className="flex items-center space-x-2 text-gray-600">
                 <FaEye className="text-gray-500" />
                 <span>{post.views}</span>
@@ -130,79 +149,58 @@ function PostDetail() {
               {/* 피드백 작성 */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">피드백 작성</h3>
-                {!isFeedbackFormOpen ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsFeedbackFormOpen(true)}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
-                  >
-                    피드백 작성하기
-                  </button>
-                ) : (
-                  <>
-                    {/* 피드백 유형 */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">피드백 유형</label>
-                      <div className="flex space-x-2">
-                        {feedbackTypes.map((type) => (
-                          <button
-                            key={type}
-                            onClick={() => setSelectedFeedbackType(type)}
-                            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                              selectedFeedbackType === type
-                                ? 'bg-green-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            {type}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {/* 평점 */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">평점</label>
-                      <div className="flex space-x-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            onClick={() => setRating(star)}
-                            className="text-2xl transition-colors"
-                          >
-                            <FaStar 
-                              className={star <= rating ? 'text-yellow-400' : 'text-gray-300'} 
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {/* 피드백 내용 */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">피드백 내용</label>
-                      <textarea
-                        value={feedbackContent}
-                        onChange={(e) => setFeedbackContent(e.target.value)}
-                        placeholder="새싹에 대한 피드백을 작성해주세요. 구체적이고 건설적인 피드백이 도움이 됩니다."
-                        rows="4"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
-                      />
-                      <p className="text-sm text-gray-500 mt-1">{feedbackContent.length}/1000자</p>
-                    </div>
-                    {/* 제출/취소 */}
-                    <div className="flex gap-2">
-                      <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
-                        피드백 제출
-                      </button>
+                {/* 피드백 유형 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">피드백 유형</label>
+                  <div className="flex space-x-2">
+                    {feedbackTypes.map((type) => (
                       <button
-                        type="button"
-                        onClick={() => setIsFeedbackFormOpen(false)}
-                        className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        key={type}
+                        onClick={() => setSelectedFeedbackType(type)}
+                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                          selectedFeedbackType === type
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                       >
-                        취소
+                        {type}
                       </button>
-                    </div>
-                  </>
-                )}
+                    ))}
+                  </div>
+                </div>
+                {/* 평점 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">평점</label>
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className="text-2xl transition-colors"
+                      >
+                        <FaStar 
+                          className={star <= rating ? 'text-yellow-400' : 'text-gray-300'} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* 피드백 내용 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">피드백 내용</label>
+                  <textarea
+                    value={feedbackContent}
+                    onChange={(e) => setFeedbackContent(e.target.value)}
+                    placeholder="새싹에 대한 피드백을 작성해주세요. 구체적이고 건설적인 피드백이 도움이 됩니다."
+                    rows="4"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">{feedbackContent.length}/1000자</p>
+                </div>
+                {/* 제출 버튼 */}
+                <button className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
+                  피드백 제출
+                </button>
               </div>
 
           {/* 기존 피드백 댓글 */}
@@ -231,7 +229,7 @@ function PostDetail() {
 
             <div className="space-y-4">
               {(() => {
-                const all = feedbackItems
+                const all = sampleFeedbacks.filter(f => f.postId === post.id)
                 const INITIAL_COUNT = 4
                 const list = showAllFeedbacks ? all : all.slice(0, INITIAL_COUNT)
                 return list.map((fb) => (
@@ -255,20 +253,13 @@ function PostDetail() {
                         {fb.content}
                       </p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        {/* 좋아요 */}
-                        <button
-                          type="button"
-                          onClick={() => toggleFeedbackLike(fb.id)}
-                          className="flex items-center space-x-1 text-gray-600 hover:text-red-500 transition-colors"
-                          aria-pressed={fb.isLiked}
-                        >
-                          {fb.isLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-                          <span className="text-sm font-medium">{fb.likes}</span>
-                        </button>
-                        {/* 댓글 */}
-                        <div className="flex items-center space-x-1 text-gray-600">
-                          <FaComment />
-                          <span className="text-sm font-medium">{fb.comments}</span>
+                        <div className="flex items-center space-x-1">
+                          <FaHeart className="text-red-500" />
+                          <span>{fb.likes}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <FaComment className="text-gray-500" />
+                          <span>{fb.comments}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <FaEye className="text-gray-500" />
@@ -281,7 +272,7 @@ function PostDetail() {
               })()}
             </div>
             {(() => {
-              const total = feedbackItems.length
+              const total = sampleFeedbacks.filter(f => f.postId === post.id).length
               const INITIAL_COUNT = 4
               if (showAllFeedbacks || total <= INITIAL_COUNT) return null
               return (
