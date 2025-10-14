@@ -1,90 +1,100 @@
 // 게시물 샘플 데이터
 
 export const samplePosts = [
-  { 
-    id: 1, 
-    title: "TensorFlow Lite와 Scikit-learn을 이용한 모바일 추천 시스템 구축", 
-    content: "사용자 행동 데이터를 기반으로 Scikit-learn으로 모델을 훈련하고, TensorFlow Lite로 변환하여 모바일 앱에 탑재하는 전 과정을 다룹니다.사용자 행동 데이터를 기반으로 Scikit-learn으로 모델을 훈련하고, TensorFlow Lite로 변환하여 모바일 앱에 탑재하는 전 과정을 다룹니다.", 
-    author: "AI개발자김철수", 
+  {
+    id: 1,
+    title: "TensorFlow Lite와 Scikit-learn을 이용한 모바일 추천 시스템 구축",
+    content:
+      "사용자 행동 데이터를 기반으로 Scikit-learn으로 모델을 훈련하고, TensorFlow Lite로 변환하여 모바일 앱에 탑재하는 전 과정을 다룹니다.사용자 행동 데이터를 기반으로 Scikit-learn으로 모델을 훈련하고, TensorFlow Lite로 변환하여 모바일 앱에 탑재하는 전 과정을 다룹니다.",
+    author: "AI개발자김철수",
     username: "ai_developer_kim",
     avatar: "👨‍💻",
     timeAgo: "2시간 전",
-    views: 237, 
-    likes: 23, 
+    views: 237,
+    likes: 23,
     bookmarks: 9,
     comments: 13,
     tags: ["Python", "MySQL", "SpringBoot"],
     isLiked: false,
-    isBookmarked: false
+    isBookmarked: false,
+    points: 12345,
   },
-  { 
-    id: 2, 
-    title: "React Native로 크로스플랫폼 앱 개발하기", 
-    content: "iOS와 Android 동시 개발을 위한 React Native 완벽 가이드", 
-    author: "모바일개발자이영희", 
+  {
+    id: 2,
+    title: "React Native로 크로스플랫폼 앱 개발하기",
+    content: "iOS와 Android 동시 개발을 위한 React Native 완벽 가이드",
+    author: "모바일개발자이영희",
     username: "mobile_dev_lee",
     avatar: "👩‍💻",
     timeAgo: "4시간 전",
-    views: 189, 
-    likes: 31, 
+    views: 189,
+    likes: 31,
     bookmarks: 12,
     comments: 8,
     tags: ["React Native", "JavaScript", "Firebase"],
     isLiked: true,
-    isBookmarked: false
+    isBookmarked: false,
+    points: 9000,
   },
-  { 
-    id: 3, 
-    title: "Django REST API 성능 최적화 전략", 
-    content: "대용량 트래픽을 처리하는 Django REST API 서버 구축과 성능 튜닝 방법론", 
-    author: "백엔드개발자박민수", 
+  {
+    id: 3,
+    title: "Django REST API 성능 최적화 전략",
+    content:
+      "대용량 트래픽을 처리하는 Django REST API 서버 구축과 성능 튜닝 방법론",
+    author: "백엔드개발자박민수",
     username: "backend_park",
     avatar: "🧑‍💻",
     timeAgo: "6시간 전",
-    views: 156, 
-    likes: 18, 
+    views: 156,
+    likes: 18,
     bookmarks: 7,
     comments: 15,
     tags: ["Python", "Django", "PostgreSQL"],
     isLiked: false,
-    isBookmarked: true
+    isBookmarked: true,
+    points: 7000,
   },
-  { 
-    id: 4, 
-    title: "Vue 3 Composition API 실무 활용법", 
-    content: "Vue 3의 새로운 Composition API를 활용한 재사용 가능한 컴포넌트 설계 패턴", 
-    author: "프론트개발자최영수", 
+  {
+    id: 4,
+    title: "Vue 3 Composition API 실무 활용법",
+    content:
+      "Vue 3의 새로운 Composition API를 활용한 재사용 가능한 컴포넌트 설계 패턴",
+    author: "프론트개발자최영수",
     username: "frontend_choi",
     avatar: "👨‍🎨",
     timeAgo: "8시간 전",
-    views: 134, 
-    likes: 25, 
+    views: 134,
+    likes: 25,
     bookmarks: 11,
     comments: 6,
     tags: ["Vue.js", "TypeScript", "Vite"],
     isLiked: false,
-    isBookmarked: false
+    isBookmarked: false,
+    points: 5600,
   },
-  { 
-    id: 5, 
-    title: "Kubernetes 클러스터 운영 노하우", 
-    content: "프로덕션 환경에서 Kubernetes 클러스터를 안정적으로 운영하기 위한 실무 팁들", 
-    author: "데브옵스엔지니어정현우", 
+  {
+    id: 5,
+    title: "Kubernetes 클러스터 운영 노하우",
+    content:
+      "프로덕션 환경에서 Kubernetes 클러스터를 안정적으로 운영하기 위한 실무 팁들",
+    author: "데브옵스엔지니어정현우",
     username: "devops_jung",
     avatar: "🔧",
     timeAgo: "12시간 전",
-    views: 298, 
-    likes: 42, 
+    views: 298,
+    likes: 42,
     bookmarks: 18,
     comments: 21,
     tags: ["Kubernetes", "Docker", "AWS"],
     isLiked: true,
-    isBookmarked: true
+    isBookmarked: true,
+    points: 5550,
   },
   {
     id: 6,
     title: "Flutter로 크로스플랫폼 모바일 앱 개발",
-    content: "Google의 Flutter 프레임워크를 사용하여 iOS와 Android 앱을 동시에 개발하는 방법",
+    content:
+      "Google의 Flutter 프레임워크를 사용하여 iOS와 Android 앱을 동시에 개발하는 방법",
     author: "모바일개발자김다트",
     username: "flutter_kim",
     avatar: "📱",
@@ -95,12 +105,14 @@ export const samplePosts = [
     comments: 11,
     tags: ["Flutter", "Dart", "Mobile"],
     isLiked: false,
-    isBookmarked: false
+    isBookmarked: false,
+    points: 5520,
   },
   {
     id: 7,
     title: "GraphQL과 Apollo Client로 효율적인 데이터 페칭",
-    content: "REST API의 한계를 극복하는 GraphQL과 Apollo Client를 활용한 현대적인 데이터 관리",
+    content:
+      "REST API의 한계를 극복하는 GraphQL과 Apollo Client를 활용한 현대적인 데이터 관리",
     author: "풀스택개발자이그래프",
     username: "graphql_lee",
     avatar: "🔗",
@@ -111,12 +123,14 @@ export const samplePosts = [
     comments: 9,
     tags: ["GraphQL", "Apollo", "React"],
     isLiked: true,
-    isBookmarked: false
+    isBookmarked: false,
+    points: 5480,
   },
   {
     id: 8,
     title: "AWS Lambda를 이용한 서버리스 아키텍처 구축",
-    content: "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
+    content:
+      "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
     author: "클라우드아키텍트박서버리스",
     username: "serverless_park",
     avatar: "☁️",
@@ -127,12 +141,14 @@ export const samplePosts = [
     comments: 16,
     tags: ["AWS", "Lambda", "Serverless"],
     isLiked: false,
-    isBookmarked: true
+    isBookmarked: true,
+    points: 5450,
   },
-    {
+  {
     id: 9,
     title: "AWS Lambda를 이용한 서버리스 아키텍처 구축",
-    content: "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
+    content:
+      "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
     author: "클라우드아키텍트박서버리스",
     username: "serverless_park",
     avatar: "☁️",
@@ -143,12 +159,14 @@ export const samplePosts = [
     comments: 16,
     tags: ["AWS", "Lambda", "Serverless"],
     isLiked: false,
-    isBookmarked: true
+    isBookmarked: true,
+    points: 5410,
   },
-    {
+  {
     id: 10,
     title: "AWS Lambda를 이용한 서버리스 아키텍처 구축",
-    content: "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
+    content:
+      "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
     author: "클라우드아키텍트박서버리스",
     username: "serverless_park",
     avatar: "☁️",
@@ -159,8 +177,27 @@ export const samplePosts = [
     comments: 16,
     tags: ["AWS", "Lambda", "Serverless"],
     isLiked: false,
-    isBookmarked: true
-  }
+    isBookmarked: true,
+    points: 5380,
+  },
+  {
+    id: 11,
+    title: "AWS Lambda를 이용한 서버리스 아키텍처 구축",
+    content:
+      "서버 관리 없이 확장 가능한 웹 애플리케이션을 구축하는 서버리스 아키텍처 완전 가이드",
+    author: "클라우드아키텍트박서버리스",
+    username: "serverless_park",
+    avatar: "☁️",
+    timeAgo: "2일 전",
+    views: 245,
+    likes: 39,
+    bookmarks: 20,
+    comments: 16,
+    tags: ["AWS", "Lambda", "Serverless"],
+    isLiked: false,
+    isBookmarked: true,
+    points: 1000,
+  },
 ];
 
 export default samplePosts;
