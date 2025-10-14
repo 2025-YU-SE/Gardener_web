@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from '../components/header/Header'
 import { FiChevronLeft } from 'react-icons/fi'
 import { FaHeart, FaRegHeart, FaComment, FaStar } from 'react-icons/fa'
-import { AiFillStar } from 'react-icons/ai'
+import { BsSend } from 'react-icons/bs'
 import { useParams } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
@@ -19,6 +19,22 @@ function FeedbackDetail() {
   const baseLikes = mainFeedback?.likes ?? 0
   const detailLikes = baseLikes + (detailLiked ? 1 : 0)
   const toggleDetailLike = () => setDetailLiked(v => !v)
+  const [replyLikeState, setReplyLikeState] = useState({})
+  useEffect(() => {
+    const init = {}
+    sampleFeedbacks.filter(f => f.postId === post.id).forEach(f => {
+      init[f.id] = { liked: false, count: f.likes ?? 0 }
+    })
+    setReplyLikeState(init)
+  }, [post.id])
+  const toggleReplyLike = (id) => {
+    setReplyLikeState(prev => {
+      const curr = prev[id] || { liked: false, count: 0 }
+      const nextLiked = !curr.liked
+      const nextCount = Math.max(0, curr.count + (nextLiked ? 1 : -1))
+      return { ...prev, [id]: { liked: nextLiked, count: nextCount } }
+    })
+  }
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <Header />
@@ -99,9 +115,56 @@ function FeedbackDetail() {
 
         {/* 코드에디터 */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">코드 에디터</div>
-        {/* 답글 */}
-        <section className="bg-white border border-gray-200 rounded-lg p-6">답글</section>
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">코드 에디터</div>
+          {/* 답글 */}
+          <section className="bg-white border border-gray-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">답글 ({replyCount}개)</h2>
+            <div className="space-y-4">
+              {sampleFeedbacks.filter(f => f.postId === post.id).map((fb, idx, arr) => (
+                <div key={fb.id} className={`py-4 ${idx !== arr.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                  <div className="flex items-start">
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold mr-3">{fb.avatarInitial}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-semibold text-gray-900">{fb.author}</span>
+                        {fb.author === post.author && (
+                          <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs border border-green-100">원글 작성자</span>
+                        )}
+                        <span className="text-gray-400">·</span>
+                        <span className="text-gray-500">{fb.timeAgo}</span>
+                      </div>
+                      <p className="mt-2 text-gray-700 text-sm leading-relaxed">{fb.content}</p>
+                      <div className="mt-2 flex items-center gap-6 text-sm text-gray-600">
+                        <button type="button" onClick={() => toggleReplyLike(fb.id)} className="inline-flex items-center gap-1 hover:opacity-90">
+                          {replyLikeState[fb.id]?.liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+                          <span className="text-sm font-medium">{replyLikeState[fb.id]?.count ?? fb.likes ?? 0}</span>
+                        </button>
+                        <button type="button" className="text-gray-500 hover:text-gray-700">답글</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* 입력 박스 */}
+              <div className="rounded-xl border border-gray-200 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold">👤</div>
+                  <div className="w-full">
+                    <div className="border border-gray-300 rounded-lg p-3">
+                      <textarea rows={5} placeholder="이 피드백에 대한 의견을 남겨주세요..."
+                        className="w-full min-h-28 outline-none focus:ring-0 resize-none border-0 p-0" />
+                      <div className="flex justify-end mt-2">
+                        <button className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700">
+                          <BsSend />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </section>
       </div>
     </div>
