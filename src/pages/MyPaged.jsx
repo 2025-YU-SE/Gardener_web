@@ -5,8 +5,15 @@ import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
 import samplePosts from "../components/postcontext.jsx";
 import PostCard from "../components/PostCard.jsx";
+import { useNavigate } from "react-router-dom";
 
 function MyPaged() {
+  const navigate = useNavigate();
+
+  const handlePostClick = (postId) => {
+    navigate(`/posts/${postId}`);
+  };
+
   const profile = {
     name: "Chiikawa",
     avatar: profileImg,
@@ -186,6 +193,7 @@ function MyPaged() {
                     {...p}
                     badge="내 게시글"
                     rightPill={null}
+                    onClick={() => handlePostClick(p.id)}
                   />
                 ))}
               </div>
@@ -228,6 +236,7 @@ function MyPaged() {
                     {...p}
                     badge="내 피드백"
                     rightPill={null}
+                    onClick={() => handlePostClick(p.id)}
                   />
                 ))}
               </div>
