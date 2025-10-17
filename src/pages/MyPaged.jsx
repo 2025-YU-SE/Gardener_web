@@ -1,14 +1,284 @@
-import React from 'react'
+import React, { useRef, useState } from "react";
+import Header from "../components/header/Header";
+import profileImg from "../assets/profile.png";
+import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
+import { VscFeedback } from "react-icons/vsc";
+import samplePosts from "../components/postcontext.jsx";
+import PostCard from "../components/PostCard.jsx";
+import { useNavigate } from "react-router-dom";
 
 function MyPaged() {
+  const navigate = useNavigate();
+
+  const handlePostClick = (postId) => {
+    navigate(`/posts/${postId}`);
+  };
+
+  const profile = {
+    name: "Chiikawa",
+    avatar: profileImg,
+    points: 4300,
+    selectRate: 50,
+    postCount: 3,
+    feedbackCount: 5,
+    gradeLabel: "등급",
+  };
+
+  // === Donut ===
+  const GradeDonut = ({ percent = 50, label = "등급" }) => {
+    const size = 120;
+    const stroke = 12;
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    const dash = (percent / 100) * c;
+
+    return (
+      <div className="relative">
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            stroke="#E5E7EB"
+            strokeWidth={stroke}
+            fill="none"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            stroke="#10B981"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={`${dash} ${c - dash}`}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[13px] font-semibold text-gray-800">
+            {label}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const myPostsAll = samplePosts; // 임시 데이터 가져옴
+  const myFeedbackAll = samplePosts;
+
+  const INITIAL_COUNT = 4; // 기본 노출 게시글은 4개
+  const [activeTab, setActiveTab] = useState("posts"); // 'posts' | 'feedback'
+  const [myPostsCount, setMyPostsCount] = useState(INITIAL_COUNT);
+  const [myFeedbackCount, setMyFeedbackCount] = useState(INITIAL_COUNT);
+
+  // 접기 버튼 클릭 시 스크롤 복귀
+  const postsRef = useRef(null);
+  const feedbackRef = useRef(null);
+
+  const isPostsExpanded = myPostsCount >= myPostsAll.length;
+  const isFeedbackExpanded = myFeedbackCount >= myFeedbackAll.length;
+
+  const expandPosts = () => setMyPostsCount(myPostsAll.length);
+  const collapsePosts = () => {
+    setMyPostsCount(INITIAL_COUNT);
+    postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const expandFeedback = () => setMyFeedbackCount(myFeedbackAll.length);
+  const collapseFeedback = () => {
+    setMyFeedbackCount(INITIAL_COUNT);
+    feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold">My Paged</h1>
-      <p>마이페이지</p>
+    <div className="min-h-screen bg-[#F5F7FA]">
+      <Header />
+      <div className="mx-auto max-w-[1100px] px-4 py-8">
+        <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
+          <div className="flex items-center gap-5 px-20 mb-10">
+            {/* 프로필 */}
+            <div className="h-full w-[132px] overflow-hidden rounded-[10px]">
+              <img
+                src={profile.avatar}
+                alt={`${profile.name} 프로필`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            {/* 가운데 박스 */}
+            <div
+              className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white
+                          pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden"
+            >
+              <div className="flex-1 min-w-0">
+                <h2 className="text-[22px] font-semibold mb-2">
+                  {profile.name}
+                </h2>
+                <ul className="space-y-2 text-[14px]">
+                  <Row
+                    icon={<TbCoin className="text-[#4D4D4D]" size={18} />}
+                    label="누적포인트"
+                    value={profile.points.toLocaleString()}
+                  />
+                  <Row
+                    icon={
+                      <TbMessage2Check className="text-[#4D4D4D]" size={18} />
+                    }
+                    label="피드백 채택률"
+                    value={`${profile.selectRate}%`}
+                  />
+                  <Row
+                    icon={<TbPencil className="text-[#4D4D4D]" size={18} />}
+                    label="등록한 게시물 수"
+                    value={profile.postCount}
+                  />
+                  <Row
+                    icon={<VscFeedback className="text-[#4D4D4D]" size={18} />}
+                    label="등록한 피드백 수"
+                    value={profile.feedbackCount}
+                  />
+                </ul>
+              </div>
+
+              {/* 등급 */}
+              <div className="shrink-0 ml-16 mr-5">
+                <GradeDonut
+                  percent={profile.selectRate}
+                  label={profile.gradeLabel}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 탭 */}
+          <div className="flex gap-2 mb-5 px-1">
+            <button
+              onClick={() => setActiveTab("posts")}
+              className={`px-3 py-1.5 rounded-full text-sm border transition
+                ${
+                  activeTab === "posts"
+                    ? "bg-[#00B834] text-white border-[#00B834]"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                }`}
+            >
+              내 게시글 ({myPostsAll.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTab("feedback")}
+              className={`px-3 py-1.5 rounded-full text-sm border transition
+                ${
+                  activeTab === "feedback"
+                    ? "bg-[#00B834] text-white border-[#00B834]"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                }`}
+            >
+              내 피드백 ({myFeedbackAll.length})
+            </button>
+          </div>
+
+          {/* 내 게시글 영역 */}
+          {activeTab === "posts" && (
+            <section ref={postsRef} className="mb-10">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[16px] font-semibold ml-1">
+                  내가 올린 게시글
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {myPostsAll.slice(0, myPostsCount).map((p) => (
+                  <PostCard
+                    key={`mypost-${p.id}`}
+                    {...p}
+                    badge="내 게시글"
+                    rightPill={null}
+                    onClick={() => handlePostClick(p.id)}
+                  />
+                ))}
+              </div>
+
+              {/* 더보기/접기 버튼 */}
+              <div className="mt-6 flex items-center justify-center gap-2">
+                {myPostsAll.length > INITIAL_COUNT && !isPostsExpanded && (
+                  <button
+                    onClick={expandPosts}
+                    className="px-4 py-2 text-sm rounded-md border border-[#00B834] text-[#00B834] hover:bg-[#00B834]/5"
+                  >
+                    더보기
+                  </button>
+                )}
+                {myPostsAll.length > INITIAL_COUNT && isPostsExpanded && (
+                  <button
+                    onClick={collapsePosts}
+                    className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    접기
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* 내 피드백 영역 */}
+          {activeTab === "feedback" && (
+            <section ref={feedbackRef} className="mb-2">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[16px] font-semibold ml-1">
+                  내가 등록한 피드백
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {myFeedbackAll.slice(0, myFeedbackCount).map((p) => (
+                  <PostCard
+                    key={`myfb-${p.id}`}
+                    {...p}
+                    badge="내 피드백"
+                    rightPill={null}
+                    onClick={() => handlePostClick(p.id)}
+                  />
+                ))}
+              </div>
+
+              {/* 더보기/접기 버튼 */}
+              <div className="mt-6 flex items-center justify-center gap-2">
+                {myFeedbackAll.length > INITIAL_COUNT &&
+                  !isFeedbackExpanded && (
+                    <button
+                      onClick={expandFeedback}
+                      className="px-4 py-2 text-sm rounded-md border border-[#00B834] text-[#00B834] hover:bg-[#00B834]/5"
+                    >
+                      더보기
+                    </button>
+                  )}
+                {myFeedbackAll.length > INITIAL_COUNT && isFeedbackExpanded && (
+                  <button
+                    onClick={collapseFeedback}
+                    className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    접기
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
-  )
+  );
 }
 
-export default MyPaged
+function Row({ icon, label, value }) {
+  return (
+    <li className="flex items-center justify-between">
+      <div className="flex items-center gap-2 text-gray-800">
+        <span className="shrink-0">{icon}</span>
+        <span className="font-medium">{label}</span>
+      </div>
+      <span className="font-semibold text-gray-900">{value}</span>
+    </li>
+  );
+}
 
-
+export default MyPaged;
