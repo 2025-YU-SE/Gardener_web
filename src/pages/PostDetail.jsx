@@ -4,6 +4,7 @@ import Header from '../components/header/Header'
 import { useParams, useNavigate } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
+import ReadonlyCodeEditor from '../components/ReadonlyCodeEditor'
 
 function PostDetail() {
   const { postId } = useParams()
@@ -161,7 +162,13 @@ function PostDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/*코드 에디터 */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"> 코드에디터 </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <ReadonlyCodeEditor
+                value={`// 샘플 코드\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n\nconst result = fibonacci(10);\nconsole.log('피보나치 수열 10번째:', result);`}
+                language="javascript"
+                title="JAVASCRIPT - 읽기 전용"
+              />
+            </div>
             {isAIFeedbackOpen && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">AI 피드백</h3>

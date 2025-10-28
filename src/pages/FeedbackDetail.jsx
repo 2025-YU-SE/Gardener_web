@@ -7,6 +7,9 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
 import { sampleReplies } from '../components/replyContext'
+import FeedbackCodeEditor from '../components/FeedbackCodeEditor'
+import ReadonlyCodeEditor from '../components/ReadonlyCodeEditor'
+import FeedbackReadonlyCodeEditor from '../components/FeedbackReadonlyCodeEditor'
 
 function FeedbackDetail() {
   const navigate = useNavigate()
@@ -99,8 +102,84 @@ function FeedbackDetail() {
           {/* 관련 코드 */}
           <div className="mt-5">
             <div className="text-sm font-semibold text-gray-800 mb-2">관련 코드</div>
-            <div className="rounded-md overflow-hidden bg-[#0B1221] border border-[#0F172A]">
-              .
+            <div className="rounded-md overflow-hidden">
+              <FeedbackReadonlyCodeEditor
+                value={`// 사용자 인증 및 데이터 처리 함수들
+function validateUser(user) {
+  if (!user.email || !user.password) {
+    return false;
+  }
+  return true;
+}
+
+function processUserData(users) {
+  const validUsers = [];
+  for (let i = 0; i < users.length; i++) {
+    if (validateUser(users[i])) {
+      validUsers.push(users[i]);
+    }
+  }
+  return validUsers;
+}
+
+// API 호출 함수
+async function fetchUserData(userId) {
+  try {
+    const response = await fetch(\`/api/users/\${userId}\`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log('Error:', error);
+    return null;
+  }
+}
+
+// 데이터 변환 및 필터링
+function transformUserData(rawData) {
+  const processed = rawData.map(user => ({
+    id: user.id,
+    name: user.firstName + ' ' + user.lastName,
+    email: user.email.toLowerCase(),
+    isActive: user.status === 'active'
+  }));
+  
+  return processed.filter(user => user.isActive);
+}`}
+                language="javascript"
+                title="JAVASCRIPT - 피드백된 코드"
+                feedbacks={[
+                  {
+                    start: 2,
+                    end: 6,
+                    text: `🔍 **유효성 검사 개선 필요**\n\n현재 검사가 너무 단순합니다. 다음을 고려해보세요:\n• 이메일 형식 검증 (정규식 사용)\n• 비밀번호 강도 검사\n• 에러 메시지 반환으로 디버깅 개선`,
+                    createdAt: new Date('2024-01-15T10:30:00')
+                  },
+                  {
+                    start: 8,
+                    end: 16,
+                    text: `⚡ **성능 최적화 제안**\n\nfor 루프 대신 함수형 프로그래밍을 사용하면 더 읽기 쉽습니다:\n\`\`\`javascript\nconst validUsers = users.filter(validateUser);\n\`\`\`\n• 코드가 더 간결해집니다\n• 함수형 프로그래밍 패턴 활용`,
+                    createdAt: new Date('2024-01-15T10:35:00')
+                  },
+                  {
+                    start: 19,
+                    end: 28,
+                    text: `🛡️ **에러 처리 개선**\n\n현재 에러 처리가 부족합니다:\n• 구체적인 에러 타입별 처리\n• 사용자에게 친화적인 에러 메시지\n• 로깅 시스템 연동 고려\n• 재시도 로직 추가 검토`,
+                    createdAt: new Date('2024-01-15T10:40:00')
+                  },
+                  {
+                    start: 32,
+                    end: 39,
+                    text: `📝 **코드 가독성 향상**\n\n변수명과 구조를 개선해보세요:\n• \`processed\` → \`transformedUsers\`\n• \`isActive\` → \`isUserActive\`\n• 중첩된 객체 구조 분해 할당 사용\n• 함수 분리로 단일 책임 원칙 적용`,
+                    createdAt: new Date('2024-01-15T10:45:00')
+                  },
+                  {
+                    start: 41,
+                    end: 41,
+                    text: `💡 **추가 개선사항**\n\n• TypeScript 도입으로 타입 안정성 확보\n• 단위 테스트 작성\n• JSDoc 주석 추가\n• ESLint 규칙 적용`,
+                    createdAt: new Date('2024-01-15T10:50:00')
+                  }
+                ]}
+              />
             </div>
           </div>
 
@@ -123,7 +202,13 @@ function FeedbackDetail() {
 
         {/* 코드에디터 */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">코드 에디터</div>
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
+            <ReadonlyCodeEditor
+                  value={`// 샘플 코드\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n\nconst result = fibonacci(10);\nconsole.log('피보나치 수열 10번째:', result);`}
+                  language="javascript"
+                  title="JAVASCRIPT - 읽기 전용"
+                />
+          </div>
           {/* 답글 */}
           <section className="bg-white border border-gray-200 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">답글 ({replyCount}개)</h2>

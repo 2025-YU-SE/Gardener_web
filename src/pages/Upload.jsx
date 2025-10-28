@@ -7,9 +7,30 @@ import Header from '../components/header/Header'
 import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
 import CollapsibleFilter from '../components/filter/CollapsibleFilter'
+import WriteCodeEditor from '../components/WriteCodeEditor'
+
+const getLanguageCode = (languageName) => {
+  const languageMap = {
+    'JavaScript': 'javascript',
+    'Python': 'python',
+    'Java': 'java',
+    'C': 'c',
+    'C++': 'cpp',
+    'C#': 'csharp',
+    'Ruby': 'ruby',
+    'Go': 'go',
+    'PHP': 'php',
+    'Swift': 'swift',
+    'Kotlin': 'kotlin',
+    'TypeScript': 'typescript',
+  };
+  return languageMap[languageName] || 'javascript';
+};
 
 function Upload() {
   const [activeTab, setActiveTab] = useState('개발')
+  const [selectedLanguage, setSelectedLanguage] = useState('JavaScript')
+  const [selectedStacks, setSelectedStacks] = useState([])
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">  
@@ -88,6 +109,13 @@ function Upload() {
                     roundedClass="rounded-lg"
                     titleClass="font-normal text-gray-600"
                     showSelected={true}
+                    selectedOptions={[selectedLanguage]}
+                    onSelectionChange={(selection) => {
+                      if (selection.length > 0) {
+                        setSelectedLanguage(selection[0]);
+                      }
+                    }}
+                    singleSelect={true}
                   />
                 </div>
 
@@ -102,24 +130,19 @@ function Upload() {
                     roundedClass="rounded-lg"
                     titleClass="font-normal text-gray-600"
                     showSelected={true}
+                    selectedOptions={selectedStacks}
+                    onSelectionChange={setSelectedStacks}
                   />
                 </div>
 
                 {/* 코드 입력 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    코드 입력 *
-                  </label>
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center">
-                      <span className="text-sm text-gray-600">JavaScript</span>
-                    </div>
-                    <textarea 
-                      placeholder="코드를 입력하세요요"
-                      rows="10"
-                      className="w-full px-4 py-3 border-0 focus:ring-0 outline-none resize-none font-mono text-sm"
-                    ></textarea>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">코드 입력 *</label>
+                  <WriteCodeEditor
+                    language={getLanguageCode(selectedLanguage)}
+                    title={`${selectedLanguage.toUpperCase()} - 작성 모드`}
+                    value={`// 예시 코드를 자유롭게 수정하세요\nconst numbers = [1,2,3,4,5];\nconst doubled = numbers.map(x => x * 2);\nconsole.log(doubled);`}
+                  />
                 </div>
 
                 {/* 코드 설명 */}
@@ -205,6 +228,13 @@ function Upload() {
                     roundedClass="rounded-lg"
                     titleClass="font-normal text-gray-600"
                     showSelected={true}
+                    selectedOptions={[selectedLanguage]}
+                    onSelectionChange={(selection) => {
+                      if (selection.length > 0) {
+                        setSelectedLanguage(selection[0]);
+                      }
+                    }}
+                    singleSelect={true}
                   />
                 </div>
 
@@ -213,16 +243,11 @@ function Upload() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     코드 입력 *
                   </label>
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-300 flex items-center">
-                      <span className="text-sm text-gray-600">JavaScript</span>
-                    </div>
-                    <textarea 
-                      placeholder="코드를 입력하세요..."
-                      rows="10"
-                      className="w-full px-4 py-3 border-0 focus:ring-0 outline-none resize-none font-mono text-sm"
-                    ></textarea>
-                  </div>
+                  <WriteCodeEditor
+                    language={getLanguageCode(selectedLanguage)}
+                    title={`${selectedLanguage.toUpperCase()} - 작성 모드`}
+                    value={`// 코딩테스트 코드를 입력하세요\nfunction solution() {\n  // 여기에 코드를 작성하세요\n  return;\n}`}
+                  />
                 </div>
 
                 {/* 코드 설명 */}
