@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 
-function CollapsibleFilter({ title, options, roundedClass = "rounded-2xl", titleClass = "font-semibold", showSelected = false }) {
+function CollapsibleFilter({ 
+  title, 
+  options, 
+  roundedClass = "rounded-2xl", 
+  titleClass = "font-semibold", 
+  showSelected = false,
+  selectedOptions = [],
+  onSelectionChange,
+  singleSelect = false
+}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOptions, setSelectedOptions] = useState([]);
 
   const toggleFilter = () => {
     setIsOpen(!isOpen);
@@ -11,11 +19,20 @@ function CollapsibleFilter({ title, options, roundedClass = "rounded-2xl", title
 
   // 옵션 선택/해제
   const toggleOption = (value) => {
-    setSelectedOptions(prev => 
-      prev.includes(value) 
-        ? prev.filter(item => item !== value)
-        : [...prev, value]
-    );
+    let newSelection;
+    if (singleSelect) {
+      // 단일 선택 모드
+      newSelection = selectedOptions.includes(value) ? [] : [value];
+    } else {
+      // 다중 선택 모드
+      newSelection = selectedOptions.includes(value) 
+        ? selectedOptions.filter(item => item !== value)
+        : [...selectedOptions, value];
+    }
+    
+    if (onSelectionChange) {
+      onSelectionChange(newSelection);
+    }
   };
 
   return (

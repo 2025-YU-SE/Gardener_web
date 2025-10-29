@@ -4,6 +4,8 @@ import Header from '../components/header/Header'
 import { useParams, useNavigate } from 'react-router-dom'
 import { samplePosts } from '../components/postcontext'
 import { sampleFeedbacks } from '../components/feedbackContext'
+import ReadonlyCodeEditor from '../components/ReadonlyCodeEditor'
+import FeedbackCodeEditor from '../components/FeedbackCodeEditor'
 
 function PostDetail() {
   const { postId } = useParams()
@@ -42,6 +44,8 @@ function PostDetail() {
   }
 
   const [feedbackLikeState, setFeedbackLikeState] = useState({})
+  const [feedbackRanges, setFeedbackRanges] = useState([])
+  const [isWritingFeedback, setIsWritingFeedback] = useState(false)
 
   useEffect(() => {
     const init = {}
@@ -63,6 +67,41 @@ function PostDetail() {
   }
 
   const feedbackTypes = ['일반 피드백', '개선 제안', '버그 신고']
+
+  // 피드백 작성
+  const startWritingFeedback = () => {
+    setIsWritingFeedback(true)
+    setIsFeedbackFormOpen(true)
+  }
+
+  // 피드백 작성 취소
+  const cancelWritingFeedback = () => {
+    setIsWritingFeedback(false)
+    setIsFeedbackFormOpen(false)
+    setFeedbackRanges([])
+    setFeedbackContent('')
+    setRating(5)
+    setSelectedFeedbackType('일반 피드백')
+  }
+
+  const handleAddFeedbackRange = (range) => {
+    setFeedbackRanges(prev => [...prev, range])
+  }
+
+  const handleSaveFeedback = (feedback) => {
+    setFeedbackRanges(prev => prev.map(r => 
+      r.id === feedback.id ? feedback : r
+    ))
+  }
+
+  const handleSubmitFeedback = () => {
+    console.log('피드백 제출:', {
+      content: feedbackContent,
+      rating,
+      type: selectedFeedbackType,
+      ranges: feedbackRanges
+    })
+  }
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
@@ -161,7 +200,24 @@ function PostDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/*코드 에디터 */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"> 코드에디터 </div>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              {isWritingFeedback ? (
+                <FeedbackCodeEditor
+                  value={`// 샘플 코드\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n\nconst result = fibonacci(10);\nconsole.log('피보나치 수열 10번째:', result);`}
+                  language="javascript"
+                  title="JAVASCRIPT - 피드백 모드"
+                  onAddFeedbackRange={handleAddFeedbackRange}
+                  onSaveFeedback={handleSaveFeedback}
+                  initialFeedbacks={feedbackRanges}
+                />
+              ) : (
+                <ReadonlyCodeEditor
+                  value={`// 샘플 코드\nfunction fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n\nconst result = fibonacci(10);\nconsole.log('피보나치 수열 10번째:', result);`}
+                  language="javascript"
+                  title="JAVASCRIPT - 읽기 전용"
+                />
+              )}
+            </div>
             {isAIFeedbackOpen && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">AI 피드백</h3>
@@ -200,7 +256,7 @@ function PostDetail() {
                 {!isFeedbackFormOpen ? (
                   <button
                     type="button"
-                    onClick={() => setIsFeedbackFormOpen(true)}
+                    onClick={startWritingFeedback}
                     className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
                   >
                     피드백 작성하기
@@ -257,12 +313,15 @@ function PostDetail() {
                     </div>
                     {/* 제출/취소 */}
                     <div className="flex gap-2">
-                      <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
+                      <button 
+                        onClick={handleSubmitFeedback}
+                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                      >
                         피드백 제출
                       </button>
                       <button
                         type="button"
-                        onClick={() => setIsFeedbackFormOpen(false)}
+                        onClick={cancelWritingFeedback}
                         className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
                       >
                         취소
