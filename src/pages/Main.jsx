@@ -1,14 +1,14 @@
-import React from 'react'
+import React from "react";
+import Header from "../components/header/Header";
+import Banner from "../components/Banner";
 
 function Main() {
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold">Main</h1>
-      <p>메인 페이지</p>
+    <div>
+      <Header />
+      <Banner />
     </div>
-  )
+  );
 }
 
-export default Main
-
-
+export default Main;
