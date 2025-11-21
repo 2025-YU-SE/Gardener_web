@@ -3,6 +3,8 @@ import Header from "../components/header/Header";
 import Banner from "../components/Banner";
 import MainTop3 from "../components/main/MainTop3";
 import MainRankingList from "../components/main/MainRankingList";
+import PopularDevPosts from "../components/main/PopularDevPosts";
+import PopularCodingPosts from "../components/main/PopularCodingPosts";
 
 function Main() {
   return (
@@ -23,6 +25,8 @@ function Main() {
             <MainRankingList />
           </div>
         </div>
+        <PopularDevPosts />
+        <PopularCodingPosts />
       </div>
     </div>
   );
