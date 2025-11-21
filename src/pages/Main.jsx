@@ -1,14 +1,35 @@
-import React from 'react'
+import React from "react";
+import Header from "../components/header/Header";
+import Banner from "../components/Banner";
+import MainTop3 from "../components/main/MainTop3";
+import MainRankingList from "../components/main/MainRankingList";
+import PopularDevPosts from "../components/main/PopularDevPosts";
+import PopularCodingPosts from "../components/main/PopularCodingPosts";
 
 function Main() {
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold">Main</h1>
-      <p>메인 페이지</p>
+    <div>
+      <Header />
+      <Banner />
+
+      <div className="max-w-[1080px] mx-auto px-4 mt-10">
+        <h2 className="text-[20px] font-semibold mb-4">명예의 전당</h2>
+        <div className="grid grid-cols-2 gap-5">
+          {/* Top3 */}
+          <div>
+            <MainTop3 />
+          </div>
+
+          {/* 4~7등 리스트 */}
+          <div className="flex justify-center">
+            <MainRankingList />
+          </div>
+        </div>
+        <PopularDevPosts />
+        <PopularCodingPosts />
+      </div>
     </div>
-  )
+  );
 }
 
-export default Main
-
-
+export default Main;
