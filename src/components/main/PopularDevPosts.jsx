@@ -2,18 +2,7 @@ import React from "react";
 import PostCard from "../PostCard";
 import baseProfile from "../../assets/baseProfile.png";
 import { useNavigate } from "react-router-dom";
-
-// 날짜 → "n분 전", "n시간 전" 변환 함수
-function timeAgo(dateString) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diff = Math.floor((now - date) / 1000);
-
-  if (diff < 60) return "방금 전";
-  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-  return `${Math.floor(diff / 86400)}일 전`;
-}
+import { timeAgo } from "../../utils/date";
 
 export default function PopularDevPosts({ posts = [] }) {
   const navigate = useNavigate();
