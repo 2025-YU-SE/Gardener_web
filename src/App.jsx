@@ -34,7 +34,10 @@ function App() {
         <Route path="/posts" element={<Posts />} />
         <Route path="/posts/:postId" element={<PostDetail />} />
         <Route path="/posts/:postId/:feedbackId" element={<FeedbackDetail />} />
-        <Route path="/upload" element={<Upload />} />
+        <Route
+          path="/upload"
+          element={isAuthed ? <Upload /> : <Navigate to="/sign-in" replace />}
+        />
         <Route path="/leader-board" element={<LeaderBoard />} />
         <Route path="/my-paged" element={<MyPaged />} />
 
