@@ -103,7 +103,7 @@ function Main() {
         </div>
 
         <PopularDevPosts posts={mainData?.popularDevPosts || []} />
-        <PopularCodingPosts />
+        <PopularCodingPosts posts={mainData?.popularCodingTestPosts || []} />
       </div>
     </div>
   );
