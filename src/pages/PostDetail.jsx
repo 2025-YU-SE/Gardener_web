@@ -12,7 +12,7 @@ import {
   FaStar,
 } from "react-icons/fa";
 import Header from "../components/header/Header";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
 import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
@@ -24,6 +24,8 @@ import { getFeedbacksByPost, createFeedback } from "../api/feedbackApi";
 function PostDetail() {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAuthed = Boolean(localStorage.getItem("accessToken"));
 
   const [post, setPost] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
@@ -141,6 +143,15 @@ function PostDetail() {
     }
   };
 
+  const handleFeedbackButtonClick = () => {
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
+    setIsFeedbackFormOpen(true);
+  };
+
   return (
       <div className="min-h-screen bg-[#F9FAFB]">
         <Header />
@@ -212,7 +223,7 @@ function PostDetail() {
                   onClick={() => setIsAIFeedbackOpen((v) => !v)}
                   className="bg-green-600 text-white px-4 py-2 rounded-md"
               >
-                AI 피드백
+                {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
               </button>
             </div>
           </div>
@@ -256,7 +267,7 @@ function PostDetail() {
 
                 {!isFeedbackFormOpen ? (
                     <button
-                        onClick={() => setIsFeedbackFormOpen(true)}
+                        onClick={handleFeedbackButtonClick}
                         className="w-full bg-green-600 text-white py-2 rounded-md"
                     >
                       피드백 작성하기
