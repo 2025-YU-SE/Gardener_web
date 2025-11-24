@@ -1,25 +1,33 @@
 import React from "react";
 import { TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
-import fakeProfile from "../assets/profile.png";
+import baseProfile from "../../assets/baseProfile.png";
 
 export default function Banner({
-  name = "농담곰",
-  acceptRate = 50,
-  postCount = 3,
-  feedbackCount = 5,
-  avatar = fakeProfile,
+  name,
+  avatar,
+  postCount,
+  totalFeedbackCount,
+  adoptedFeedbackCount,
 }) {
+  const profileImg = avatar || baseProfile;
+
+  // 채택률 계산
+  const acceptRate =
+    totalFeedbackCount && totalFeedbackCount > 0
+      ? Math.round((adoptedFeedbackCount / totalFeedbackCount) * 100)
+      : 0;
+
   return (
     <section className="w-full h-[280px] bg-[#E9FAEE] flex items-center justify-center">
       <div className="w-full max-w-[1000px] flex items-center justify-between px-8">
         <div className="flex items-center gap-10">
           {/* 프로필 */}
-          {avatar ? (
+          {profileImg ? (
             <img
-              src={avatar}
+              src={profileImg}
               alt="avatar"
-              className="w-[120px] h-[120px] rounded-full object-cover ring-1 ring-[#D6EBD9] bg-white"
+              className="w-[120px] h-[120px] rounded-full object-cover ring-1 ring-[#D6EBD9] bg-[#E9FAEE]"
             />
           ) : (
             <div className="w-[84px] h-[84px] rounded-full flex items-center justify-center bg-white ring-1 ring-[#D6EBD9] text-3xl">
@@ -29,7 +37,15 @@ export default function Banner({
 
           {/* 텍스트 */}
           <div>
-            <div className="text-[24px] font-bold">{name}님, 안녕하세요!</div>
+            <div className="text-[24px] font-bold">
+              {name ? (
+                <>
+                  <span className="text-[#13B358]">{name}</span>님, 안녕하세요!
+                </>
+              ) : (
+                "안녕하세요!"
+              )}
+            </div>
             <div className="mt-1 text-[20px] md:text-[15px] leading-6 text-[#2B2B2B]">
               코드와 피드백이 자라는 정원
               <br />
@@ -37,6 +53,7 @@ export default function Banner({
             </div>
           </div>
         </div>
+
         <div className="flex flex-col gap-3 font-semibold">
           <MetricRow
             icon={<TbMessage2Check size={18} className="text-[#170000]" />}
@@ -46,12 +63,12 @@ export default function Banner({
           <MetricRow
             icon={<TbPencil size={18} className="text-[#170000]" />}
             label="등록한 게시물 수"
-            value={postCount}
+            value={postCount ?? 0}
           />
           <MetricRow
             icon={<VscFeedback size={18} className="text-[#170000]" />}
             label="등록한 피드백 수"
-            value={feedbackCount}
+            value={totalFeedbackCount ?? 0}
           />
         </div>
       </div>
