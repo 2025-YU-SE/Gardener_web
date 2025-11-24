@@ -2,6 +2,7 @@ import React from "react";
 import { TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
 import baseProfile from "../../assets/baseProfile.png";
+import { useNavigate } from "react-router-dom";
 
 export default function Banner({
   name,
@@ -10,7 +11,30 @@ export default function Banner({
   totalFeedbackCount,
   adoptedFeedbackCount,
 }) {
+  const navigate = useNavigate();
   const profileImg = avatar || baseProfile;
+
+  // 비로그인인 경우
+  if (!name) {
+    return (
+      <section className="w-full h-[260px] bg-[#E9FAEE] flex flex-col items-center justify-center">
+        <img src={baseProfile} className="w-[70px] h-[70px] mb-3 opacity-90" />
+        <h1 className="text-[26px] font-bold">
+          <span className="text-black">Welcome to </span>
+          <span className="text-[#2E7D32]">Code Gardener!</span>
+        </h1>
+        <p className="text-[15px] mt-2 font-medium text-[#2B2B2B]">
+          <span
+            className="underline cursor-pointer text-[#2E7D32]"
+            onClick={() => navigate("/sign-in")}
+          >
+            로그인
+          </span>
+          후 함께 자라는 개발자 커뮤니티를 이용해보세요 😊
+        </p>
+      </section>
+    );
+  }
 
   // 채택률 계산
   const acceptRate =
