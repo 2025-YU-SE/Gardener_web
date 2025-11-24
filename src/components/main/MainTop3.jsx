@@ -1,18 +1,20 @@
 import React from "react";
 import { TbCoin } from "react-icons/tb";
-import profile from "../../assets/profile.png";
+import baseProfile from "../../assets/baseProfile.png";
 
-function SmallTopCard({ rank, name, score, profileImage, tone = "neutral" }) {
+function SmallTopCard({ rank, name, score, profileImage }) {
   const toneMap = {
-    gold: "bg-[#FEF9C3] border-[#FACC15]",
-    silver: "bg-[#F3F4F6] border-[#D1D5DB]",
-    bronze: "bg-[#FFE4D6] border-[#FDBA74]",
+    1: "bg-[#FEF9C3] border-[#FACC15]", // 1등
+    2: "bg-[#F3F4F6] border-[#D1D5DB]", // 2등
+    3: "bg-[#FFE4D6] border-[#FDBA74]", // 3등
   };
+
+  const toneClass = toneMap[rank] || "bg-white border-[#E5E7EB]";
 
   return (
     <div
       className={`w-[160px] h-[160px] p-3 flex flex-col items-center justify-center 
-      rounded-xl shadow-sm border ${toneMap[tone]}`}
+      rounded-xl shadow-sm border ${toneClass}`}
     >
       {/* 등수 */}
       <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/70 text-[11px] font-bold border border-black/10">
@@ -22,7 +24,7 @@ function SmallTopCard({ rank, name, score, profileImage, tone = "neutral" }) {
       {/* 프로필 */}
       <div className="mt-3 w-12 h-12 rounded-full bg-white/50 flex items-center justify-center border border-black/10 overflow-hidden">
         <img
-          src={profileImage || profile}
+          src={profileImage || baseProfile}
           alt={`${name} profile`}
           className="w-full h-full object-cover"
         />
@@ -40,30 +42,52 @@ function SmallTopCard({ rank, name, score, profileImage, tone = "neutral" }) {
   );
 }
 
-export default function MainTop3() {
-  // 임시 데이터
-  const ranking = [
-    { rank: 1, name: "DuuGanadi", score: 12345, profileImage: profile },
-    { rank: 2, name: "Ddabong", score: 9000, profileImage: profile },
-    { rank: 3, name: "huup", score: 7000, profileImage: profile },
-  ];
+export default function MainTop3({ users = [] }) {
+  if (!users || users.length === 0) return null;
+  const top3 = users.slice(0, 3);
 
-  const first = ranking[0];
-  const second = ranking[1];
-  const third = ranking[2];
+  const first = top3[0];
+  const second = top3[1];
+  const third = top3[2];
 
   return (
     <div className="mt-10">
       <div className="flex items-end justify-center gap-3">
-        <div className="translate-y-1">
-          <SmallTopCard {...second} tone="silver" />
-        </div>
-        <div className="-translate-y-2">
-          <SmallTopCard {...first} tone="gold" />
-        </div>
-        <div className="translate-y-1">
-          <SmallTopCard {...third} tone="bronze" />
-        </div>
+        {/* 2등 카드 */}
+        {second && (
+          <div className="translate-y-1">
+            <SmallTopCard
+              rank={2}
+              name={second.userName}
+              score={second.points}
+              profileImage={second.userPicture}
+            />
+          </div>
+        )}
+
+        {/* 1등 카드 */}
+        {first && (
+          <div className="-translate-y-2">
+            <SmallTopCard
+              rank={1}
+              name={first.userName}
+              score={first.points}
+              profileImage={first.userPicture}
+            />
+          </div>
+        )}
+
+        {/* 3등 카드 */}
+        {third && (
+          <div className="translate-y-1">
+            <SmallTopCard
+              rank={3}
+              name={third.userName}
+              score={third.points}
+              profileImage={third.userPicture}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

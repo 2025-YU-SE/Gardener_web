@@ -93,7 +93,7 @@ function Main() {
         <div className="grid grid-cols-2 gap-5">
           {/* Top3 */}
           <div>
-            <MainTop3 />
+            <MainTop3 users={mainData?.topPointUsers || []} />
           </div>
 
           {/* 4~7등 리스트 */}
