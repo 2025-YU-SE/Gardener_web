@@ -46,7 +46,7 @@ const HeaderLoggedIn = () => {
                 {/* 마이페이지 이동 */}
                 <IoPersonCircle
                     className="text-[#B9B9B9] w-[32px] h-[32px] cursor-pointer hover:text-green-600"
-                    onClick={() => navigate("/mypage")}
+                    onClick={() => navigate("/my-paged")}
                 />
             </div>
         </div>
