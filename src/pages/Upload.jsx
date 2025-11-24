@@ -145,18 +145,7 @@ function Upload() {
                   />
                 </div>
 
-                {/* 코드 설명 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    코드를 설명하는 창 (간단한 설명, 구현 의도 등) *
-                  </label>
-                  <textarea 
-                    placeholder="코드의 목적, 구현 방식, 특별한 고려사항 등을 설명해주세요"
-                    rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
-                  ></textarea>
-                </div>
-
+                
                 {/* 피드백 요청 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -166,7 +155,7 @@ function Upload() {
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      clssName="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                     />
                     <input 
                       type="text" 
