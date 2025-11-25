@@ -1,7 +1,7 @@
 import React from "react";
 import { TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
-import baseProfile from "../../assets/baseProfile.png";
+import baseProfile from "../../assets/profile.png";
 
 export default function Banner({
   name,
