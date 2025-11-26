@@ -3,6 +3,7 @@ import PostCard from "../PostCard";
 import baseProfile from "../../assets/baseProfile.png";
 import { useNavigate } from "react-router-dom";
 import { timeAgo } from "../../utils/date";
+import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
 export default function MainPopularCodingTests({ posts = [] }) {
   const navigate = useNavigate();
@@ -24,10 +25,14 @@ export default function MainPopularCodingTests({ posts = [] }) {
             .map((t) => t.trim())
             .filter(Boolean);
 
+          // 프로필 이미지 절대 경로 변환
+          const avatarImg =
+            makeAbsoluteImageUrl(post.userPicture) || baseProfile;
+
           return (
             <PostCard
               key={post.postId}
-              avatar={post.userPicture || baseProfile}
+              avatar={avatarImg}
               author={post.userName}
               timeAgo={timeAgo(post.createdAt)}
               title={post.title}
