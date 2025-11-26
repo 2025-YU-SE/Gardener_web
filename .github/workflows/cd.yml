@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: "22"
 
       - name: Install dependencies and build
         run: |
@@ -30,7 +30,7 @@ jobs:
           port: ${{ secrets.SERVER_SSH_PORT }}
           key: ${{ secrets.SERVER_KEY }}
           source: dist/
-          target: /home/ubuntu/Gardener_web/
+          target: /home/${{ secrets.SERVER_NAME }}/Gardener_web/
 
         
       - name: Deploy to EC2
