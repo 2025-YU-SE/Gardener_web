@@ -30,7 +30,7 @@ jobs:
           port: ${{ secrets.SERVER_SSH_PORT }}
           key: ${{ secrets.SERVER_KEY }}
           source: dist/
-          target: /home/${{ secrets.SERVER_NAME }}/Gardener_web/
+          target: /home/${{ secrets.SERVER_USERNAME }}/Gardener_web/
 
         
       - name: Deploy to EC2
