@@ -1,6 +1,7 @@
 import React from "react";
 import { TbCoin } from "react-icons/tb";
 import baseProfile from "../../assets/baseProfile.png";
+import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
 function SmallTopCard({ rank, name, score, profileImage }) {
   const toneMap = {
@@ -10,6 +11,9 @@ function SmallTopCard({ rank, name, score, profileImage }) {
   };
 
   const toneClass = toneMap[rank] || "bg-white border-[#E5E7EB]";
+
+  // 이미지 절대 경로 변환
+  const finalImg = makeAbsoluteImageUrl(profileImage) || baseProfile;
 
   return (
     <div
@@ -24,9 +28,13 @@ function SmallTopCard({ rank, name, score, profileImage }) {
       {/* 프로필 */}
       <div className="mt-3 w-12 h-12 rounded-full bg-white/50 flex items-center justify-center border border-black/10 overflow-hidden">
         <img
-          src={profileImage || baseProfile}
+          src={finalImg}
           alt={`${name} profile`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover block"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = baseProfile;
+          }}
         />
       </div>
 
@@ -44,16 +52,13 @@ function SmallTopCard({ rank, name, score, profileImage }) {
 
 export default function MainTop3({ users = [] }) {
   if (!users || users.length === 0) return null;
-  const top3 = users.slice(0, 3);
 
-  const first = top3[0];
-  const second = top3[1];
-  const third = top3[2];
+  const [first, second, third] = users.slice(0, 3);
 
   return (
     <div className="mt-10">
       <div className="flex items-end justify-center gap-3">
-        {/* 2등 카드 */}
+        {/* 2등 */}
         {second && (
           <div className="translate-y-1">
             <SmallTopCard
@@ -65,7 +70,7 @@ export default function MainTop3({ users = [] }) {
           </div>
         )}
 
-        {/* 1등 카드 */}
+        {/* 1등 */}
         {first && (
           <div className="-translate-y-2">
             <SmallTopCard
@@ -77,7 +82,7 @@ export default function MainTop3({ users = [] }) {
           </div>
         )}
 
-        {/* 3등 카드 */}
+        {/* 3등 */}
         {third && (
           <div className="translate-y-1">
             <SmallTopCard
