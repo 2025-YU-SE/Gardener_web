@@ -7,14 +7,15 @@ import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
 export default function PopularDevPosts({ posts = [] }) {
   const navigate = useNavigate();
-  if (posts.length === 0) return null;
+  const postsToShow = posts.slice(0, 4);
+  if (postsToShow.length === 0) return null;
 
   return (
     <section className="mt-10">
       <h2 className="text-[20px] font-semibold mb-4">인기 개발 게시글</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {posts.map((post) => {
+        {postsToShow.map((post) => {
           const languageTags = (post.languages || "")
             .split(",")
             .map((t) => t.trim())
@@ -31,6 +32,7 @@ export default function PopularDevPosts({ posts = [] }) {
 
           return (
             <PostCard
+              key={post.postId}
               avatar={avatarImg}
               author={post.userName}
               timeAgo={timeAgo(post.createdAt)}
