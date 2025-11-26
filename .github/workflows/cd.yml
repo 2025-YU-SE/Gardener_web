@@ -18,8 +18,8 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies and build
-          env:
-            VITE_API_URL: ${{ secrets.VITE_API_URL }}`
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}`
         run: |
           npm install
           npm run build
