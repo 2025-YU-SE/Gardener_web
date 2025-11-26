@@ -98,7 +98,7 @@ function Main() {
 
           {/* 4~7등 리스트 */}
           <div className="flex justify-center">
-            <MainRankingList />
+            <MainRankingList users={mainData?.topPointUsers || []} />
           </div>
         </div>
 
