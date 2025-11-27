@@ -93,17 +93,17 @@ function Main() {
         <div className="grid grid-cols-2 gap-5">
           {/* Top3 */}
           <div>
-            <MainTop3 />
+            <MainTop3 users={mainData?.topPointUsers || []} />
           </div>
 
           {/* 4~7등 리스트 */}
           <div className="flex justify-center">
-            <MainRankingList />
+            <MainRankingList users={mainData?.topPointUsers || []} />
           </div>
         </div>
 
-        <PopularDevPosts />
-        <PopularCodingPosts />
+        <PopularDevPosts posts={mainData?.popularDevPosts || []} />
+        <PopularCodingPosts posts={mainData?.popularCodingTestPosts || []} />
       </div>
     </div>
   );

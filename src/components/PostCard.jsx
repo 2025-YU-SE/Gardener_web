@@ -15,7 +15,8 @@ function PostCard({
   timeAgo,
   title,
   content,
-  tags = [],
+  languages = [],
+  stacks = [],
   likes = 0,
   comments = 0,
   views = 0,
@@ -66,7 +67,11 @@ function PostCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="w-[40px] h-[40px] rounded-full bg-green-100 border border-gray-300 flex items-center justify-center overflow-hidden">
-            <span className="text-xl">{avatar}</span>
+            <img
+              src={avatar}
+              alt="profile"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -94,17 +99,21 @@ function PostCard({
 
         {/* 태그 */}
         <div className="flex flex-wrap gap-2 mt-3 mb-2 mr-2 min-h-[28px]">
-          {tags.map((tag, i) => (
+          {/* languages */}
+          {languages.map((tag, i) => (
             <span
-              key={`${tag}-${i}`}
-              className={[
-                "inline-flex items-center justify-center",
-                "h-7 px-3 rounded-full",
-                "text-[10px] font-medium leading-none",
-                i === 0
-                  ? "bg-[#E9FFEA] text-[#00B834] border border-[#C8F4CE]"
-                  : "bg-[#00B834] text-white",
-              ].join(" ")}
+              key={`lang-${tag}-${i}`}
+              className="inline-flex items-center justify-center h-7 px-3 rounded-full text-[12px] font-medium leading-none bg-[#E9FFEA] text-[#00B834] border border-[#C8F4CE]"
+            >
+              {tag}
+            </span>
+          ))}
+
+          {/* stacks */}
+          {stacks.map((tag, i) => (
+            <span
+              key={`stack-${tag}-${i}`}
+              className="inline-flex items-center justify-center h-7 px-3 rounded-full text-[12px] font-medium leading-none bg-[#00B834] text-white"
             >
               {tag}
             </span>
