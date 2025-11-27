@@ -3,6 +3,7 @@ import { TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
 import baseProfile from "../../assets/baseProfile.png";
 import { useNavigate } from "react-router-dom";
+import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
 export default function Banner({
   name,
@@ -12,13 +13,17 @@ export default function Banner({
   adoptedFeedbackCount,
 }) {
   const navigate = useNavigate();
-  const profileImg = avatar || baseProfile;
+  const profileImg = makeAbsoluteImageUrl(avatar) || baseProfile;
 
   // 비로그인인 경우
   if (!name) {
     return (
       <section className="w-full h-[260px] bg-[#E9FAEE] flex flex-col items-center justify-center">
-        <img src={baseProfile} className="w-[70px] h-[70px] mb-3 opacity-90" />
+        <img
+          src={baseProfile}
+          className="w-[70px] h-[70px] mb-3 opacity-90"
+          alt="base profile"
+        />
         <h1 className="text-[26px] font-bold">
           <span className="text-black">Welcome to </span>
           <span className="text-[#2E7D32]">Code Gardener!</span>
@@ -47,17 +52,15 @@ export default function Banner({
       <div className="w-full max-w-[1000px] flex items-center justify-between px-8">
         <div className="flex items-center gap-10">
           {/* 프로필 */}
-          {profileImg ? (
-            <img
-              src={profileImg}
-              alt="avatar"
-              className="w-[120px] h-[120px] rounded-full object-cover ring-1 ring-[#D6EBD9] bg-[#E9FAEE]"
-            />
-          ) : (
-            <div className="w-[84px] h-[84px] rounded-full flex items-center justify-center bg-white ring-1 ring-[#D6EBD9] text-3xl">
-              🌱
-            </div>
-          )}
+          <img
+            src={profileImg}
+            alt="avatar"
+            className="w-[120px] h-[120px] rounded-full object-cover ring-1 ring-[#D6EBD9] bg-[#E9FAEE]"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = baseProfile;
+            }}
+          />
 
           {/* 텍스트 */}
           <div>

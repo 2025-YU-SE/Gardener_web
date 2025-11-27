@@ -1,6 +1,6 @@
 import React from "react";
 import { TbCoin } from "react-icons/tb";
-import profile from "../../assets/profile.png";
+import baseProfile from "../../assets/baseProfile.png";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
 export default function MainRankingList({ users = [] }) {
@@ -14,7 +14,7 @@ export default function MainRankingList({ users = [] }) {
   return (
     <div className="space-y-3">
       {slicedUsers.map((item) => {
-        const img = makeAbsoluteImageUrl(item.userPicture) || profile;
+        const img = makeAbsoluteImageUrl(item.userPicture) || baseProfile;
 
         return (
           <div
