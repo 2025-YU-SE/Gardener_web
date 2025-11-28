@@ -6,15 +6,33 @@ import { VscFeedback } from "react-icons/vsc";
 import samplePosts from "../components/postcontext.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { useNavigate } from "react-router-dom";
-import { getUserProfile } from "../api/userApi";
+import {
+  getUserProfile,
+  getUserRecentPosts,
+  getUserPosts,
+} from "../api/userApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+
+// 날짜 포맷팅
+const formatTimeAgo = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = (now - date) / 1000;
+
+  if (diff < 60) return "방금 전";
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}일 전`;
+
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}.${String(date.getDate()).padStart(2, "0")}`;
+};
 
 function MyPaged() {
   const navigate = useNavigate();
-
-  const handlePostClick = (postId) => {
-    navigate(`/posts/${postId}`);
-  };
+  const currentUserId = 1;
 
   const [profile, setProfile] = useState({
     name: "Loading...",
@@ -26,44 +44,115 @@ function MyPaged() {
     gradeLabel: "Loading",
   });
 
-  useEffect(() => {
-    const currentUserId = 1;
+  const [myPosts, setMyPosts] = useState([]);
+  const [hasFetchedAllPosts, setHasFetchedAllPosts] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts");
+  const INITIAL_COUNT = 4;
+  const [myPostsDisplayCount, setMyPostsDisplayCount] = useState(INITIAL_COUNT);
+  const myFeedbackAll = samplePosts;
+  const [myFeedbackCount, setMyFeedbackCount] = useState(INITIAL_COUNT);
 
-    const loadProfile = async () => {
+  const postsRef = useRef(null);
+  const feedbackRef = useRef(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
       try {
-        const res = await getUserProfile(currentUserId);
-        const data = res.data;
+        // 프로필 조회
+        const profileRes = await getUserProfile(currentUserId);
+        const pData = profileRes.data;
 
         // 피드백 채택률 계산
         const selectRate =
-          data.totalFeedbackCount > 0
+          pData.totalFeedbackCount > 0
             ? Math.round(
-                (data.adoptedFeedbackCount / data.totalFeedbackCount) * 100
+                (pData.adoptedFeedbackCount / pData.totalFeedbackCount) * 100
               )
             : 0;
+
         setProfile({
-          name: data.userName,
-          avatar: data.userPicture,
-          points: data.points,
+          name: pData.userName,
+          avatar: pData.userPicture,
+          points: pData.points,
           selectRate: selectRate,
-          postCount: data.postCount,
-          feedbackCount: data.totalFeedbackCount,
-          gradeLabel: data.grade,
+          postCount: pData.postCount,
+          feedbackCount: pData.totalFeedbackCount,
+          gradeLabel: pData.grade,
         });
+
+        // 최근 게시글 조회 (초기 4개 데이터)
+        const postsRes = await getUserRecentPosts(currentUserId);
+        const mappedPosts = postsRes.data.map((post) =>
+          mapApiToPostData(post, pData)
+        );
+        setMyPosts(mappedPosts);
       } catch (error) {
-        console.error("프로필 로딩 중 오류 발생:", error);
-        setProfile((prev) => ({
-          ...prev,
-          name: "데이터 로딩 오류",
-          gradeLabel: "N/A",
-        }));
+        console.error("데이터 로딩 중 오류 발생:", error);
       }
     };
 
-    loadProfile();
+    fetchData();
   }, []);
 
+  const mapApiToPostData = (apiPost, profileData) => {
+    return {
+      id: apiPost.postId,
+      title: apiPost.title,
+      content: apiPost.content,
+      languages: apiPost.languages
+        ? apiPost.languages.split(",").map((s) => s.trim())
+        : [],
+      stacks: apiPost.stacks
+        ? apiPost.stacks.split(",").map((s) => s.trim())
+        : [],
+      likes: apiPost.likesCount,
+      comments: apiPost.feedbackCount,
+      views: apiPost.views,
+      timeAgo: formatTimeAgo(apiPost.createdAt),
+      author: profileData.userName,
+      avatar: profileData.userPicture,
+      createdAt: apiPost.createdAt,
+    };
+  };
+
+  const handlePostClick = (postId) => {
+    navigate(`/posts/${postId}`);
+  };
+
+  // 게시글 더보기 버튼 클릭 시
+  const expandPosts = async () => {
+    // 아직 전체 데이터를 불러오지 않았고, 실제로 더 불러올 데이터가 있는 경우 (현재 개수 < 총 개수)
+    if (!hasFetchedAllPosts && myPosts.length < profile.postCount) {
+      try {
+        const res = await getUserPosts(currentUserId, 0, 100);
+        const allPostsMapped = res.data.content.map((post) =>
+          mapApiToPostData(post, profile)
+        );
+        setMyPosts(allPostsMapped);
+        setHasFetchedAllPosts(true);
+        setMyPostsDisplayCount(allPostsMapped.length);
+      } catch (e) {
+        console.error("전체 게시글 로딩 실패", e);
+      }
+    } else {
+      setMyPostsDisplayCount(myPosts.length);
+    }
+  };
+
+  const collapsePosts = () => {
+    setMyPostsDisplayCount(INITIAL_COUNT);
+    postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const expandFeedback = () => setMyFeedbackCount(myFeedbackAll.length);
+  const collapseFeedback = () => {
+    setMyFeedbackCount(INITIAL_COUNT);
+    feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   const profileImgSrc = makeAbsoluteImageUrl(profile.avatar) || baseProfile;
+  const isPostsExpanded = myPostsDisplayCount >= profile.postCount; // 총 개수 기준
+  const isFeedbackExpanded = myFeedbackCount >= myFeedbackAll.length;
 
   const GradeDonut = ({ percent = 50, label = "등급" }) => {
     const size = 120;
@@ -103,39 +192,13 @@ function MyPaged() {
     );
   };
 
-  const myPostsAll = samplePosts;
-  const myFeedbackAll = samplePosts;
-
-  const INITIAL_COUNT = 4;
-  const [activeTab, setActiveTab] = useState("posts");
-  const [myPostsCount, setMyPostsCount] = useState(INITIAL_COUNT);
-  const [myFeedbackCount, setMyFeedbackCount] = useState(INITIAL_COUNT);
-
-  const postsRef = useRef(null);
-  const feedbackRef = useRef(null);
-
-  const isPostsExpanded = myPostsCount >= myPostsAll.length;
-  const isFeedbackExpanded = myFeedbackCount >= myFeedbackAll.length;
-
-  const expandPosts = () => setMyPostsCount(myPostsAll.length);
-  const collapsePosts = () => {
-    setMyPostsCount(INITIAL_COUNT);
-    postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const expandFeedback = () => setMyFeedbackCount(myFeedbackAll.length);
-  const collapseFeedback = () => {
-    setMyFeedbackCount(INITIAL_COUNT);
-    feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
       <Header />
       <div className="mx-auto max-w-[1100px] px-4 py-8">
         <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
+          {/* 프로필 */}
           <div className="flex items-center gap-5 px-20 mb-10">
-            {/* 프로필 */}
             <div className="h-full w-[132px] overflow-hidden rounded-[10px]">
               <img
                 src={profileImgSrc}
@@ -147,12 +210,7 @@ function MyPaged() {
                 }}
               />
             </div>
-
-            {/* 가운데 박스 */}
-            <div
-              className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white
-                          pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden"
-            >
+            <div className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden">
               <div className="flex-1 min-w-0">
                 <h2 className="text-[22px] font-semibold mb-2">
                   {profile.name}
@@ -182,8 +240,6 @@ function MyPaged() {
                   />
                 </ul>
               </div>
-
-              {/* 등급 */}
               <div className="shrink-0 ml-16 mr-5">
                 <GradeDonut
                   percent={profile.selectRate}
@@ -197,26 +253,23 @@ function MyPaged() {
           <div className="flex gap-2 mb-5 px-1">
             <button
               onClick={() => setActiveTab("posts")}
-              className={`px-3 py-1.5 rounded-full text-sm border transition
-                ${
-                  activeTab === "posts"
-                    ? "bg-[#00B834] text-white border-[#00B834]"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                }`}
+              className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                activeTab === "posts"
+                  ? "bg-[#00B834] text-white border-[#00B834]"
+                  : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+              }`}
             >
-              내 게시글 ({myPostsAll.length})
+              내 게시글 ({profile.postCount})
             </button>
-
             <button
               onClick={() => setActiveTab("feedback")}
-              className={`px-3 py-1.5 rounded-full text-sm border transition
-                ${
-                  activeTab === "feedback"
-                    ? "bg-[#00B834] text-white border-[#00B834]"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-                }`}
+              className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                activeTab === "feedback"
+                  ? "bg-[#00B834] text-white border-[#00B834]"
+                  : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+              }`}
             >
-              내 피드백 ({myFeedbackAll.length})
+              내 피드백 ({profile.feedbackCount})
             </button>
           </div>
 
@@ -228,22 +281,28 @@ function MyPaged() {
                   내가 올린 게시글
                 </h2>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {myPostsAll.slice(0, myPostsCount).map((p) => (
-                  <PostCard
-                    key={`mypost-${p.id}`}
-                    {...p}
-                    badge="내 게시글"
-                    rightPill={null}
-                    onClick={() => handlePostClick(p.id)}
-                  />
-                ))}
-              </div>
+              {myPosts.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  등록된 게시글이 없습니다.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myPosts.slice(0, myPostsDisplayCount).map((p) => (
+                    <PostCard
+                      key={`mypost-${p.id}`}
+                      {...p}
+                      avatar={makeAbsoluteImageUrl(p.avatar) || baseProfile}
+                      badge="내 게시글"
+                      rightPill={null}
+                      onClick={() => handlePostClick(p.id)}
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* 더보기/접기 버튼 */}
               <div className="mt-6 flex items-center justify-center gap-2">
-                {myPostsAll.length > INITIAL_COUNT && !isPostsExpanded && (
+                {profile.postCount > INITIAL_COUNT && !isPostsExpanded && (
                   <button
                     onClick={expandPosts}
                     className="px-4 py-2 text-sm rounded-md border border-[#00B834] text-[#00B834] hover:bg-[#00B834]/5"
@@ -251,7 +310,7 @@ function MyPaged() {
                     더보기
                   </button>
                 )}
-                {myPostsAll.length > INITIAL_COUNT && isPostsExpanded && (
+                {profile.postCount > INITIAL_COUNT && isPostsExpanded && (
                   <button
                     onClick={collapsePosts}
                     className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -284,7 +343,6 @@ function MyPaged() {
                 ))}
               </div>
 
-              {/* 더보기/접기 버튼 */}
               <div className="mt-6 flex items-center justify-center gap-2">
                 {myFeedbackAll.length > INITIAL_COUNT &&
                   !isFeedbackExpanded && (
