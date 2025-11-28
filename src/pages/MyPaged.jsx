@@ -1,11 +1,13 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Header from "../components/header/Header";
-import profileImg from "../assets/profile.png";
+import baseProfile from "../assets/profile.png";
 import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
 import samplePosts from "../components/postcontext.jsx";
 import PostCard from "../components/PostCard.jsx";
 import { useNavigate } from "react-router-dom";
+import { getUserProfile } from "../api/userApi";
+import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
 function MyPaged() {
   const navigate = useNavigate();
@@ -14,17 +16,55 @@ function MyPaged() {
     navigate(`/posts/${postId}`);
   };
 
-  const profile = {
-    name: "Chiikawa",
-    avatar: profileImg,
-    points: 4300,
-    selectRate: 50,
-    postCount: 3,
-    feedbackCount: 5,
-    gradeLabel: "등급",
-  };
+  const [profile, setProfile] = useState({
+    name: "Loading...",
+    avatar: null,
+    points: 0,
+    selectRate: 0,
+    postCount: 0,
+    feedbackCount: 0,
+    gradeLabel: "Loading",
+  });
 
-  // === Donut ===
+  useEffect(() => {
+    const currentUserId = 1;
+
+    const loadProfile = async () => {
+      try {
+        const res = await getUserProfile(currentUserId);
+        const data = res.data;
+
+        // 피드백 채택률 계산
+        const selectRate =
+          data.totalFeedbackCount > 0
+            ? Math.round(
+                (data.adoptedFeedbackCount / data.totalFeedbackCount) * 100
+              )
+            : 0;
+        setProfile({
+          name: data.userName,
+          avatar: data.userPicture,
+          points: data.points,
+          selectRate: selectRate,
+          postCount: data.postCount,
+          feedbackCount: data.totalFeedbackCount,
+          gradeLabel: data.grade,
+        });
+      } catch (error) {
+        console.error("프로필 로딩 중 오류 발생:", error);
+        setProfile((prev) => ({
+          ...prev,
+          name: "데이터 로딩 오류",
+          gradeLabel: "N/A",
+        }));
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const profileImgSrc = makeAbsoluteImageUrl(profile.avatar) || baseProfile;
+
   const GradeDonut = ({ percent = 50, label = "등급" }) => {
     const size = 120;
     const stroke = 12;
@@ -63,15 +103,14 @@ function MyPaged() {
     );
   };
 
-  const myPostsAll = samplePosts; // 임시 데이터 가져옴
+  const myPostsAll = samplePosts;
   const myFeedbackAll = samplePosts;
 
-  const INITIAL_COUNT = 4; // 기본 노출 게시글은 4개
-  const [activeTab, setActiveTab] = useState("posts"); // 'posts' | 'feedback'
+  const INITIAL_COUNT = 4;
+  const [activeTab, setActiveTab] = useState("posts");
   const [myPostsCount, setMyPostsCount] = useState(INITIAL_COUNT);
   const [myFeedbackCount, setMyFeedbackCount] = useState(INITIAL_COUNT);
 
-  // 접기 버튼 클릭 시 스크롤 복귀
   const postsRef = useRef(null);
   const feedbackRef = useRef(null);
 
@@ -99,9 +138,13 @@ function MyPaged() {
             {/* 프로필 */}
             <div className="h-full w-[132px] overflow-hidden rounded-[10px]">
               <img
-                src={profile.avatar}
+                src={profileImgSrc}
                 alt={`${profile.name} 프로필`}
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = baseProfile;
+                }}
               />
             </div>
 
