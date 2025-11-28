@@ -49,6 +49,7 @@ function MyPaged() {
   const [activeTab, setActiveTab] = useState("posts");
   const INITIAL_COUNT = 4;
   const [myPostsDisplayCount, setMyPostsDisplayCount] = useState(INITIAL_COUNT);
+
   const myFeedbackAll = samplePosts;
   const [myFeedbackCount, setMyFeedbackCount] = useState(INITIAL_COUNT);
 
@@ -82,6 +83,7 @@ function MyPaged() {
 
         // 최근 게시글 조회 (초기 4개 데이터)
         const postsRes = await getUserRecentPosts(currentUserId);
+        // postsRes.data 자체가 배열임
         const mappedPosts = postsRes.data.map((post) =>
           mapApiToPostData(post, pData)
         );
@@ -119,15 +121,18 @@ function MyPaged() {
     navigate(`/posts/${postId}`);
   };
 
-  // 게시글 더보기 버튼 클릭 시
+  // 게시글 더보기 버튼 클릭 시 (전체/페이징 API 호출)
   const expandPosts = async () => {
     // 아직 전체 데이터를 불러오지 않았고, 실제로 더 불러올 데이터가 있는 경우 (현재 개수 < 총 개수)
-    if (!hasFetchedAllPosts && myPosts.length < profile.postCount) {
+    if (!hasFetchedAllPosts) {
       try {
         const res = await getUserPosts(currentUserId, 0, 100);
-        const allPostsMapped = res.data.content.map((post) =>
+        const contentList = res.data.content || [];
+
+        const allPostsMapped = contentList.map((post) =>
           mapApiToPostData(post, profile)
         );
+
         setMyPosts(allPostsMapped);
         setHasFetchedAllPosts(true);
         setMyPostsDisplayCount(allPostsMapped.length);
@@ -151,7 +156,7 @@ function MyPaged() {
   };
 
   const profileImgSrc = makeAbsoluteImageUrl(profile.avatar) || baseProfile;
-  const isPostsExpanded = myPostsDisplayCount >= profile.postCount; // 총 개수 기준
+  const isPostsExpanded = myPostsDisplayCount >= profile.postCount;
   const isFeedbackExpanded = myFeedbackCount >= myFeedbackAll.length;
 
   const GradeDonut = ({ percent = 50, label = "등급" }) => {
