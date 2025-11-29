@@ -37,6 +37,7 @@ function FeedbackDetail() {
 
   // ---------- 댓글 작성 ----------
   const [replyInput, setReplyInput] = useState("");
+  const [displayedRepliesCount, setDisplayedRepliesCount] = useState(5);
 
   // ===================================================
   // 1. 게시글 + 피드백 상세 조회
@@ -444,59 +445,75 @@ function FeedbackDetail() {
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 답글 ({replyCount}개)
               </h2>
-              <div className="space-y-4">
-                {replies.map((fb, idx) => (
-                    <div
-                        key={fb.id}
-                        className={`py-4 ${
-                            idx !== replies.length - 1
-                                ? "border-b border-gray-200"
-                                : ""
-                        }`}
-                    >
-                      <div className="flex items-start">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold mr-3">
-                          {fb.avatarInitial}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 text-sm">
-                        <span className="font-semibold text-gray-900">
-                          {fb.author}
-                        </span>
-                            <span className="text-gray-400">·</span>
-                            <span className="text-gray-500">{fb.timeAgo}</span>
+              {/* 답글 목록 */}
+              <div className="mb-4">
+                <div className="space-y-4">
+                  {replies.slice(0, displayedRepliesCount).map((fb, idx) => (
+                      <div
+                          key={fb.id}
+                          className={`py-4 ${
+                              idx !== replies.slice(0, displayedRepliesCount).length - 1
+                                  ? "border-b border-gray-200"
+                                  : ""
+                          }`}
+                      >
+                        <div className="flex items-start">
+                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold mr-3">
+                            {fb.avatarInitial}
                           </div>
-                          <p className="mt-2 text-gray-700 text-sm leading-relaxed">
-                            {fb.content}
-                          </p>
-                          <div className="mt-2 flex items-center gap-6 text-sm text-gray-600">
-                            <button
-                                type="button"
-                                onClick={() => toggleReplyLike(fb.id)}
-                                className="inline-flex items-center gap-1 hover:opacity-90"
-                            >
-                              {replyLikeState[fb.id]?.liked ? (
-                                  <FaHeart className="text-red-500" />
-                              ) : (
-                                  <FaRegHeart />
-                              )}
-                              <span className="text-sm font-medium">
-                            {replyLikeState[fb.id]?.count ?? fb.likes ?? 0}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 text-sm">
+                          <span className="font-semibold text-gray-900">
+                            {fb.author}
                           </span>
-                            </button>
-                            <button
-                                type="button"
-                                className="text-gray-500 hover:text-gray-700"
-                            >
-                              답글
-                            </button>
+                              <span className="text-gray-400">·</span>
+                              <span className="text-gray-500">{fb.timeAgo}</span>
+                            </div>
+                            <div className="mt-2 max-h-[200px] overflow-y-auto pr-2">
+                              <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                {fb.content}
+                              </p>
+                            </div>
+                            <div className="mt-2 flex items-center gap-6 text-sm text-gray-600">
+                              <button
+                                  type="button"
+                                  onClick={() => toggleReplyLike(fb.id)}
+                                  className="inline-flex items-center gap-1 hover:opacity-90"
+                              >
+                                {replyLikeState[fb.id]?.liked ? (
+                                    <FaHeart className="text-red-500" />
+                                ) : (
+                                    <FaRegHeart />
+                                )}
+                                <span className="text-sm font-medium">
+                              {replyLikeState[fb.id]?.count ?? fb.likes ?? 0}
+                            </span>
+                              </button>
+                              <button
+                                  type="button"
+                                  className="text-gray-500 hover:text-gray-700"
+                              >
+                                답글
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                ))}
+                  ))}
+                </div>
+                
+                {replies.length > displayedRepliesCount && (
+                    <button
+                        type="button"
+                        onClick={() => setDisplayedRepliesCount(prev => prev + 5)}
+                        className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      더보기 ({replies.length - displayedRepliesCount}개 더)
+                    </button>
+                )}
+              </div>
 
-                {/* 입력 박스 */}
+              {/* 입력 박스 */}
                 <div className="rounded-xl border border-gray-200 p-4">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold">
@@ -524,7 +541,6 @@ function FeedbackDetail() {
                     </div>
                   </div>
                 </div>
-              </div>
             </section>
           </section>
         </div>

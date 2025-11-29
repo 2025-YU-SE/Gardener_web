@@ -29,6 +29,7 @@ function PostDetail() {
 
   const [post, setPost] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [displayedFeedbacksCount, setDisplayedFeedbacksCount] = useState(5);
 
   // -----------------------------
   // 피드백 작성 상태
@@ -363,38 +364,53 @@ function PostDetail() {
                 {feedbacks.length === 0 ? (
                     <p className="text-gray-500">아직 피드백이 없습니다.</p>
                 ) : (
-                    feedbacks.map((fb) => (
-                        <div
-                            key={fb.id}
-                            className="border p-3 rounded-md mb-3 cursor-pointer hover:bg-gray-50"
-                            onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
-                        >
-                          <div className="flex items-center mb-1">
-                            <div className="w-8 h-8 bg-green-500 text-white rounded-full flex justify-center items-center mr-2">
-                              {fb.avatarInitial}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-sm">{fb.author}</p>
-                              <p className="text-xs text-gray-500">{fb.timeAgo}</p>
-                            </div>
-                          </div>
+                    <>
+                      <div className="space-y-3">
+                        {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
+                            <div
+                                key={fb.id}
+                                className="border p-3 rounded-md cursor-pointer hover:bg-gray-50"
+                                onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
+                            >
+                              <div className="flex items-center mb-1">
+                                <div className="w-8 h-8 bg-green-500 text-white rounded-full flex justify-center items-center mr-2">
+                                  {fb.avatarInitial}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-sm">{fb.author}</p>
+                                  <p className="text-xs text-gray-500">{fb.timeAgo}</p>
+                                </div>
+                              </div>
 
-                          <div className="flex mb-2">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <FaStar
-                                    key={star}
-                                    className={`text-sm ${
-                                        star <= fb.rating
-                                            ? "text-yellow-400"
-                                            : "text-gray-300"
-                                    }`}
-                                />
-                            ))}
-                          </div>
+                              <div className="flex mb-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <FaStar
+                                        key={star}
+                                        className={`text-sm ${
+                                            star <= fb.rating
+                                                ? "text-yellow-400"
+                                                : "text-gray-300"
+                                        }`}
+                                    />
+                                ))}
+                              </div>
 
-                          <p className="text-sm text-gray-700">{fb.content}</p>
-                        </div>
-                    ))
+                              <div className="max-h-[150px] overflow-y-auto pr-2">
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{fb.content}</p>
+                              </div>
+                            </div>
+                        ))}
+                      </div>
+                      
+                      {feedbacks.length > displayedFeedbacksCount && (
+                          <button
+                              onClick={() => setDisplayedFeedbacksCount(prev => prev + 5)}
+                              className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                          >
+                            더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
+                          </button>
+                      )}
+                    </>
                 )}
               </div>
             </div>
