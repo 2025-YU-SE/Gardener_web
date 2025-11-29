@@ -1,45 +1,31 @@
 import React, { useMemo, useState } from "react";
-import samplePosts from "../postcontext.jsx";
 import { TbCoin } from "react-icons/tb";
 import profile from "../../assets/baseProfile.png";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
-function rankByPoints(posts) {
-  return [...posts]
-    .sort((a, b) => b.points - a.points)
-    .map((post, idx) => ({
-      rank: idx + 1,
-      name: post.author,
-      score: post.points,
-      profileImage: profile,
-    }));
-}
 
-function RankingBoard({ leaders, loading }) {
-  const fullMockedRanked = useMemo(() => rankByPoints(samplePosts), []);
-
-  const DEFAULT_COUNT = 10; // 기본 표시 인원
-  const MAX_EXPANDED = 50; // 더보기로 펼칠 수 있는 최대 인원
-
-  // 전체 순위에서 표시할 총 인원(Top3 포함)
-  const [showCount, setShowCount] = useState(DEFAULT_COUNT);
-
-  // 상단 Top3 데이터
+function RankingBoard({
+  leaders,
+  loading,
+  fullLeaders,
+  totalElements,
+  isLast,
+  onLoadMore,
+  onCollapse,
+}) {
+  const DEFAULT_DISPLAY_COUNT = 7;
   const top3Leaders = leaders.slice(0, 3);
   const first = top3Leaders[0];
   const second = top3Leaders[1];
   const third = top3Leaders[2];
+  const rest = fullLeaders;
 
-  // 목록 데이터
-  const rest = fullMockedRanked.slice(
-    3,
-    Math.min(showCount, fullMockedRanked.length)
-  );
-
-  const maxShowable = Math.min(fullMockedRanked.length, MAX_EXPANDED);
-  const isAtDefault = showCount === DEFAULT_COUNT;
-  const isAtMax = showCount >= maxShowable;
-  const handleMore = () => setShowCount(maxShowable);
-  const handleCollapse = () => setShowCount(DEFAULT_COUNT);
+  // 현재 전체 순위 리스트에 표시된 항목의 총 수 (Top 3 제외)
+  const currentDisplayedCount = rest.length;
+  // API의 전체 항목 수
+  const maxTotalCount = totalElements;
+  const isExpanded = currentDisplayedCount > DEFAULT_DISPLAY_COUNT;
+  const isAtMax = isLast; // 마지막 페이지이면 더보기 버튼 비활성화
+  const isAtDefault = !isExpanded; // 기본 개수라면 접기 버튼 비활성화
 
   // 상단 Top 3 전용 카드
   const TopCard = ({
@@ -135,7 +121,7 @@ function RankingBoard({ leaders, loading }) {
     );
   };
 
-  if (loading) {
+  if (loading && top3Leaders.length === 0) {
     return (
       <div className="mt-12 text-center text-[#6B7280]">
         <p>데이터를 불러오는 중입니다...</p>
@@ -143,7 +129,7 @@ function RankingBoard({ leaders, loading }) {
     );
   }
 
-  if (top3Leaders.length === 0 && fullMockedRanked.length === 0) {
+  if (top3Leaders.length === 0 && maxTotalCount === 0) {
     return (
       <div className="mt-12 text-center text-[#6B7280]">
         <p>😭 아직 리더보드 데이터가 없습니다.</p>
@@ -217,17 +203,37 @@ function RankingBoard({ leaders, loading }) {
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E7EB]">
           <div className="text-[13px] text-[#111827]">전체 순위</div>
           <div className="text-[12px] text-[#6B7280]">
-            {/* 목업 데이터 전체 길이를 사용 */}
-            {fullMockedRanked.length}명 중 {Math.min(showCount, maxShowable)}명
-            표시
+            {maxTotalCount}명 중{" "}
+            {Math.min(maxTotalCount, 3 + currentDisplayedCount)}명 표시
           </div>
         </div>
 
         {/* 리스트 */}
         <div className="p-4 space-y-3">
-          {rest.map((item) => (
-            <RowCard key={item.rank} {...item} />
+          {rest.map((item, index) => (
+            <RowCard
+              key={item.userId}
+              rank={index + 4} // 4위부터 시작
+              name={item.userName}
+              score={
+                item.points ||
+                item.adoptedFeedbackCount ||
+                item.totalFeedbackCount
+              }
+              profileImage={item.userPicture}
+            />
           ))}
+          {loading && (
+            <p className="text-center text-[#9CA3AF] py-4">
+              다음 순위 목록을 불러오는 중입니다...
+            </p>
+          )}
+
+          {maxTotalCount > 0 && currentDisplayedCount === 0 && !loading && (
+            <p className="text-center text-[#9CA3AF] py-4">
+              4위 이하 목록이 현재 순위 기준에 없습니다.
+            </p>
+          )}
         </div>
 
         {/* 더보기 / 접기 버튼 */}
@@ -236,11 +242,11 @@ function RankingBoard({ leaders, loading }) {
             {/* 더보기 */}
             <button
               type="button"
-              onClick={handleMore}
-              disabled={isAtMax}
+              onClick={onLoadMore}
+              disabled={isAtMax || loading}
               className={`w-full px-4 py-2 rounded-lg border text-[13px] transition
                 ${
-                  isAtMax
+                  isAtMax || loading
                     ? "bg-[#F3F4F6] border-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
                     : "bg-white border-[#D1D5DB] text-[#111827] hover:bg-[#F9FAFB]"
                 }`}
@@ -251,7 +257,7 @@ function RankingBoard({ leaders, loading }) {
             {/* 접기 */}
             <button
               type="button"
-              onClick={handleCollapse}
+              onClick={onCollapse}
               disabled={isAtDefault}
               className={`w-full px-4 py-2 rounded-lg border text-[13px] transition
                 ${

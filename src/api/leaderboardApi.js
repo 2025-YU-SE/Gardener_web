@@ -9,3 +9,19 @@ export const getTop3Leaders = async (criteria = "points") => {
   });
   return response.data;
 };
+
+// 리더보드 전체 목록 조회 (페이징 포함)
+export const getFullLeaders = async (
+  criteria = "points",
+  page = 0,
+  size = 20
+) => {
+  const response = await api.get("/api/leaderboard", {
+    params: {
+      sortBy: criteria,
+      page: page,
+      size: size,
+    },
+  });
+  return response.data;
+};
