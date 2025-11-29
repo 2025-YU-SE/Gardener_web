@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react"; // <-- useState, useEffect 추가
 import Header from "../components/header/Header";
 import StatCard from "../components/leaderboard/StatCard";
 import LeaderboardTabs from "../components/leaderboard/LeaderboardTabs";
@@ -7,8 +7,13 @@ import icon2 from "../assets/leaderboard_icon2.png";
 import icon3 from "../assets/leaderboard_icon3.png";
 import icon4 from "../assets/leaderboard_icon4.png";
 import RankingBoard from "../components/leaderboard/RankingBoard.jsx";
+import { getTop3Leaders } from "../api/leaderboardApi"; // <-- API import
 
 function LeaderBoard() {
+  const [top3Leaders, setTop3Leaders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentCriteria, setCurrentCriteria] = useState("points"); // 기본값: 누적 포인트
+
   // value값은 추후 연동해야함
   const stats = [
     { icon: icon1, value: 24, unit: "명", label: "이번 주 신규 가드너" },
@@ -16,6 +21,29 @@ function LeaderBoard() {
     { icon: icon3, value: 15670, unit: "점", label: "이번 달 최고 기록" },
     { icon: icon4, value: 8.3, unit: "개", label: "평균 완료 과제" },
   ];
+
+  // 데이터 로딩 함수
+  const fetchTop3Leaders = async (criteria) => {
+    setLoading(true);
+    try {
+      const data = await getTop3Leaders(criteria);
+      setTop3Leaders(data);
+    } catch (error) {
+      console.error("Failed to fetch top 3 leaders:", error);
+      setTop3Leaders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCriteriaChange = (criteria) => {
+    setCurrentCriteria(criteria);
+    fetchTop3Leaders(criteria);
+  };
+
+  useEffect(() => {
+    fetchTop3Leaders(currentCriteria);
+  }, [currentCriteria]);
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
@@ -44,10 +72,13 @@ function LeaderBoard() {
           </div>
 
           {/* 정렬 탭 */}
-          <LeaderboardTabs />
+          <LeaderboardTabs
+            currentCriteria={currentCriteria}
+            onCriteriaChange={handleCriteriaChange}
+          />
 
           {/* 랭킹보드 */}
-          <RankingBoard />
+          <RankingBoard leaders={top3Leaders} loading={loading} />
 
           {/* Footer */}
           <div className="w-full flex justify-center my-8">
