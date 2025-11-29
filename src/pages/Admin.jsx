@@ -2,9 +2,30 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaStar } from "react-icons/fa";
 import Header from "../components/header/Header";
+import WriteCodeEditor from "../components/WriteCodeEditor";
+import CollapsibleFilter from "../components/filter/CollapsibleFilter";
+import language from "../components/filter/language";
+import stacks from "../components/filter/stacks";
 import { getPosts, updatePost, deletePost } from "../api/postApi";
 import { getAllFeedbacks, updateFeedback, deleteFeedback } from "../api/feedbackApi";
-import api from "../api/axiosInterceptor";
+
+const getLanguageCode = (languageName) => {
+  const languageMap = {
+    'JavaScript': 'javascript',
+    'Python': 'python',
+    'Java': 'java',
+    'C': 'c',
+    'C++': 'cpp',
+    'C#': 'csharp',
+    'Ruby': 'ruby',
+    'Go': 'go',
+    'PHP': 'php',
+    'Swift': 'swift',
+    'Kotlin': 'kotlin',
+    'TypeScript': 'typescript',
+  };
+  return languageMap[languageName] || 'javascript';
+};
 
 function Admin() {
   const navigate = useNavigate();
@@ -20,6 +41,7 @@ function Admin() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const loadData = async () => {
@@ -73,8 +95,8 @@ function Admin() {
     setEditForm({
       title: post.title,
       content: post.content,
-      languages: post.languages || "",
-      stacks: post.stacks || "",
+      languages: post.languages || "JavaScript",
+      stacks: post.stacks ? [post.stacks] : [],
       category: post.category || "개발",
       code: post.code || "",
     });
@@ -216,25 +238,35 @@ function Admin() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold mb-1">언어</label>
-                          <input
-                            type="text"
-                            className="w-full border rounded-md px-3 py-2"
-                            value={editForm.languages}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, languages: e.target.value })
-                            }
+                          <label className="block text-sm font-semibold mb-2">언어</label>
+                          <CollapsibleFilter
+                            title="프로그래밍 언어"
+                            options={language}
+                            showSelected={true}
+                            selectedOptions={[editForm.languages]}
+                            onSelectionChange={(selection) => {
+                              if (selection.length > 0) {
+                                setEditForm({ ...editForm, languages: selection[0] });
+                              }
+                            }}
+                            singleSelect={true}
+                            roundedClass="rounded-lg"
+                            titleClass="font-normal text-gray-600"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold mb-1">스택</label>
-                          <input
-                            type="text"
-                            className="w-full border rounded-md px-3 py-2"
-                            value={editForm.stacks}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, stacks: e.target.value })
-                            }
+                          <label className="block text-sm font-semibold mb-2">스택</label>
+                          <CollapsibleFilter
+                            title="기술 스택"
+                            options={stacks}
+                            showSelected={true}
+                            selectedOptions={Array.isArray(editForm.stacks) ? editForm.stacks : (editForm.stacks ? [editForm.stacks] : [])}
+                            onSelectionChange={(selection) => {
+                              setEditForm({ ...editForm, stacks: selection });
+                            }}
+                            singleSelect={false}
+                            roundedClass="rounded-lg"
+                            titleClass="font-normal text-gray-600"
                           />
                         </div>
                       </div>
@@ -253,13 +285,14 @@ function Admin() {
                       </div>
                       <div>
                         <label className="block text-sm font-semibold mb-1">코드</label>
-                        <textarea
-                          className="w-full border rounded-md px-3 py-2 font-mono text-sm"
-                          rows="10"
-                          value={editForm.code}
-                          onChange={(e) =>
-                            setEditForm({ ...editForm, code: e.target.value })
+                        <WriteCodeEditor
+                          value={editForm.code || ""}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, code: value })
                           }
+                          language={getLanguageCode(editForm.languages)}
+                          height={400}
+                          title={`${editForm.languages?.toUpperCase() || "JAVASCRIPT"} - 수정 모드`}
                         />
                       </div>
                       <div className="flex gap-2">
