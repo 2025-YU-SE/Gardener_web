@@ -42,6 +42,14 @@ function Posts() {
   const sortOptions = ["최신순", "조회순", "피드백 많은 순"];
 
   const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]); // 원본 데이터 저장
+  
+  // 검색어 상태
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // 필터 상태
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
+  const [selectedStacks, setSelectedStacks] = useState([]);
 
   const handlePostClick = (postId) => {
     navigate(`/posts/${postId}`);
@@ -108,17 +116,21 @@ function Posts() {
           author: p.userName || "익명",
           avatar: "👤",
           timeAgo: p.createdAt ? p.createdAt.slice(0, 10) : "",
-          tags: [p.languages, p.stacks],
-
+          tags: [p.languages, p.stacks].filter(Boolean),
+          languages: p.languages,
+          stacks: p.stacks,
+          category: p.category ||"개발",
           likes: p.likesCount,
           bookmarks: p.scrapCount,
           comments: p.feedbackCount,
           views: p.views,
+          createdAt: p.createdAt, // 정렬
 
           isLiked: false,
           isBookmarked: false,
         }));
 
+        setAllPosts(mapped);
         setPosts(mapped);
       } catch (err) {
         console.error("게시글 불러오기 실패:", err);
@@ -127,6 +139,65 @@ function Posts() {
 
     fetchData();
   }, []);
+
+  // 필터링, 검색, 정렬
+  useEffect(() => {
+    let filtered = [...allPosts];
+
+    // 카테고리 필터링
+    if (selectedCategory) {
+      filtered = filtered.filter((post) => {
+        const postCategory = post.category || "개발";
+        return postCategory === selectedCategory;
+      });
+    }
+
+    // 검색어 필터링
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((post) => {
+        const titleMatch = post.title?.toLowerCase().includes(query);
+        const contentMatch = post.content?.toLowerCase().includes(query);
+        const authorMatch = post.author?.toLowerCase().includes(query);
+        return titleMatch || contentMatch || authorMatch;
+      });
+    }
+
+    // 언어 필터링
+    if (selectedLanguages.length > 0) {
+      filtered = filtered.filter((post) => {
+        return selectedLanguages.some((lang) => 
+          post.languages === lang || post.tags?.includes(lang)
+        );
+      });
+    }
+
+    // 스택 필터링
+    if (selectedStacks.length > 0) {
+      filtered = filtered.filter((post) => {
+        return selectedStacks.some((stack) => 
+          post.stacks === stack || post.tags?.includes(stack)
+        );
+      });
+    }
+
+    // 정렬
+    const sorted = [...filtered].sort((a, b) => {
+      switch (selectedSort) {
+        case "최신순":
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        case "조회순":
+          return (b.views || 0) - (a.views || 0);
+        case "피드백 많은 순":
+          return (b.comments || 0) - (a.comments || 0);
+        default:
+          return 0;
+      }
+    });
+
+    setPosts(sorted);
+    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
+  }, [allPosts, selectedCategory, searchQuery, selectedLanguages, selectedStacks, selectedSort]);
 
   const totalPages = getTotalPages(posts, postsPerPage);
   const currentPosts = getCurrentPageData(posts, currentPage, postsPerPage);
@@ -142,6 +213,21 @@ function Posts() {
     }
   };
 
+  // 검색어 입력 핸들러
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // 검색 실행 핸들러
+  const handleSearch = () => {
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
       <div className="min-h-screen bg-[#f9f9f9]">
         <Header />
@@ -154,16 +240,29 @@ function Posts() {
               <input
                   type="text"
                   placeholder="제목, 내용, 아이디로 검색"
-                  className="focus:outline-none"
+                  className="focus:outline-none flex-1"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleSearchKeyPress}
               />
-              <button>
+              <button onClick={handleSearch}>
                 <FaSearch color="#00C839" size={20} />
               </button>
             </div>
 
             {/* 필터 */}
-            <CollapsibleFilter title="프로그래밍 언어" options={language} />
-            <CollapsibleFilter title="기술 스택" options={stacks} />
+            <CollapsibleFilter 
+              title="프로그래밍 언어" 
+              options={language}
+              selectedOptions={selectedLanguages}
+              onSelectionChange={setSelectedLanguages}
+            />
+            <CollapsibleFilter 
+              title="기술 스택" 
+              options={stacks}
+              selectedOptions={selectedStacks}
+              onSelectionChange={setSelectedStacks}
+            />
           </div>
 
           {/* 게시물 목록 */}
@@ -173,7 +272,10 @@ function Posts() {
             <div className="flex justify-between items-center p-4">
               <div className="flex space-x-8">
                 <button
-                    onClick={() => setSelectedCategory("개발")}
+                    onClick={() => {
+                      setSelectedCategory("개발");
+                      setCurrentPage(1);
+                    }}
                     className={`text-2xl font-semibold pb-2 border-b-2 transition-colors ${
                         selectedCategory === "개발"
                             ? "text-black border-black"
@@ -183,7 +285,10 @@ function Posts() {
                   개발
                 </button>
                 <button
-                    onClick={() => setSelectedCategory("코딩테스트")}
+                    onClick={() => {
+                      setSelectedCategory("코딩테스트");
+                      setCurrentPage(1);
+                    }}
                     className={`text-2xl font-semibold pb-2 border-b-2 transition-colors ${
                         selectedCategory === "코딩테스트"
                             ? "text-black border-black"
@@ -217,6 +322,7 @@ function Posts() {
                               onClick={() => {
                                 setSelectedSort(option);
                                 setIsDropdownOpen(false);
+                                setCurrentPage(1); // 정렬 변경 시 첫 페이지로
                               }}
                               className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
                                   selectedSort === option
