@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import Header from "../components/header/Header";
-import baseProfile from "../assets/profile.png";
+import baseProfile from "../assets/baseProfile.png";
 import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
 import { FaRegBookmark } from "react-icons/fa"; // 스크랩 아이콘 추가

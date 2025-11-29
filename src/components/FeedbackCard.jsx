@@ -56,7 +56,7 @@ function FeedbackCard({ feedback, userName, userAvatar, onClick }) {
       {/* 작성자 정보 및 시간 */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-[40px] h-[40px] rounded-full bg-green-100 border border-gray-300 flex items-center justify-center overflow-hidden">
+          <div className="w-[40px] h-[40px] rounded-full border border-gray-300 flex items-center justify-center overflow-hidden">
             {!userAvatar && (
               <span className="text-sm font-bold">{avatarInitial}</span>
             )}
