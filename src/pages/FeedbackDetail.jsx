@@ -4,7 +4,7 @@ import Header from "../components/header/Header";
 import { FiChevronLeft } from "react-icons/fi";
 import { FaHeart, FaRegHeart, FaComment, FaStar } from "react-icons/fa";
 import { BsSend } from "react-icons/bs";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
 import FeedbackReadonlyCodeEditor from "../components/FeedbackReadonlyCodeEditor";
@@ -15,7 +15,9 @@ import api from "../api/axiosInterceptor";
 
 function FeedbackDetail() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { postId, feedbackId } = useParams();
+  const isAuthed = Boolean(localStorage.getItem("accessToken"));
 
   // ---------- 데이터 상태 ----------
   const [post, setPost] = useState(null);          // 게시글 정보
@@ -104,6 +106,12 @@ function FeedbackDetail() {
   // 피드백 좋아요 토글
   const toggleDetailLike = async () => {
     if (!feedback) return;
+    
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+    
     try {
       await api.post(`/api/feedback/${feedbackId}/like`);
       setDetailLiked((prev) => !prev);
@@ -122,6 +130,11 @@ function FeedbackDetail() {
 
   // 댓글 좋아요 (UI 전용)
   const toggleReplyLike = (id) => {
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+    
     setReplyLikeState((prev) => {
       const curr = prev[id] || { liked: false, count: 0 };
       const nextLiked = !curr.liked;
@@ -167,6 +180,11 @@ function FeedbackDetail() {
 
   // 댓글 작성
   const handleSendReply = async () => {
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+    
     const text = replyInput.trim();
     if (!text) return;
     try {

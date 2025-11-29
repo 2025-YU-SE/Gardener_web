@@ -189,7 +189,13 @@ function PostDetail() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-6">
                 <button
-                    onClick={() => setPostLiked((v) => !v)}
+                    onClick={() => {
+                      if (!isAuthed) {
+                        navigate("/sign-in", { state: { from: location.pathname } });
+                        return;
+                      }
+                      setPostLiked((v) => !v);
+                    }}
                     className="flex items-center gap-1 text-gray-600"
                 >
                   {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
@@ -197,7 +203,13 @@ function PostDetail() {
                 </button>
 
                 <button
-                    onClick={() => setPostBookmarked((v) => !v)}
+                    onClick={() => {
+                      if (!isAuthed) {
+                        navigate("/sign-in", { state: { from: location.pathname } });
+                        return;
+                      }
+                      setPostBookmarked((v) => !v);
+                    }}
                     className="flex items-center gap-1 text-gray-600"
                 >
                   {postBookmarked ? (

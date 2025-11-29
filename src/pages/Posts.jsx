@@ -57,34 +57,50 @@ function Posts() {
 
   // 🔥 좋아요 (UI만 변경)
   const toggleLike = (postId) => {
-    setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-            post.id === postId
-                ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-                }
-                : post
-        )
-    );
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      navigate("/sign-in");
+      return;
+    }
+    
+    const updatePost = (post) => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          isLiked: !post.isLiked,
+          likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+        };
+      }
+      return post;
+    };
+    
+    setAllPosts((prev) => prev.map(updatePost));
+    setPosts((prevPosts) => prevPosts.map(updatePost));
   };
 
   // 🔥 북마크 (UI만 변경)
   const toggleBookmark = (postId) => {
-    setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-            post.id === postId
-                ? {
-                  ...post,
-                  isBookmarked: !post.isBookmarked,
-                  bookmarks: post.isBookmarked
-                      ? post.bookmarks - 1
-                      : post.bookmarks + 1,
-                }
-                : post
-        )
-    );
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      navigate("/sign-in");
+      return;
+    }
+    
+    const updatePost = (post) => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          isBookmarked: !post.isBookmarked,
+          bookmarks: post.isBookmarked
+              ? post.bookmarks - 1
+              : post.bookmarks + 1,
+        };
+      }
+      return post;
+    };
+    
+    setAllPosts((prev) => prev.map(updatePost));
+    setPosts((prevPosts) => prevPosts.map(updatePost));
   };
 
   // 🔥 드롭다운 외부 클릭 시 닫기
