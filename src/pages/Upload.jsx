@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { BsSend } from "react-icons/bs"
 import { FaGithub } from "react-icons/fa"
-import { GoPlus } from "react-icons/go"
 import { MdOutlineUploadFile } from "react-icons/md"
 import Header from '../components/header/Header'
 import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
 import CollapsibleFilter from '../components/filter/CollapsibleFilter'
 import WriteCodeEditor from '../components/WriteCodeEditor'
+import { createPost } from '../api/postApi'
 
 const getLanguageCode = (languageName) => {
   const languageMap = {
@@ -28,9 +29,86 @@ const getLanguageCode = (languageName) => {
 };
 
 function Upload() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('개발')
   const [selectedLanguage, setSelectedLanguage] = useState('JavaScript')
   const [selectedStacks, setSelectedStacks] = useState([])
+  
+  // 개발 탭 상태
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [code, setCode] = useState('// 예시 코드를 자유롭게 수정하세요\nconst numbers = [1,2,3,4,5];\nconst doubled = numbers.map(x => x * 2);\nconsole.log(doubled);')
+  const [feedbackRequests, setFeedbackRequests] = useState(['', '', ''])
+  const [githubUrl, setGithubUrl] = useState('')
+  
+  // 코딩테스트 탭 상태
+  const [codingTitle, setCodingTitle] = useState('')
+  const [problem, setProblem] = useState('')
+  const [codingCode, setCodingCode] = useState('// 코딩테스트 코드를 입력하세요\nfunction solution() {\n  // 여기에 코드를 작성하세요\n  return;\n}')
+  const [codeExplanation, setCodeExplanation] = useState('')
+  const [codingFeedbackRequests, setCodingFeedbackRequests] = useState(['', '', ''])
+  
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleFeedbackRequestChange = (index, value) => {
+    const newRequests = [...feedbackRequests]
+    newRequests[index] = value
+    setFeedbackRequests(newRequests)
+  }
+
+  const handleCodingFeedbackRequestChange = (index, value) => {
+    const newRequests = [...codingFeedbackRequests]
+    newRequests[index] = value
+    setCodingFeedbackRequests(newRequests)
+  }
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true)
+
+      // 필수 항목 검증
+      if (activeTab === '개발') {
+        if (!title.trim() || !content.trim() || !code.trim()) {
+          alert('필수 항목을 모두 입력해주세요.')
+          setIsSubmitting(false)
+          return
+        }
+      } else {
+        if (!codingTitle.trim() || !problem.trim() || !codingCode.trim() || !codeExplanation.trim()) {
+          alert('필수 항목을 모두 입력해주세요.')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      // summary 생성 (피드백 요청 필드들을 합쳐서)
+      const summary = activeTab === '개발' 
+        ? feedbackRequests.filter(f => f.trim()).join(', ') || '전반적인 피드백'
+        : codingFeedbackRequests.filter(f => f.trim()).join(', ') || '전반적인 피드백'
+
+      // JSON 객체로 변경 (백엔드는 @RequestBody로 JSON을 기대함)
+      const postData = {
+        title: activeTab === '개발' ? title : codingTitle,
+        content: activeTab === '개발' ? content : problem,
+        code: activeTab === '개발' ? code : codingCode,
+        languages: selectedLanguage,
+        stacks: selectedStacks.length > 0 ? selectedStacks.join(',') : null,
+        summary: summary,
+        contentsType: activeTab === '개발' ? true : false, // Boolean: true=개발, false=코딩테스트
+        githubRepoUrl: activeTab === '개발' ? (githubUrl.trim() || null) : null,
+        problemStatement: activeTab === '코딩테스트' ? problem : null
+      }
+
+      await createPost(postData)
+      alert('게시물이 업로드되었습니다!')
+      navigate('/posts')
+    } catch (err) {
+      console.error('업로드 실패:', err)
+      alert('업로드에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]">  
@@ -83,6 +161,8 @@ function Upload() {
                     type="text" 
                     placeholder="코드 제목을 입력하세요"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
 
@@ -95,6 +175,8 @@ function Upload() {
                     placeholder="코드에 대한 간단한 설명을 입력하세요"
                     rows="4"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
                   ></textarea>
                 </div>
 
@@ -141,7 +223,8 @@ function Upload() {
                   <WriteCodeEditor
                     language={getLanguageCode(selectedLanguage)}
                     title={`${selectedLanguage.toUpperCase()} - 작성 모드`}
-                    value={`// 예시 코드를 자유롭게 수정하세요\nconst numbers = [1,2,3,4,5];\nconst doubled = numbers.map(x => x * 2);\nconsole.log(doubled);`}
+                    value={code}
+                    onChange={setCode}
                   />
                 </div>
 
@@ -156,16 +239,22 @@ function Upload() {
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={feedbackRequests[0]}
+                      onChange={(e) => handleFeedbackRequestChange(0, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={feedbackRequests[1]}
+                      onChange={(e) => handleFeedbackRequestChange(1, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={feedbackRequests[2]}
+                      onChange={(e) => handleFeedbackRequestChange(2, e.target.value)}
                     />
                   </div>
                 </div>
@@ -191,6 +280,8 @@ function Upload() {
                     type="text" 
                     placeholder="코딩 테스트 제목을 입력하세요"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                    value={codingTitle}
+                    onChange={(e) => setCodingTitle(e.target.value)}
                   />
                 </div>
 
@@ -203,6 +294,8 @@ function Upload() {
                     placeholder="코딩 테스트 문제를 입력하세요"
                     rows="4"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value)}
                   ></textarea>
                 </div>
 
@@ -235,7 +328,8 @@ function Upload() {
                   <WriteCodeEditor
                     language={getLanguageCode(selectedLanguage)}
                     title={`${selectedLanguage.toUpperCase()} - 작성 모드`}
-                    value={`// 코딩테스트 코드를 입력하세요\nfunction solution() {\n  // 여기에 코드를 작성하세요\n  return;\n}`}
+                    value={codingCode}
+                    onChange={setCodingCode}
                   />
                 </div>
 
@@ -248,6 +342,8 @@ function Upload() {
                     placeholder="코드의 목적, 구현 방식, 특별한 고려사항 등을 설명해주세요"
                     rows="4"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
+                    value={codeExplanation}
+                    onChange={(e) => setCodeExplanation(e.target.value)}
                   ></textarea>
                 </div>
 
@@ -261,16 +357,22 @@ function Upload() {
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={codingFeedbackRequests[0]}
+                      onChange={(e) => handleCodingFeedbackRequestChange(0, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={codingFeedbackRequests[1]}
+                      onChange={(e) => handleCodingFeedbackRequestChange(1, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={codingFeedbackRequests[2]}
+                      onChange={(e) => handleCodingFeedbackRequestChange(2, e.target.value)}
                     />
                   </div>
                 </div>
@@ -315,7 +417,7 @@ function Upload() {
               </div>
               
               <div className="space-y-6">
-                {/* 사진 피드백 업로드 */}
+                {/* 파일 업로드 (선택) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     파일 업로드
@@ -342,6 +444,8 @@ function Upload() {
                       type="text" 
                       placeholder="https://github.com/username/repository"
                       className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
                     />
                   </div>
                 </div>
@@ -354,9 +458,13 @@ function Upload() {
             <div className="text-sm text-gray-500">
               • 표시된 항목은 필수 입력 사항입니다.
             </div>
-            <button className='m-2 px-4 py-2 rounded-md bg-[#16A34A] text-white flex items-center gap-2'>
+            <button 
+              className='m-2 px-4 py-2 rounded-md bg-[#16A34A] text-white flex items-center gap-2 hover:bg-[#15803d] disabled:opacity-50 disabled:cursor-not-allowed'
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
               <BsSend />
-              코드 업로드
+              {isSubmitting ? '업로드 중...' : '코드 업로드'}
             </button>
           </div>
         </div>
