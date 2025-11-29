@@ -3,10 +3,9 @@ import Header from "../components/header/Header";
 import baseProfile from "../assets/baseProfile.png";
 import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
-import { FaRegBookmark } from "react-icons/fa"; // 스크랩 아이콘 추가
+import { useNavigate, useParams } from "react-router-dom";
 import PostCard from "../components/PostCard.jsx";
 import FeedbackCard from "../components/FeedbackCard.jsx";
-import { useNavigate } from "react-router-dom";
 import {
   getUserProfile,
   getUserRecentPosts,
@@ -18,7 +17,7 @@ import {
 } from "../api/userApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
-// 날짜 포맷팅
+// 날짜 포맷팅 함수 (생략되지 않도록 유지)
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -37,7 +36,19 @@ const formatTimeAgo = (dateString) => {
 
 function MyPaged() {
   const navigate = useNavigate();
-  const currentUserId = 1;
+  const { userId: urlUserId } = useParams();
+
+  // 로그인 ID 추출
+  const loggedInUserId = localStorage.getItem("loggedInUserId");
+  const isLoggedIn = !!loggedInUserId;
+
+  // 조회 대상 ID 결정
+  const targetUserId = urlUserId ? urlUserId : loggedInUserId;
+
+  // 본인 프로필 여부 결정
+  const isMyProfile =
+    isLoggedIn &&
+    (!urlUserId || (urlUserId && targetUserId === loggedInUserId)); // targetUserId로 비교하도록 수정
 
   const [profile, setProfile] = useState({
     name: "Loading...",
@@ -69,10 +80,27 @@ function MyPaged() {
   const scrapsRef = useRef(null);
 
   useEffect(() => {
+    // 로그인 확인 및 리다이렉션
+    if (!urlUserId && !isLoggedIn) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+    if (!targetUserId) {
+      console.error(
+        "조회할 사용자 ID가 유효하지 않아 데이터 로딩을 중단합니다."
+      );
+      return;
+    }
+
+    // 타인 프로필을 볼 때 스크랩 탭이 선택되어 있다면 게시글 탭으로 초기화
+    if (!isMyProfile && activeTab === "scraps") {
+      setActiveTab("posts");
+    }
+
     const fetchData = async () => {
       try {
-        // 프로필 조회
-        const profileRes = await getUserProfile(currentUserId);
+        const profileRes = await getUserProfile(targetUserId);
         const pData = profileRes.data;
 
         // 피드백 채택률 계산
@@ -83,15 +111,18 @@ function MyPaged() {
               )
             : 0;
 
-        // 최근 스크랩 조회 (초기 4개 데이터)
-        const scrapsRes = await getUserRecentScraps(currentUserId);
-        const mappedScraps = scrapsRes.data.map((post) =>
-          mapApiToPostData(post, pData)
-        );
-        setMyScraps(mappedScraps);
-
-        // 스크랩 수 계산
-        const calculatedScrapCount = mappedScraps.length;
+        // 스크랩은 본인 프로필일 때만
+        let calculatedScrapCount = 0;
+        if (isMyProfile) {
+          const scrapsRes = await getUserRecentScraps(targetUserId);
+          const mappedScraps = scrapsRes.data.map((post) =>
+            mapApiToPostData(post, pData)
+          );
+          setMyScraps(mappedScraps);
+          calculatedScrapCount = pData.scrapCount || mappedScraps.length;
+        } else {
+          setMyScraps([]);
+        }
 
         setProfile({
           name: pData.userName,
@@ -100,27 +131,35 @@ function MyPaged() {
           selectRate: selectRate,
           postCount: pData.postCount,
           feedbackCount: pData.totalFeedbackCount,
-          scrapCount: pData.scrapCount || calculatedScrapCount,
+          scrapCount: isMyProfile ? calculatedScrapCount : 0,
           gradeLabel: pData.grade,
         });
 
-        // 최근 게시글 조회 (초기 4개 데이터)
-        const postsRes = await getUserRecentPosts(currentUserId);
+        // 최근 게시글 조회
+        const postsRes = await getUserRecentPosts(targetUserId);
         const mappedPosts = postsRes.data.map((post) =>
           mapApiToPostData(post, pData)
         );
         setMyPosts(mappedPosts);
 
-        // 최근 피드백 조회 (초기 4개 데이터)
-        const feedbacksRes = await getUserRecentFeedbacks(currentUserId);
+        // 최근 피드백 조회
+        const feedbacksRes = await getUserRecentFeedbacks(targetUserId);
         setMyFeedbackAll(feedbacksRes.data);
       } catch (error) {
         console.error("데이터 로딩 중 오류 발생:", error);
+        alert("프로필 데이터를 불러오는 데 실패했습니다.");
       }
     };
 
     fetchData();
-  }, []);
+  }, [
+    targetUserId,
+    loggedInUserId,
+    navigate,
+    urlUserId,
+    activeTab,
+    isMyProfile,
+  ]);
 
   const mapApiToPostData = (apiPost, profileData) => {
     return {
@@ -151,7 +190,7 @@ function MyPaged() {
   const expandPosts = async () => {
     if (!hasFetchedAllPosts) {
       try {
-        const res = await getUserPosts(currentUserId, 0, profile.postCount);
+        const res = await getUserPosts(targetUserId, 0, profile.postCount);
         const contentList = res.data.content || [];
 
         const allPostsMapped = contentList.map((post) =>
@@ -179,7 +218,7 @@ function MyPaged() {
     if (!hasFetchedAllFeedbacks) {
       try {
         const res = await getUserFeedbacks(
-          currentUserId,
+          targetUserId,
           0,
           profile.feedbackCount
         );
@@ -203,9 +242,11 @@ function MyPaged() {
 
   // 스크랩 더보기 버튼 클릭 시
   const expandScraps = async () => {
+    if (!isMyProfile) return;
+
     if (!hasFetchedAllScraps) {
       try {
-        const res = await getUserScraps(currentUserId, 0, profile.scrapCount);
+        const res = await getUserScraps(targetUserId, 0, profile.scrapCount);
         const contentList = res.data.content || [];
         const allScrapsMapped = contentList.map((post) =>
           mapApiToPostData(post, profile)
@@ -337,7 +378,7 @@ function MyPaged() {
                   : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
               }`}
             >
-              내 게시글 ({profile.postCount})
+              게시글 ({profile.postCount})
             </button>
             <button
               onClick={() => setActiveTab("feedback")}
@@ -347,18 +388,22 @@ function MyPaged() {
                   : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
               }`}
             >
-              내 피드백 ({profile.feedbackCount})
+              피드백 ({profile.feedbackCount})
             </button>
-            <button
-              onClick={() => setActiveTab("scraps")}
-              className={`px-3 py-1.5 rounded-full text-sm border transition ${
-                activeTab === "scraps"
-                  ? "bg-[#00B834] text-white border-[#00B834]"
-                  : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              내 스크랩 ({profile.scrapCount})
-            </button>
+
+            {/* 스크랩 탭 */}
+            {isMyProfile && (
+              <button
+                onClick={() => setActiveTab("scraps")}
+                className={`px-3 py-1.5 rounded-full text-sm border transition ${
+                  activeTab === "scraps"
+                    ? "bg-[#00B834] text-white border-[#00B834]"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                스크랩 ({profile.scrapCount})
+              </button>
+            )}
           </div>
 
           {/* 내 게시글 영역 */}
@@ -366,7 +411,9 @@ function MyPaged() {
             <section ref={postsRef} className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[16px] font-semibold ml-1">
-                  내가 올린 게시글
+                  {isMyProfile
+                    ? "내가 올린 게시글"
+                    : `${profile.name} 님의 게시글`}
                 </h2>
               </div>
               {myPosts.length === 0 ? (
@@ -380,7 +427,7 @@ function MyPaged() {
                       key={`mypost-${p.id}`}
                       {...p}
                       avatar={makeAbsoluteImageUrl(p.avatar) || baseProfile}
-                      badge="내 게시글"
+                      badge={isMyProfile ? "내 게시글" : null}
                       rightPill={null}
                       onClick={() => handlePostClick(p.id)}
                     />
@@ -414,7 +461,9 @@ function MyPaged() {
             <section ref={feedbackRef} className="mb-2">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[16px] font-semibold ml-1">
-                  내가 등록한 피드백
+                  {isMyProfile
+                    ? "내가 등록한 피드백"
+                    : `${profile.name} 님의 피드백`}
                 </h2>
               </div>
 
@@ -459,8 +508,8 @@ function MyPaged() {
             </section>
           )}
 
-          {/* 내 스크랩 영역 */}
-          {activeTab === "scraps" && (
+          {/* 내 스크랩 영역 (본인에게만 표시) */}
+          {activeTab === "scraps" && isMyProfile && (
             <section ref={scrapsRef} className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-[16px] font-semibold ml-1">
