@@ -1,7 +1,22 @@
-import React, { useMemo, useState } from "react";
+import React from "react";
 import { TbCoin } from "react-icons/tb";
 import profile from "../../assets/baseProfile.png";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
+
+// 등급별 배지 스타일 매핑 함수
+const getGradeBadgeStyle = (grade) => {
+  switch (grade) {
+    case "숲의 현자":
+      return "bg-[#DBEAFE] text-[#193CB8]";
+    case "나무 개발자":
+      return "bg-[#FEF3C7] text-[#92400E]";
+    case "잎새 개발자":
+      return "bg-[#D1FAE5] text-[#065F46]";
+    case "새싹 개발자":
+    default:
+      return "bg-[#ECFCCB] text-[#4D7C0F]";
+  }
+};
 
 function RankingBoard({
   leaders,
@@ -42,9 +57,9 @@ function RankingBoard({
       : profile;
 
     const toneMap = {
-      gold: "bg-[#FEF9C3] border-[#FACC15]", // 1등
-      silver: "bg-[#F3F4F6] border-[#D1D5DB]", // 2등
-      bronze: "bg-[#FFE4D6] border-[#FDBA74]", // 3등
+      gold: "bg-[#FEF9C3] border-[#FACC15]",
+      silver: "bg-[#F3F4F6] border-[#D1D5DB]",
+      bronze: "bg-[#FFE4D6] border-[#FDBA74]",
     };
 
     return (
@@ -66,7 +81,6 @@ function RankingBoard({
           />
         </div>
 
-        {/* 이름 + 포인트 */}
         <div className="mt-4 text-center">
           <div className="text-[16px] font-semibold">{name}</div>
           <div className="flex items-center justify-center gap-1 text-[14px] text-[#4D4D4D] mt-1">
@@ -84,16 +98,17 @@ function RankingBoard({
       ? makeAbsoluteImageUrl(profileImage)
       : profile;
 
+    // grade가 없거나 이상한 값이면 '새싹 개발자' 스타일 적용 (default case)
+    const badgeStyle = getGradeBadgeStyle(grade);
+
     return (
       <div className="flex items-center justify-between w-full px-10 py-4 rounded-xl bg-white border border-[#E5E7EB] shadow-sm">
         {/* 왼쪽 영역 */}
         <div className="flex items-center gap-4">
-          {/* 등수 배지 */}
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#F3F4F6] text-[#374151] text-[13px] font-bold">
             {rank}
           </span>
 
-          {/* 프로필 이미지 + 이름 */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-[#F9FAFB] border border-[#E5E7EB] overflow-hidden">
               <img
@@ -106,10 +121,14 @@ function RankingBoard({
             <div className="text-[15px] font-semibold">{name}</div>
           </div>
 
-          {/* 등급 배지 -> 추후 연동 */}
-          <span className="text-[11px] px-2 py-[2px] rounded-full bg-[#DBEAFE] text-[#193CB8]">
-            숲의 현자
-          </span>
+          {/* 등급 배지 */}
+          {grade && (
+            <span
+              className={`text-[11px] px-2 py-[2px] rounded-full ${badgeStyle}`}
+            >
+              {grade}
+            </span>
+          )}
         </div>
 
         {/* 오른쪽 영역: 포인트 */}
@@ -147,7 +166,6 @@ function RankingBoard({
 
         <div className="flex items-end justify-center gap-4">
           <div className="translate-y-2">
-            {/* 2위: API 데이터 사용 */}
             {second && (
               <TopCard
                 rank={2}
@@ -158,12 +176,12 @@ function RankingBoard({
                   second.totalFeedbackCount
                 }
                 profileImage={second.userPicture}
+                grade={second.grade}
                 tone="silver"
               />
             )}
           </div>
           <div className="-translate-y-2">
-            {/* 1위: API 데이터 사용 */}
             {first && (
               <TopCard
                 rank={1}
@@ -174,12 +192,12 @@ function RankingBoard({
                   first.totalFeedbackCount
                 }
                 profileImage={first.userPicture}
+                grade={first.grade}
                 tone="gold"
               />
             )}
           </div>
           <div className="translate-y-2">
-            {/* 3위: API 데이터 사용 */}
             {third && (
               <TopCard
                 rank={3}
@@ -190,6 +208,7 @@ function RankingBoard({
                   third.totalFeedbackCount
                 }
                 profileImage={third.userPicture}
+                grade={third.grade}
                 tone="bronze"
               />
             )}
@@ -199,7 +218,6 @@ function RankingBoard({
 
       {/* 전체 순위 영역 */}
       <div className="mt-6 rounded-xl border border-[#E5E7EB] bg-white/70">
-        {/* 헤더: 제목 + 표시 인원 */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E7EB]">
           <div className="text-[13px] text-[#111827]">전체 순위</div>
           <div className="text-[12px] text-[#6B7280]">
@@ -208,12 +226,11 @@ function RankingBoard({
           </div>
         </div>
 
-        {/* 리스트 */}
         <div className="p-4 space-y-3">
           {rest.map((item, index) => (
             <RowCard
               key={item.userId}
-              rank={index + 4} // 4위부터 시작
+              rank={index + 4}
               name={item.userName}
               score={
                 item.points ||
@@ -221,6 +238,7 @@ function RankingBoard({
                 item.totalFeedbackCount
               }
               profileImage={item.userPicture}
+              grade={item.grade}
             />
           ))}
           {loading && (
@@ -236,10 +254,8 @@ function RankingBoard({
           )}
         </div>
 
-        {/* 더보기 / 접기 버튼 */}
         <div className="px-4 pb-4">
           <div className="mx-auto max-w-[360px] flex items-center justify-center gap-3">
-            {/* 더보기 */}
             <button
               type="button"
               onClick={onLoadMore}
@@ -254,7 +270,6 @@ function RankingBoard({
               더보기
             </button>
 
-            {/* 접기 */}
             <button
               type="button"
               onClick={onCollapse}
