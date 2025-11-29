@@ -318,18 +318,15 @@ function Upload() {
                 {/* 사진 피드백 업로드 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    사진 피드백 업로드
+                    파일 업로드
                   </label>
-                  <button className="flex items-center px-4 py-3 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors gap-2">
-                    <GoPlus className="text-gray-600" />
-                    <span className="text-gray-600">이미지 추가</span>
-                  </button>
-                  {/* 추후 업로드 연동 */}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                  />
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 hover:bg-green-50 transition-colors">
+                    <div className="text-gray-400 mb-2 flex justify-center">
+                      <MdOutlineUploadFile size={48} />
+                    </div>
+                    <p className="text-gray-600">파일 업로드</p>
+                    <p className="text-sm text-gray-500 mt-1">문제 파일을 드래그하거나 클릭하여 업로드하세요</p>
+                  </div>
                 </div>
 
                 {/* GitHub 레포지토리 */}
