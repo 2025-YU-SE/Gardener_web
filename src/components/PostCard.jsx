@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaHeart,
   FaRegHeart,
@@ -34,6 +35,8 @@ function PostCard({
         : content
       : "";
 
+  const navigate = useNavigate();
+  
   // 토글 상태
   const [liked, setLiked] = useState(isLiked);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
@@ -41,6 +44,13 @@ function PostCard({
 
   const handleToggleLike = (e) => {
     e.stopPropagation();
+    
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      navigate("/sign-in");
+      return;
+    }
+    
     setLiked((prev) => {
       const next = !prev;
       setLikeCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
@@ -51,6 +61,13 @@ function PostCard({
 
   const handleToggleBookmark = (e) => {
     e.stopPropagation();
+    
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      navigate("/sign-in");
+      return;
+    }
+    
     setBookmarked((prev) => {
       const next = !prev;
       onBookmark && onBookmark(next);
