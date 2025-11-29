@@ -11,6 +11,7 @@ import {
   getUserRecentPosts,
   getUserPosts,
   getUserRecentFeedbacks,
+  getUserFeedbacks,
 } from "../api/userApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
@@ -77,8 +78,8 @@ function MyPaged() {
           avatar: pData.userPicture,
           points: pData.points,
           selectRate: selectRate,
-          postCount: pData.postCount,
-          feedbackCount: pData.totalFeedbackCount,
+          postCount: pData.postCount, // 총 게시글 수
+          feedbackCount: pData.totalFeedbackCount, // 총 피드백 수
           gradeLabel: pData.grade,
         });
 
@@ -127,10 +128,9 @@ function MyPaged() {
 
   // 게시글 더보기 버튼 클릭 시 (전체/페이징 API 호출)
   const expandPosts = async () => {
-    // 아직 전체 데이터를 불러오지 않았고, 실제로 더 불러올 데이터가 있는 경우 (현재 개수 < 총 개수)
     if (!hasFetchedAllPosts) {
       try {
-        const res = await getUserPosts(currentUserId, 0, 100);
+        const res = await getUserPosts(currentUserId, 0, profile.postCount);
         const contentList = res.data.content || [];
 
         const allPostsMapped = contentList.map((post) =>
@@ -153,8 +153,26 @@ function MyPaged() {
     postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const expandFeedback = () => {
-    setMyFeedbackCount(myFeedbackAll.length);
+  // 피드백 더보기 버튼 클릭 시
+  const expandFeedback = async () => {
+    if (!hasFetchedAllFeedbacks) {
+      try {
+        const res = await getUserFeedbacks(
+          currentUserId,
+          0,
+          profile.feedbackCount
+        );
+        const contentList = res.data.content || [];
+
+        setMyFeedbackAll(contentList);
+        setHasFetchedAllFeedbacks(true);
+        setMyFeedbackCount(contentList.length);
+      } catch (e) {
+        console.error("전체 피드백 로딩 실패", e);
+      }
+    } else {
+      setMyFeedbackCount(myFeedbackAll.length);
+    }
   };
 
   const collapseFeedback = () => {
@@ -164,7 +182,7 @@ function MyPaged() {
 
   const profileImgSrc = makeAbsoluteImageUrl(profile.avatar) || baseProfile;
   const isPostsExpanded = myPostsDisplayCount >= profile.postCount;
-  const isFeedbackExpanded = myFeedbackCount >= myFeedbackAll.length;
+  const isFeedbackExpanded = myFeedbackCount >= profile.feedbackCount;
 
   const GradeDonut = ({ percent = 50, label = "등급" }) => {
     const size = 120;
@@ -322,6 +340,7 @@ function MyPaged() {
                     더보기
                   </button>
                 )}
+                {/* 전체 게시글이 표시되었을 때 */}
                 {profile.postCount > INITIAL_COUNT && isPostsExpanded && (
                   <button
                     onClick={collapsePosts}
@@ -363,7 +382,7 @@ function MyPaged() {
               )}
 
               <div className="mt-6 flex items-center justify-center gap-2">
-                {myFeedbackAll.length > INITIAL_COUNT &&
+                {profile.feedbackCount > INITIAL_COUNT &&
                   !isFeedbackExpanded && (
                     <button
                       onClick={expandFeedback}
@@ -372,14 +391,16 @@ function MyPaged() {
                       더보기
                     </button>
                   )}
-                {myFeedbackAll.length > INITIAL_COUNT && isFeedbackExpanded && (
-                  <button
-                    onClick={collapseFeedback}
-                    className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
-                  >
-                    접기
-                  </button>
-                )}
+                {/* 전체 피드백이 표시되었을 때 */}
+                {profile.feedbackCount > INITIAL_COUNT &&
+                  isFeedbackExpanded && (
+                    <button
+                      onClick={collapseFeedback}
+                      className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    >
+                      접기
+                    </button>
+                  )}
               </div>
             </section>
           )}
