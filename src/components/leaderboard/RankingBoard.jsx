@@ -93,7 +93,7 @@ function RankingBoard({
   };
 
   // 4위 이하 일반 리스트용 카드
-  const RowCard = ({ rank, name, score, profileImage }) => {
+  const RowCard = ({ rank, name, score, profileImage, grade }) => {
     const absoluteImageUrl = profileImage
       ? makeAbsoluteImageUrl(profileImage)
       : profile;
