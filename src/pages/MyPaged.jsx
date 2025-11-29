@@ -3,13 +3,14 @@ import Header from "../components/header/Header";
 import baseProfile from "../assets/profile.png";
 import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
-import samplePosts from "../components/postcontext.jsx";
 import PostCard from "../components/PostCard.jsx";
+import FeedbackCard from "../components/FeedbackCard.jsx";
 import { useNavigate } from "react-router-dom";
 import {
   getUserProfile,
   getUserRecentPosts,
   getUserPosts,
+  getUserRecentFeedbacks,
 } from "../api/userApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
@@ -49,9 +50,9 @@ function MyPaged() {
   const [activeTab, setActiveTab] = useState("posts");
   const INITIAL_COUNT = 4;
   const [myPostsDisplayCount, setMyPostsDisplayCount] = useState(INITIAL_COUNT);
-
-  const myFeedbackAll = samplePosts;
+  const [myFeedbackAll, setMyFeedbackAll] = useState([]);
   const [myFeedbackCount, setMyFeedbackCount] = useState(INITIAL_COUNT);
+  const [hasFetchedAllFeedbacks, setHasFetchedAllFeedbacks] = useState(false);
 
   const postsRef = useRef(null);
   const feedbackRef = useRef(null);
@@ -83,11 +84,14 @@ function MyPaged() {
 
         // 최근 게시글 조회 (초기 4개 데이터)
         const postsRes = await getUserRecentPosts(currentUserId);
-        // postsRes.data 자체가 배열임
         const mappedPosts = postsRes.data.map((post) =>
           mapApiToPostData(post, pData)
         );
         setMyPosts(mappedPosts);
+
+        // 최근 피드백 조회 (초기 4개 데이터)
+        const feedbacksRes = await getUserRecentFeedbacks(currentUserId);
+        setMyFeedbackAll(feedbacksRes.data);
       } catch (error) {
         console.error("데이터 로딩 중 오류 발생:", error);
       }
@@ -149,7 +153,10 @@ function MyPaged() {
     postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const expandFeedback = () => setMyFeedbackCount(myFeedbackAll.length);
+  const expandFeedback = () => {
+    setMyFeedbackCount(myFeedbackAll.length);
+  };
+
   const collapseFeedback = () => {
     setMyFeedbackCount(INITIAL_COUNT);
     feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -336,17 +343,24 @@ function MyPaged() {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {myFeedbackAll.slice(0, myFeedbackCount).map((p) => (
-                  <PostCard
-                    key={`myfb-${p.id}`}
-                    {...p}
-                    badge="내 피드백"
-                    rightPill={null}
-                    onClick={() => handlePostClick(p.id)}
-                  />
-                ))}
-              </div>
+              {myFeedbackAll.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">
+                  등록된 피드백이 없습니다.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {myFeedbackAll.slice(0, myFeedbackCount).map((feedback) => (
+                    <FeedbackCard
+                      key={`myfb-${feedback.feedbackId}`}
+                      feedback={feedback}
+                      userName={profile.name}
+                      userAvatar={profileImgSrc}
+                      // 클릭 시 해당 피드백이 달린 게시글로 이동
+                      onClick={() => handlePostClick(feedback.postId)}
+                    />
+                  ))}
+                </div>
+              )}
 
               <div className="mt-6 flex items-center justify-center gap-2">
                 {myFeedbackAll.length > INITIAL_COUNT &&
