@@ -10,6 +10,7 @@ import FeedbackDetail from './pages/FeedbackDetail.jsx'
 import Upload from './pages/Upload.jsx'
 import LeaderBoard from './pages/LeaderBoard.jsx'
 import MyPaged from './pages/MyPaged.jsx'
+import Admin from './pages/Admin.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
         />
         <Route path="/leader-board" element={<LeaderBoard />} />
         <Route path="/my-paged" element={<MyPaged />} />
+        <Route path="/admin" element={<Admin />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
