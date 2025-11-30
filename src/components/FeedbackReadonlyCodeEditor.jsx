@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import Editor from "@monaco-editor/react";
 
 export default function FeedbackReadonlyCodeEditor({
@@ -16,6 +16,43 @@ export default function FeedbackReadonlyCodeEditor({
   // ----- 에디터 mount 완료 여부 -----
   const [isEditorReady, setIsEditorReady] = useState(false);
 
+  // CSS 스타일 주입
+  useEffect(() => {
+    const styleId = "feedback-readonly-editor-style";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        .lineHighlightFeedback { 
+          background-color: rgba(74, 222, 128, 0.18) !important; 
+          outline: 1px solid rgba(74, 222, 128, 0.35) !important; 
+        }
+        .lineHighlightGutter { 
+          background-color: rgba(74, 222, 128, 0.35) !important; 
+        }
+        .feedback-comment {
+          background: white;
+          padding: 8px 12px;
+          border-radius: 6px;
+          border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .feedback-comment-text {
+          color: #374151;
+          font-size: 13px;
+          line-height: 1.5;
+          white-space: pre-wrap;
+          min-height: 1.2em;
+        }
+        .feedback-comment-meta {
+          color: #6B7280;
+          font-size: 11px;
+          margin-top: 4px;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   function handleMount(editor, monaco) {
     editorRef.current = editor;
     monacoRef.current = monaco;
@@ -26,7 +63,7 @@ export default function FeedbackReadonlyCodeEditor({
   }
 
   // ----- 라인 피드백 하이라이트 적용 -----
-  const applyFeedbackHighlights = () => {
+  const applyFeedbackHighlights = useCallback(() => {
     const editor = editorRef.current;
     if (!editor || !feedbacks || feedbacks.length === 0) return;
 
@@ -48,14 +85,14 @@ export default function FeedbackReadonlyCodeEditor({
         editor.__feedbackDecorations || [],
         decorations
     );
-  };
+  }, [feedbacks]);
 
   // ----- 에디터 준비 + feedbacks 변경 시 하이라이트 갱신 -----
   useEffect(() => {
     if (isEditorReady) {
       applyFeedbackHighlights();
     }
-  }, [isEditorReady, feedbacks]);
+  }, [isEditorReady, applyFeedbackHighlights]);
 
   return (
       <div className={`rounded-lg overflow-hidden border border-blue-300 bg-blue-50 ${className}`}>
@@ -105,7 +142,13 @@ export default function FeedbackReadonlyCodeEditor({
                       <div className="text-xs font-medium text-blue-700 mb-1">
                         라인 {fb.start}–{fb.end}
                       </div>
-                      <div className="feedback-comment-text">{fb.text}</div>
+                      <div className="feedback-comment-text">
+                        {fb.text && fb.text.trim() ? (
+                          fb.text
+                        ) : (
+                          <span className="text-gray-400 italic">내용 없음</span>
+                        )}
+                      </div>
                       {fb.createdAt && (
                           <div className="feedback-comment-meta">
                             {new Date(fb.createdAt).toLocaleString("ko-KR")}

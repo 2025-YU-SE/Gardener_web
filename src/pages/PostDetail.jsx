@@ -19,7 +19,7 @@ import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
 
 // API
 import { getPostDetail } from "../api/postApi";
-import { getFeedbacksByPost, createFeedback } from "../api/feedbackApi";
+import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import baseProfile from "../assets/baseProfile.png";
 
@@ -123,26 +123,54 @@ function PostDetail() {
   // 🔥 피드백 등록
   // ===================================================
   const handleSubmitFeedback = async () => {
+    // 인증 확인
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
     try {
       const feedbackPayload = {
         postId: Number(postId),
         content: feedbackContent,
         rating: rating,
-        title: feedbackTitle,
-        lineFeedbacks: feedbackRanges.map((r) => ({
-          lineNumber: r.start,
-          endLineNumber: r.end,
-          content: r.text || "",
-        })),
       };
 
-      await createFeedback(feedbackPayload);
+      const createdFeedback = await createFeedback(feedbackPayload);
+      const feedbackId = createdFeedback.feedbackId || createdFeedback.id;
+
+        // 2. 각 라인 피드백을 개별적으로 등록
+        if (feedbackRanges && feedbackRanges.length > 0) {
+          // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
+          const lineFeedbackPromises = feedbackRanges.map((r) => {
+            // text 필드 확인 (text 또는 content 필드 모두 확인)
+            const rawText = r.text || r.content || "";
+            const content = rawText.trim();
+            
+            const payload = {
+              lineNumber: r.start,
+              endLineNumber: r.end,
+              content: content,
+            };
+            
+            return createLineFeedback(feedbackId, payload);
+          });
+
+          await Promise.all(lineFeedbackPromises);
+        }
 
       alert("피드백이 등록되었습니다!");
       window.location.reload();
     } catch (err) {
-      console.error(err);
-      alert("피드백 등록 실패");
+      if (err.response?.status === 403) {
+        alert("권한이 없습니다. 로그인 상태를 확인해주세요.");
+        localStorage.removeItem("accessToken");
+        navigate("/sign-in", { state: { from: location.pathname } });
+      } else {
+        alert("피드백 등록 실패: " + (err.response?.data?.message || err.message || "알 수 없는 오류"));
+      }
     }
   };
 
@@ -267,9 +295,14 @@ function PostDetail() {
                           setFeedbackRanges((prev) => [...prev, range]);
                         }}
                         onSaveFeedback={(item) => {
-                          setFeedbackRanges((prev) =>
-                              prev.map((r) => (r.id === item.id ? item : r))
-                          );
+                          setFeedbackRanges((prev) => {
+                            const exists = prev.some((r) => r.id === item.id);
+                            if (exists) {
+                              return prev.map((r) => (r.id === item.id ? item : r));
+                            } else {
+                              return [...prev, item];
+                            }
+                          });
                         }}
                     />
                 ) : (

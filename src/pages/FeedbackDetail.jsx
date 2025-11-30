@@ -10,7 +10,7 @@ import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
 import FeedbackReadonlyCodeEditor from "../components/FeedbackReadonlyCodeEditor";
 
 import { getPostDetail } from "../api/postApi";
-import { getFeedbackDetail } from "../api/feedbackApi";
+import { getFeedbackDetail, getLineFeedbacks } from "../api/feedbackApi";
 import api from "../api/axiosInterceptor";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import baseProfile from "../assets/baseProfile.png";
@@ -64,6 +64,29 @@ function FeedbackDetail() {
         // 피드백
         const fbRes = await getFeedbackDetail(feedbackId);
         const f = fbRes?.data || fbRes;
+        
+        // 라인 피드백을 별도로 조회
+        let lineFeedbacksData = [];
+        try {
+          const lineFbRes = await getLineFeedbacks(feedbackId);
+          lineFeedbacksData = Array.isArray(lineFbRes) ? lineFbRes : (lineFbRes?.data || []);
+          
+          // 상세 조회에 포함된 라인 피드백과 별도 조회한 것을 병합
+          if (f.lineFeedbacks && f.lineFeedbacks.length > 0) {
+            // 별도 조회한 것이 더 최신이므로 우선 사용
+            const existingLineNumbers = new Set(lineFeedbacksData.map(lf => lf.lineFeedbackId));
+            const additionalFromDetail = f.lineFeedbacks.filter(lf => 
+              !existingLineNumbers.has(lf.lineFeedbackId)
+            );
+            lineFeedbacksData = [...lineFeedbacksData, ...additionalFromDetail];
+          }
+        } catch {
+          // 실패 시 상세 조회에 포함된 것 사용
+          lineFeedbacksData = f.lineFeedbacks || [];
+        }
+        
+        // 최종 라인 피드백 데이터 설정
+        f.lineFeedbacks = lineFeedbacksData;
 
         setFeedback(f);
         setEditContent(f.content);
@@ -241,12 +264,21 @@ function FeedbackDetail() {
   const ratingToShow = isEditing ? editRating : feedback.rating;
 
   // 라인 피드백 -> FeedbackReadonlyCodeEditor 형식으로 변환
-  const lineFeedbacks = (feedback.lineFeedbacks || []).map((lf) => ({
-    start: lf.lineNumber,
-    end: lf.endLineNumber || lf.lineNumber,
-    text: lf.content,
-    createdAt: lf.createdAt,
-  }));
+  const lineFeedbacks = (feedback.lineFeedbacks || []).map((lf) => {
+    // content 필드가 명시적으로 있는지 확인
+    const content = lf.content !== null && lf.content !== undefined 
+      ? String(lf.content) 
+      : "";
+    
+    const result = {
+      start: Number(lf.lineNumber) || 0,
+      end: Number(lf.endLineNumber) || Number(lf.lineNumber) || 0,
+      text: content.trim(),
+      createdAt: lf.createdAt,
+    };
+    
+    return result;
+  }).filter((lf) => lf.start > 0);
 
   // ===================================================
   // 4. 렌더링 (기존 UI 최대한 유지)
