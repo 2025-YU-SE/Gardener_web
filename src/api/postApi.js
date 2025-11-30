@@ -24,3 +24,13 @@ export const likePost = (postId) => {
 export const bookmarkPost = (postId) => {
     return api.post(`/api/posts/${postId}/bookmark`);
 };
+
+// 📌 게시글 수정 (PUT /api/posts/{postId})
+export const updatePost = (postId, data) => {
+    return api.put(`/api/posts/${postId}`, data);
+};
+
+// 📌 게시글 삭제 (DELETE /api/posts/{postId})
+export const deletePost = (postId) => {
+    return api.delete(`/api/posts/${postId}`);
+};
