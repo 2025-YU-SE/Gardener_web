@@ -20,6 +20,8 @@ import CollapsibleFilter from "../components/filter/CollapsibleFilter";
 import language from "../components/filter/language";
 import stacks from "../components/filter/stacks";
 import { getPosts } from "../api/postApi";
+import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import baseProfile from "../assets/baseProfile.png";
 
 import {
   getCurrentPageData,
@@ -130,7 +132,7 @@ function Posts() {
           title: p.title,
           content: p.content,
           author: p.userName || "익명",
-          avatar: "👤",
+          avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
           timeAgo: p.createdAt ? p.createdAt.slice(0, 10) : "",
           tags: [p.languages, p.stacks].filter(Boolean),
           languages: p.languages,
@@ -364,8 +366,15 @@ function Posts() {
                     {/* 프로필 */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center border-gray-300 border">
-                          {post.avatar}
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-gray-300 border flex items-center justify-center bg-green-100">
+                          <img
+                            src={post.avatar}
+                            alt={post.author}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = baseProfile;
+                            }}
+                          />
                         </div>
                         <div>
                           <div className="font-semibold text-gray-900">

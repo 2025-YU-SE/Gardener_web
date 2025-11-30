@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 
 export default function FeedbackCodeEditor({
-                                             value,
-                                             language = "javascript",
-                                             height = 420,
-                                             title = "JAVASCRIPT - 피드백 모드",
-                                             onAddFeedbackRange,
-                                             onSaveFeedback,
-                                             initialFeedbacks = [],
-                                           }) {
+  value,
+  language = "javascript",
+  height = 420,
+  title = "JAVASCRIPT - 피드백 모드",
+  onAddFeedbackRange,
+  onSaveFeedback,
+  initialFeedbacks = [],
+}) {
   const editorRef = useRef(null);
   const idRef = useRef(0);
   const [ranges, setRanges] = useState([]);

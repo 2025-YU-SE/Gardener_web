@@ -12,6 +12,8 @@ import FeedbackReadonlyCodeEditor from "../components/FeedbackReadonlyCodeEditor
 import { getPostDetail } from "../api/postApi";
 import { getFeedbackDetail } from "../api/feedbackApi";
 import api from "../api/axiosInterceptor";
+import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import baseProfile from "../assets/baseProfile.png";
 
 function FeedbackDetail() {
   const navigate = useNavigate();
@@ -53,7 +55,7 @@ function FeedbackDetail() {
           title: p.title,
           content: p.content,
           author: p.userName || "익명",
-          avatar: "👤",
+          avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
           timeAgo: p.createdAt?.slice(0, 10),
           tags: [p.languages, p.stacks].filter(Boolean),
           code: p.code || p.codeContent || p.content || "// 코드가 없습니다.",
@@ -73,7 +75,7 @@ function FeedbackDetail() {
           return {
             id: c.commentId,
             author: name,
-            avatarInitial: name.charAt(0).toUpperCase(),
+            avatar: makeAbsoluteImageUrl(c.userPicture) || baseProfile,
             timeAgo: c.createdAt?.slice(0, 10),
             content: c.content,
             likes: 0,
@@ -198,7 +200,7 @@ function FeedbackDetail() {
       const newReply = {
         id: c.commentId,
         author: name,
-        avatarInitial: name.charAt(0).toUpperCase(),
+        avatar: makeAbsoluteImageUrl(c.userPicture) || baseProfile,
         timeAgo: c.createdAt?.slice(0, 10),
         content: c.content,
         likes: 0,
@@ -266,8 +268,15 @@ function FeedbackDetail() {
           <section className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-full bg-green-500 text-white flex items-center justify-center">
-                  {post.avatar || "👤"}
+                <div className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center bg-green-100 border border-gray-300">
+                  <img
+                    src={post.avatar}
+                    alt={post.author}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = baseProfile;
+                    }}
+                  />
                 </div>
                 <div className="min-w-0">
                   <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
@@ -295,8 +304,15 @@ function FeedbackDetail() {
           <section className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
             {/* 작성자 + 수정/삭제 버튼 */}
             <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold">
-                {feedback.avatarInitial || "👤"}
+              <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300">
+                <img
+                  src={makeAbsoluteImageUrl(feedback.userPicture) || baseProfile}
+                  alt={feedback.userName || "작성자"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = baseProfile;
+                  }}
+                />
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
@@ -458,8 +474,15 @@ function FeedbackDetail() {
                           }`}
                       >
                         <div className="flex items-start">
-                          <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold mr-3">
-                            {fb.avatarInitial}
+                          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300 mr-3">
+                            <img
+                              src={fb.avatar}
+                              alt={fb.author}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.src = baseProfile;
+                              }}
+                            />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 text-sm">
@@ -516,8 +539,12 @@ function FeedbackDetail() {
               {/* 입력 박스 */}
                 <div className="rounded-xl border border-gray-200 p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-700 text-sm font-semibold">
-                      👤
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300">
+                      <img
+                        src={baseProfile}
+                        alt="프로필"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div className="w-full">
                       <div className="border border-gray-300 rounded-lg p-3">

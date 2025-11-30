@@ -20,6 +20,8 @@ import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
 // API
 import { getPostDetail } from "../api/postApi";
 import { getFeedbacksByPost, createFeedback } from "../api/feedbackApi";
+import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import baseProfile from "../assets/baseProfile.png";
 
 function PostDetail() {
   const { postId } = useParams();
@@ -61,7 +63,7 @@ function PostDetail() {
           title: p.title,
           content: p.content,
           author: p.userName ?? "익명",
-          avatar: "👤",
+          avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
           timeAgo: p.createdAt?.slice(0, 10),
           tags: [p.languages, p.stacks],
           likes: p.likesCount,
@@ -91,14 +93,14 @@ function PostDetail() {
 
         const mapped = list.map((fb) => ({
           id: fb.feedbackId,
-          author: `User ${fb.userId}`,
-          avatarInitial: String(fb.userId)[0],
+          author: fb.userName || `User ${fb.userId}`,
+          avatar: makeAbsoluteImageUrl(fb.userPicture) || baseProfile,
           rating: fb.rating,
           content: fb.content,
           timeAgo: fb.createdAt?.slice(0, 10),
           likes: fb.likesCount,
           views: 0,
-        })); // 유저 아이디로 임시 표기 버전
+        }));
 
         setFeedbacks(mapped);
       } catch (err) {
@@ -167,8 +169,15 @@ function PostDetail() {
             <p className="text-gray-600 mb-6">{post.content}</p>
 
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center text-white font-bold mr-3">
-                {post.avatar}
+              <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
+                <img
+                  src={post.avatar}
+                  alt={post.author}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = baseProfile;
+                  }}
+                />
               </div>
               <div>
                 <p className="font-semibold">{post.author}</p>
@@ -373,8 +382,15 @@ function PostDetail() {
                                 onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
                             >
                               <div className="flex items-center mb-1">
-                                <div className="w-8 h-8 bg-green-500 text-white rounded-full flex justify-center items-center mr-2">
-                                  {fb.avatarInitial}
+                                <div className="w-8 h-8 rounded-full overflow-hidden flex justify-center items-center mr-2 bg-green-100 border border-gray-300">
+                                  <img
+                                    src={fb.avatar}
+                                    alt={fb.author}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.src = baseProfile;
+                                    }}
+                                  />
                                 </div>
                                 <div>
                                   <p className="font-semibold text-sm">{fb.author}</p>

@@ -9,6 +9,7 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { IoMdTime } from "react-icons/io";
+import baseProfile from "../assets/baseProfile.png";
 
 function PostCard({
   avatar,
@@ -88,6 +89,9 @@ function PostCard({
               src={avatar}
               alt="profile"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src = baseProfile;
+              }}
             />
           </div>
           <div>
