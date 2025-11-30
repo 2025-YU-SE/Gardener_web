@@ -10,7 +10,10 @@ import {
   FaComment,
   FaEye,
   FaStar,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
+import { IoMdMore } from "react-icons/io";
 import Header from "../components/header/Header";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
@@ -18,9 +21,10 @@ import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
 import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
 
 // API
-import { getPostDetail } from "../api/postApi";
+import { getPostDetail, deletePost } from "../api/postApi";
 import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
 import baseProfile from "../assets/baseProfile.png";
 
 function PostDetail() {
@@ -48,6 +52,7 @@ function PostDetail() {
 
   const [postLiked, setPostLiked] = useState(false);
   const [postBookmarked, setPostBookmarked] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // ===================================================
   // 1. 게시물 상세 불러오기
@@ -60,6 +65,7 @@ function PostDetail() {
 
         setPost({
           id: p.postId,
+          userId: p.userId,
           title: p.title,
           content: p.content,
           author: p.userName ?? "익명",
@@ -71,6 +77,12 @@ function PostDetail() {
           views: p.views,
           bookmarks: p.scrapCount,
           code: p.code,
+          languages: p.languages,
+          stacks: p.stacks,
+          contentsType: p.contentsType,
+          summary: p.summary,
+          githubRepoUrl: p.githubRepoUrl,
+          problemStatement: p.problemStatement,
         });
       } catch (err) {
         console.error("게시글 로드 실패:", err);
@@ -110,6 +122,20 @@ function PostDetail() {
 
     loadFeedbacks();
   }, [postId]);
+
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".post-menu-container")) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   if (!post) {
     return (
@@ -183,6 +209,60 @@ function PostDetail() {
     setIsFeedbackFormOpen(true);
   };
 
+  // ===================================================
+  // 🔥 게시글 수정/삭제 권한 체크
+  // ===================================================
+  const canEditOrDelete = () => {
+    if (!isAuthed || !post) return false;
+    
+    const currentUsername = getCurrentUsername();
+    if (!currentUsername) return false;
+    
+    // 관리자는 항상 수정/삭제 가능
+    if (isAdmin()) return true;
+    
+    // 게시글 작성자만 수정/삭제 가능
+    return post.author === currentUsername;
+  };
+
+  // ===================================================
+  // 🔥 게시글 수정
+  // ===================================================
+  const handleEditPost = () => {
+    if (!canEditOrDelete()) {
+      alert("수정 권한이 없습니다.");
+      return;
+    }
+    navigate(`/upload?edit=${postId}`, { state: { post } });
+  };
+
+  // ===================================================
+  // 🔥 게시글 삭제
+  // ===================================================
+  const handleDeletePost = async () => {
+    if (!canEditOrDelete()) {
+      alert("삭제 권한이 없습니다.");
+      return;
+    }
+
+    if (!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await deletePost(postId);
+      alert("게시글이 삭제되었습니다.");
+      navigate("/posts");
+    } catch (err) {
+      console.error("게시글 삭제 실패:", err);
+      if (err.response?.status === 403) {
+        alert("삭제 권한이 없습니다.");
+      } else {
+        alert("게시글 삭제에 실패했습니다: " + (err.response?.data?.message || err.message));
+      }
+    }
+  };
+
   return (
       <div className="min-h-screen bg-[#F9FAFB]">
         <Header />
@@ -192,7 +272,46 @@ function PostDetail() {
           {/* 게시글 카드 */}
           {/* -------------------------------- */}
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">{post.title}</h1>
+            <div className="flex items-start justify-between mb-2">
+              <h1 className="text-2xl font-bold text-gray-800 flex-1">{post.title}</h1>
+              
+              {/* 드롭다운 메뉴 */}
+              {canEditOrDelete() && (
+                <div className="relative post-menu-container ml-4">
+                  <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <IoMdMore size={24} />
+                  </button>
+                  
+                  {isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleEditPost();
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FaEdit className="text-blue-600" />
+                        <span>수정</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleDeletePost();
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FaTrash />
+                        <span>삭제</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <p className="text-gray-600 mb-6">{post.content}</p>
 
