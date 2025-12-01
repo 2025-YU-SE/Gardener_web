@@ -14,10 +14,12 @@ import {
   getUserFeedbacks,
   getUserRecentScraps,
   getUserScraps,
+  updateProfilePicture,
+  deleteProfilePicture,
 } from "../api/userApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
-// 날짜 포맷팅 함수 (생략되지 않도록 유지)
+// 날짜 포맷팅 함수
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -48,7 +50,7 @@ function MyPaged() {
   // 본인 프로필 여부 결정
   const isMyProfile =
     isLoggedIn &&
-    (!urlUserId || (urlUserId && targetUserId === loggedInUserId)); // targetUserId로 비교하도록 수정
+    (!urlUserId || (urlUserId && targetUserId === loggedInUserId));
 
   const [profile, setProfile] = useState({
     name: "Loading...",
@@ -78,6 +80,7 @@ function MyPaged() {
   const postsRef = useRef(null);
   const feedbackRef = useRef(null);
   const scrapsRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // 로그인 확인 및 리다이렉션
@@ -184,6 +187,57 @@ function MyPaged() {
 
   const handlePostClick = (postId) => {
     navigate(`/posts/${postId}`);
+  };
+
+  // 파일 업로드
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드할 수 있습니다.");
+      return;
+    }
+
+    try {
+      const newImagePath = await updateProfilePicture(file);
+      setProfile((prev) => ({
+        ...prev,
+        avatar: newImagePath,
+      }));
+
+      alert("프로필 사진이 성공적으로 변경되었습니다.");
+    } catch (error) {
+      console.error("프로필 사진 업로드 실패:", error);
+      alert("프로필 사진 변경에 실패했습니다. 다시 시도해 주세요.");
+    } finally {
+      event.target.value = null;
+    }
+  };
+
+  // 프로필 사진 삭제
+  const handleDeleteProfilePicture = async () => {
+    if (!profile.avatar) {
+      alert("삭제할 프로필 사진이 없습니다.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "프로필 사진을 삭제하고 기본 이미지로 되돌리시겠습니까?"
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteProfilePicture();
+      setProfile((prev) => ({
+        ...prev,
+        avatar: null,
+      }));
+      alert("프로필 사진이 삭제되었습니다.");
+    } catch (error) {
+      console.error("프로필 사진 삭제 실패:", error);
+      alert("프로필 사진 삭제에 실패했습니다. 다시 시도해 주세요.");
+    }
   };
 
   // 게시글 더보기 버튼 클릭 시 (전체/페이징 API 호출)
@@ -318,17 +372,59 @@ function MyPaged() {
         <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
           {/* 프로필 */}
           <div className="flex items-center gap-5 px-20 mb-10">
-            <div className="h-full w-[132px] overflow-hidden rounded-[10px]">
-              <img
-                src={profileImgSrc}
-                alt={`${profile.name} 프로필`}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = baseProfile;
-                }}
-              />
+            {/* 프로필 이미지 영역 */}
+            <div
+              className={`h-full w-[132px] relative ${
+                isMyProfile ? "cursor-pointer" : ""
+              }`}
+              onClick={() => isMyProfile && fileInputRef.current?.click()}
+            >
+              <div
+                className={`h-full w-full overflow-hidden rounded-[10px] ${
+                  isMyProfile ? "group" : ""
+                }`}
+              >
+                {/* 이미지 태그 */}
+                <img
+                  src={profileImgSrc}
+                  alt={`${profile.name} 프로필`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = baseProfile;
+                  }}
+                />
+                {isMyProfile && (
+                  <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <TbPencil size={24} className="text-white" />
+                  </div>
+                )}
+              </div>
+
+              {/* 삭제 버튼 */}
+              {isMyProfile && profile.avatar && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteProfilePicture();
+                  }}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] flex items-center justify-center hover:bg-black"
+                >
+                  ×
+                </button>
+              )}
+              {isMyProfile && (
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  style={{ display: "none" }}
+                />
+              )}
             </div>
+
             <div className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden">
               <div className="flex-1 min-w-0">
                 <h2 className="text-[22px] font-semibold mb-2">
@@ -391,7 +487,6 @@ function MyPaged() {
               피드백 ({profile.feedbackCount})
             </button>
 
-            {/* 스크랩 탭 */}
             {isMyProfile && (
               <button
                 onClick={() => setActiveTab("scraps")}
@@ -535,7 +630,6 @@ function MyPaged() {
                 </div>
               )}
 
-              {/* 스크랩 더보기/접기 버튼 */}
               <div className="mt-6 flex items-center justify-center gap-2">
                 {profile.scrapCount > INITIAL_COUNT && !isScrapsExpanded && (
                   <button
@@ -545,7 +639,6 @@ function MyPaged() {
                     더보기
                   </button>
                 )}
-                {/* 전체 스크랩이 표시되었을 때 */}
                 {profile.scrapCount > INITIAL_COUNT && isScrapsExpanded && (
                   <button
                     onClick={collapseScraps}
