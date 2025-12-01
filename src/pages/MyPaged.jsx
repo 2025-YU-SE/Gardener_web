@@ -347,7 +347,6 @@ function MyPaged() {
     const stroke = 12;
     const r = (size - stroke) / 2;
     const c = 2 * Math.PI * r;
-    산;
     const percent = getGradeFillPercent(label);
     const dash = (percent / 100) * c;
 
