@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Header from "../components/header/Header";
 import illustration from "../assets/illustration.png";
-import { signup, checkUsername } from "../api/userApi";
+import { signup, checkUsername, checkEmail } from "../api/userApi";
 
 function SignUp() {
   // 입력값 상태 관리
@@ -10,12 +10,17 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [passwordCheck, setPasswordCheck] = useState("");
 
-  // 아이디 중복 확인 관련 상태
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false); // 로딩 여부
-  const [usernameCheckMessage, setUsernameCheckMessage] = useState(""); // 안내 메시지
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null); // null | true | false
+  // 아이디 중복 확인 상태
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameCheckMessage, setUsernameCheckMessage] = useState("");
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
 
-  // 아이디 중복 확인 함수
+  // 이메일 중복 확인 상태
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [emailCheckMessage, setEmailCheckMessage] = useState("");
+  const [isEmailAvailable, setIsEmailAvailable] = useState(null);
+
+  // 아이디 중복 확인
   const handleCheckUsername = async () => {
     if (!userName.trim()) {
       setUsernameCheckMessage("아이디를 입력해 주세요.");
@@ -40,23 +45,59 @@ function SignUp() {
       }
     } catch (err) {
       console.error(err);
-      setUsernameCheckMessage("아이디 중복 확인 중 오류가 발생했습니다.");
+      setUsernameCheckMessage("아이디 확인 중 오류가 발생했습니다.");
       setIsUsernameAvailable(false);
     } finally {
       setIsCheckingUsername(false);
     }
   };
 
-  // 회원가입 처리 함수
+  // 이메일 중복 확인
+  const handleCheckEmail = async () => {
+    if (!email.trim()) {
+      setEmailCheckMessage("이메일을 입력해 주세요.");
+      setIsEmailAvailable(false);
+      return;
+    }
+
+    try {
+      setIsCheckingEmail(true);
+      setEmailCheckMessage("");
+      setIsEmailAvailable(null);
+
+      const res = await checkEmail(email);
+      const available = res.data === true;
+
+      if (available) {
+        setEmailCheckMessage("사용 가능한 이메일입니다.");
+        setIsEmailAvailable(true);
+      } else {
+        setEmailCheckMessage("이미 사용 중인 이메일입니다.");
+        setIsEmailAvailable(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setEmailCheckMessage("이메일 확인 중 오류가 발생했습니다.");
+      setIsEmailAvailable(false);
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  // 회원가입 처리
   const handleSignup = async () => {
     if (password !== passwordCheck) {
       alert("비밀번호가 일치하지 않습니다.");
       return;
     }
 
-    // 아이디 중복 확인하지 않고 회원가입 버튼을 누를 시
+    // 중복 확인 강제
     if (isUsernameAvailable !== true) {
       alert("아이디 중복 확인을 완료해 주세요.");
+      return;
+    }
+    if (isEmailAvailable !== true) {
+      alert("이메일 중복 확인을 완료해 주세요.");
       return;
     }
 
@@ -68,9 +109,6 @@ function SignUp() {
       });
 
       alert("회원가입 성공!");
-      console.log(res.data);
-
-      // 예: 회원가입 성공 후 로그인 페이지로 이동
       window.location.href = "/sign-in";
     } catch (err) {
       console.error(err);
@@ -103,39 +141,33 @@ function SignUp() {
             {/* 아이디 */}
             <div className="flex flex-col mb-4">
               <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
-                아이디
-                <p className="text-[#00C839]">*</p>
+                아이디 <p className="text-[#00C839]">*</p>
               </label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="아이디를 입력해 주세요"
-                  className="w-[280px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] focus:outline-none placeholder:text-[#B8B8B8]"
+                  className="w-[280px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
                   value={userName}
                   onChange={(e) => {
                     setUserName(e.target.value);
-                    // 입력이 바뀌면 이전 검사 결과 초기화
                     setUsernameCheckMessage("");
                     setIsUsernameAvailable(null);
                   }}
                 />
                 <button
                   type="button"
-                  className="w-[69px] h-[40px] rounded-[6px] bg-[#4D4D4D] text-white text-[12px] hover:bg-[#212121]"
+                  className="w-[69px] h-[40px] rounded-[6px] bg-[#4D4D4D] text-white text-[12px]"
                   onClick={handleCheckUsername}
                   disabled={isCheckingUsername}
                 >
                   {isCheckingUsername ? "확인중" : "중복확인"}
                 </button>
               </div>
-
-              {/* 아이디 중복 확인 메시지 */}
               {usernameCheckMessage && (
                 <p
                   className={`mt-1 ml-1 text-[10px] ${
-                    isUsernameAvailable
-                      ? "text-[#00C839]" // 사용 가능
-                      : "text-[#FF4D4F]" // 중복
+                    isUsernameAvailable ? "text-[#00C839]" : "text-[#FF4D4F]"
                   }`}
                 >
                   {usernameCheckMessage}
@@ -146,38 +178,49 @@ function SignUp() {
             {/* 이메일 */}
             <div className="flex flex-col mb-4">
               <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
-                이메일
-                <p className="text-[#00C839]">*</p>
+                이메일 <p className="text-[#00C839]">*</p>
               </label>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="이메일을 입력해 주세요"
-                  className="w-[280px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] focus:outline-none placeholder:text-[#B8B8B8]"
+                  className="w-[280px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
+                    setEmailCheckMessage("");
+                    setIsEmailAvailable(null);
                   }}
                 />
                 <button
                   type="button"
-                  className="w-[69px] h-[40px] rounded-[6px] bg-[#4D4D4D] text-white text-[12px] hover:bg-[#212121]"
+                  className="w-[69px] h-[40px] rounded-[6px] bg-[#4D4D4D] text-white text-[12px]"
+                  onClick={handleCheckEmail}
+                  disabled={isCheckingEmail}
                 >
-                  중복확인
+                  {isCheckingEmail ? "확인중" : "중복확인"}
                 </button>
               </div>
+              {emailCheckMessage && (
+                <p
+                  className={`mt-1 ml-1 text-[10px] ${
+                    isEmailAvailable ? "text-[#00C839]" : "text-[#FF4D4F]"
+                  }`}
+                >
+                  {emailCheckMessage}
+                </p>
+              )}
             </div>
 
             {/* 비밀번호 */}
             <div className="flex flex-col mb-3">
               <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
-                비밀번호
-                <p className="text-[#00C839]">*</p>
+                비밀번호 <p className="text-[#00C839]">*</p>
               </label>
               <input
                 type="password"
                 placeholder="영문자, 숫자 포함 8~12자"
-                className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] focus:outline-none placeholder:text-[#B8B8B8]"
+                className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -188,7 +231,7 @@ function SignUp() {
               <input
                 type="password"
                 placeholder="비밀번호를 확인해주세요"
-                className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] focus:outline-none placeholder:text-[#B8B8B8]"
+                className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
                 value={passwordCheck}
                 onChange={(e) => setPasswordCheck(e.target.value)}
               />
@@ -196,13 +239,13 @@ function SignUp() {
 
             {/* 회원가입 버튼 */}
             <button
-              className="w-[160px] h-[40px] bg-[#00C839] text-white text-[16px] py-2 rounded-[6px] font-medium hover:bg-[#0bdd47]"
+              className="w-[160px] h-[40px] bg-[#00C839] text-white text-[16px] py-2 rounded-[6px]"
               onClick={handleSignup}
             >
               회원가입
             </button>
 
-            {/* 로그인 이동 링크 */}
+            {/* 로그인 이동 */}
             <p className="text-[10px] text-[#B8B8B8] mt-4">
               이미 계정이 있으신가요?{" "}
               <a

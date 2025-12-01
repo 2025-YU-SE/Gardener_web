@@ -12,6 +12,13 @@ export const checkUsername = (userName) => {
   });
 };
 
+// 이메일 중복 확인
+export const checkEmail = (email) => {
+  return api.get("/api/user/check-email", {
+    params: { email },
+  });
+};
+
 // 로그인
 export const login = async (data) => {
   const res = await api.post("/api/user/login", data);
