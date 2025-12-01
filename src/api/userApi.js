@@ -67,3 +67,30 @@ export const deleteMyAccount = () => {
 export const deleteUserAsAdmin = (userId) => {
   return api.delete(`/api/user/${userId}/admin`);
 };
+
+export const updateProfilePicture = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const response = await api.put("/api/user/profile-picture", formData, {});
+    return response.data;
+  } catch (error) {
+    console.error(
+      "프로필 사진 업로드 실패:",
+      error.response?.status,
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+// 프로필 사진 삭제
+export const deleteProfilePicture = async () => {
+  try {
+    const response = await api.delete("/api/user/profile-picture");
+    return response.data;
+  } catch (error) {
+    console.error("프로필 사진 삭제 실패:", error);
+    throw error;
+  }
+};

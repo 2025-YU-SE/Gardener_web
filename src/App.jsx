@@ -21,15 +21,14 @@ function App() {
       <Routes>
         {/* 리디렉션 */}
         <Route path="/" element={<Navigate to="/landing" replace />} />
-        
-
-        <Route path="/" element={<Navigate to={isAuthed ? '/main' : '/landing'} replace />} /> 
-
+        <Route
+          path="/"
+          element={<Navigate to={isAuthed ? "/main" : "/landing"} replace />}
+        />
         {/* 비로그인 시 */}
         <Route path="/landing" element={<Landing />} />
         <Route path="/sign-in" element={<SignIn />} />
         <Route path="/sign-up" element={<SignUp />} />
-
         {/* 로그인 시 (비로그인도 접근 가능) */}
         <Route path="/main" element={<Main />} />
         <Route path="/posts" element={<Posts />} />
@@ -40,14 +39,16 @@ function App() {
           element={isAuthed ? <Upload /> : <Navigate to="/sign-in" replace />}
         />
         <Route path="/leader-board" element={<LeaderBoard />} />
+        {/* 본인 프로필 */}
         <Route path="/my-paged" element={<MyPaged />} />
+        {/* 타인 프로필  */}
+        <Route path="/my-paged/:userId" element={<MyPaged />} />
         <Route path="/admin" element={<Admin />} />
-
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

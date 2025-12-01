@@ -83,7 +83,7 @@ function PostCard({
       {/* 상단: 작성자/시간 */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-[40px] h-[40px] rounded-full bg-green-100 border border-gray-300 flex items-center justify-center overflow-hidden">
+          <div className="w-[40px] h-[40px] rounded-full border border-gray-300 flex items-center justify-center overflow-hidden">
             <img
               src={avatar}
               alt="profile"
