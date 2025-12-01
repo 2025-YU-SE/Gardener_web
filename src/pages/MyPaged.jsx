@@ -327,11 +327,28 @@ function MyPaged() {
   const isFeedbackExpanded = myFeedbackCount >= profile.feedbackCount;
   const isScrapsExpanded = myScrapsCount >= profile.scrapCount;
 
-  const GradeDonut = ({ percent = 50, label = "등급" }) => {
+  // 등급별 도넛 채움 비율 매핑
+  const getGradeFillPercent = (grade) => {
+    switch (grade) {
+      case "숲의 현자":
+        return 100;
+      case "나무 개발자":
+        return 75;
+      case "잎새 개발자":
+        return 50;
+      case "새싹 개발자":
+      default:
+        return 25;
+    }
+  };
+
+  const GradeDonut = ({ label = "등급" }) => {
     const size = 120;
     const stroke = 12;
     const r = (size - stroke) / 2;
     const c = 2 * Math.PI * r;
+    산;
+    const percent = getGradeFillPercent(label);
     const dash = (percent / 100) * c;
 
     return (
@@ -456,10 +473,7 @@ function MyPaged() {
                 </ul>
               </div>
               <div className="shrink-0 ml-16 mr-5">
-                <GradeDonut
-                  percent={profile.selectRate}
-                  label={profile.gradeLabel}
-                />
+                <GradeDonut label={profile.gradeLabel} />
               </div>
             </div>
           </div>
