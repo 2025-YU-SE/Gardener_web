@@ -25,3 +25,9 @@ export const getFullLeaders = async (
   });
   return response.data;
 };
+
+// 이번 주 피드백 수 조회
+export async function getWeeklyFeedbackCount() {
+  const res = await api.get("api/feedback/week");
+  return res.data;
+}

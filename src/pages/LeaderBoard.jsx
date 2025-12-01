@@ -5,9 +5,12 @@ import LeaderboardTabs from "../components/leaderboard/LeaderboardTabs";
 import icon1 from "../assets/leaderboard_icon1.png";
 import icon2 from "../assets/leaderboard_icon2.png";
 import icon3 from "../assets/leaderboard_icon3.png";
-import icon4 from "../assets/leaderboard_icon4.png";
 import RankingBoard from "../components/leaderboard/RankingBoard.jsx";
-import { getTop3Leaders, getFullLeaders } from "../api/leaderboardApi";
+import {
+  getTop3Leaders,
+  getFullLeaders,
+  getWeeklyFeedbackCount,
+} from "../api/leaderboardApi";
 
 function LeaderBoard() {
   const PAGE_SIZE = 10; // 한 페이지당 가져올 데이터 수
@@ -22,15 +25,33 @@ function LeaderBoard() {
   const [loading, setLoading] = useState(true);
   const [currentCriteria, setCurrentCriteria] = useState("points");
 
-  // 상단 통계 카드 데이터 (추후 연동 필요)
+  // 이번 주 피드백 수
+  const [weeklyFeedbackCount, setWeeklyFeedbackCount] = useState(0);
+
+  // 상단 통계 카드 데이터
   const stats = [
     { icon: icon1, value: 24, unit: "명", label: "이번 주 신규 가드너" },
-    { icon: icon2, value: 127, unit: "%", label: "평균 성장률" },
-    { icon: icon3, value: 15670, unit: "점", label: "이번 달 최고 기록" },
-    { icon: icon4, value: 8.3, unit: "개", label: "평균 완료 과제" },
+    { icon: icon2, value: 127, unit: "개", label: "이번 주 게시글 수" },
+    {
+      icon: icon3,
+      value: weeklyFeedbackCount ?? 0,
+      unit: "개",
+      label: "이번 주 피드백 수",
+    },
   ];
 
-  // 데이터 로딩 함수
+  // 이번 주 피드백 수 로딩
+  const fetchWeeklyFeedback = async () => {
+    try {
+      const count = await getWeeklyFeedbackCount();
+      setWeeklyFeedbackCount(Number(count) || 0);
+    } catch (error) {
+      console.error("Failed to fetch weekly feedback count:", error);
+      setWeeklyFeedbackCount(0);
+    }
+  };
+
+  // 상위 3명 데이터 로딩 함수
   const fetchTop3Leaders = async (criteria) => {
     try {
       const data = await getTop3Leaders(criteria);
@@ -95,6 +116,7 @@ function LeaderBoard() {
   useEffect(() => {
     fetchTop3Leaders(currentCriteria);
     fetchFullLeaders(currentCriteria, 0);
+    fetchWeeklyFeedback();
   }, []);
 
   return (
@@ -110,8 +132,8 @@ function LeaderBoard() {
         </div>
 
         <div className="mx-auto max-w-[1080px] w-full">
-          {/* 지표 카드 4개 */}
-          <div className="mt-6 grid grid-cols-4 gap-3">
+          {/* 지표 카드 3개 */}
+          <div className="mt-8 mx-auto max-w-[900px] grid grid-cols-3 gap-5 place-items-center">
             {stats.map((item, idx) => (
               <StatCard
                 key={idx}
