@@ -30,3 +30,21 @@ export const getFeedbackDetail = async (feedbackId) => {
     const response = await api.get(`/api/feedback/${feedbackId}`);
     return response.data;
 };
+
+// ⭐ 피드백 수정 (PUT /api/feedback/{feedbackId})
+export const updateFeedback = async (feedbackId, data) => {
+    const response = await api.put(`/api/feedback/${feedbackId}`, data);
+    return response.data;
+};
+
+// ⭐ 피드백 삭제 (DELETE /api/feedback/{feedbackId})
+export const deleteFeedback = async (feedbackId) => {
+    const response = await api.delete(`/api/feedback/${feedbackId}`);
+    return response.data;
+};
+
+// ⭐ 모든 피드백 목록 조회 (관리자용)
+export const getAllFeedbacks = async () => {
+    const response = await api.get('/api/feedback');
+    return response.data;
+};
