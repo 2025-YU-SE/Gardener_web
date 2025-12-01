@@ -157,9 +157,11 @@ function SignUp() {
                 />
                 <button
                   type="button"
-                  className="w-[69px] h-[40px] rounded-[6px] bg-[#4D4D4D] text-white text-[12px]"
+                  className="w-[69px] h-[40px] rounded-[6px] 
+             bg-[#4D4D4D] text-white text-[12px]
+             disabled:bg-[#CFCFCF] disabled:cursor-not-allowed"
                   onClick={handleCheckUsername}
-                  disabled={isCheckingUsername}
+                  disabled={isCheckingUsername || isUsernameAvailable === true}
                 >
                   {isCheckingUsername ? "확인중" : "중복확인"}
                 </button>
@@ -194,9 +196,11 @@ function SignUp() {
                 />
                 <button
                   type="button"
-                  className="w-[69px] h-[40px] rounded-[6px] bg-[#4D4D4D] text-white text-[12px]"
+                  className="w-[69px] h-[40px] rounded-[6px] 
+             bg-[#4D4D4D] text-white text-[12px]
+             disabled:bg-[#CFCFCF] disabled:cursor-not-allowed"
                   onClick={handleCheckEmail}
-                  disabled={isCheckingEmail}
+                  disabled={isCheckingEmail || isEmailAvailable === true}
                 >
                   {isCheckingEmail ? "확인중" : "중복확인"}
                 </button>
