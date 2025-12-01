@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Header from "../components/header/Header";
+import HeaderAuth from "../components/header/HeaderAuth";
 import illustration from "../assets/illustration.png";
 import { login } from "../api/userApi";
 
@@ -36,7 +36,7 @@ function SignIn() {
 
   return (
     <div className="w-full h-screen bg-gradient-to-r from-[#F0FDF4] to-[#BDF7D1]">
-      <Header />
+      <HeaderAuth />
       <div className="flex justify-center">
         <div className="mt-20">
           <div className="text-[30px] font-semibold">
