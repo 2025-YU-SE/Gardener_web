@@ -5,6 +5,20 @@ export const signup = (data) => {
   return api.post("/api/user/signup", data);
 };
 
+// 아이디 중복 확인
+export const checkUsername = (userName) => {
+  return api.get("/api/user/check-username", {
+    params: { userName },
+  });
+};
+
+// 이메일 중복 확인
+export const checkEmail = (email) => {
+  return api.get("/api/user/check-email", {
+    params: { email },
+  });
+};
+
 // 로그인
 export const login = async (data) => {
   const res = await api.post("/api/user/login", data);
