@@ -12,6 +12,7 @@ import {
   FaStar,
 } from "react-icons/fa";
 import Header from "../components/header/Header";
+import Loading from "../components/Loading";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
 import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
@@ -30,6 +31,7 @@ function PostDetail() {
   const [post, setPost] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
   const [displayedFeedbacksCount, setDisplayedFeedbacksCount] = useState(5);
+  const [loading, setLoading] = useState(true);
 
   // -----------------------------
   // 피드백 작성 상태
@@ -53,6 +55,7 @@ function PostDetail() {
   useEffect(() => {
     const loadPost = async () => {
       try {
+        setLoading(true);
         const res = await getPostDetail(postId);
         const p = res.data;
 
@@ -72,6 +75,8 @@ function PostDetail() {
         });
       } catch (err) {
         console.error("게시글 로드 실패:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -109,12 +114,8 @@ function PostDetail() {
     loadFeedbacks();
   }, [postId]);
 
-  if (!post) {
-    return (
-        <div className="min-h-screen flex justify-center items-center">
-          <p>게시글을 불러오는 중...</p>
-        </div>
-    );
+  if (loading || !post) {
+    return <Loading message="게시글을 불러오는 중입니다..." />;
   }
 
   // ===================================================
