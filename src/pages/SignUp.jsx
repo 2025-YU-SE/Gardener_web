@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import HeaderAuth from "../components/header/HeaderAuth";
 import illustration from "../assets/illustration.png";
 import { signup, checkUsername, checkEmail } from "../api/userApi";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 function SignUp() {
   // 입력값 상태 관리
@@ -19,6 +20,9 @@ function SignUp() {
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [emailCheckMessage, setEmailCheckMessage] = useState("");
   const [isEmailAvailable, setIsEmailAvailable] = useState(null);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordCheck, setShowPasswordCheck] = useState(false);
 
   // 아이디 중복 확인
   const handleCheckUsername = async () => {
@@ -221,24 +225,45 @@ function SignUp() {
               <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
                 비밀번호 <p className="text-[#00C839]">*</p>
               </label>
-              <input
-                type="password"
-                placeholder="영문자, 숫자 포함 8~12자"
-                className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="영문자, 숫자 포함 8~12자"
+                  className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] pr-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4D4D4D]"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? <FaEye /> : <FaEyeSlash />}
+                </button>
+              </div>
             </div>
 
             {/* 비밀번호 확인 */}
             <div className="flex flex-col mb-7">
-              <input
-                type="password"
-                placeholder="비밀번호를 확인해주세요"
-                className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
-                value={passwordCheck}
-                onChange={(e) => setPasswordCheck(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showPasswordCheck ? "text" : "password"}
+                  placeholder="비밀번호를 확인해주세요"
+                  className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] pr-10"
+                  value={passwordCheck}
+                  onChange={(e) => setPasswordCheck(e.target.value)}
+                />
+
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4D4D4D]"
+                  onClick={() => setShowPasswordCheck((prev) => !prev)}
+                >
+                  {showPasswordCheck ? <FaEye /> : <FaEyeSlash />}
+                </button>
+              </div>
             </div>
 
             {/* 회원가입 버튼 */}
