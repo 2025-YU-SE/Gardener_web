@@ -18,6 +18,7 @@ import {
   updateProfilePicture,
   deleteProfilePicture,
 } from "../api/userApi";
+import { likePost, bookmarkPost } from "../api/postApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
 // 날짜 포맷팅 함수
@@ -187,11 +188,66 @@ function MyPaged() {
       author: profileData.userName,
       avatar: profileData.userPicture,
       createdAt: apiPost.createdAt,
+      liked: apiPost.liked ?? false,
+      scrapped: apiPost.scrapped ?? false,
+      scrapCount: apiPost.scrapCount ?? 0,
     };
   };
 
   const handlePostClick = (postId) => {
     navigate(`/posts/${postId}`);
+  };
+
+  // 게시글 좋아요
+  const handleTogglePostLike = async (postId) => {
+    setMyPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextLiked = !p.liked;
+        const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
+        return { ...p, liked: nextLiked, likes: nextLikes };
+      })
+    );
+
+    setMyScraps((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextLiked = !p.liked;
+        const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
+        return { ...p, liked: nextLiked, likes: nextLikes };
+      })
+    );
+
+    try {
+      await likePost(postId);
+    } catch (error) {
+      console.error("게시글 좋아요 API 호출 실패:", error);
+    }
+  };
+
+  // 게시글 스크랩
+  const handleTogglePostBookmark = async (postId) => {
+    setMyPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextScrapped = !p.scrapped;
+        return { ...p, scrapped: nextScrapped };
+      })
+    );
+
+    setMyScraps((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextScrapped = !p.scrapped;
+        return { ...p, scrapped: nextScrapped };
+      })
+    );
+
+    try {
+      await bookmarkPost(postId);
+    } catch (error) {
+      console.error("게시글 스크랩 API 호출 실패:", error);
+    }
   };
 
   // 파일 업로드
@@ -542,11 +598,23 @@ function MyPaged() {
                   {myPosts.slice(0, myPostsDisplayCount).map((p) => (
                     <PostCard
                       key={`mypost-${p.id}`}
-                      {...p}
                       avatar={makeAbsoluteImageUrl(p.avatar) || baseProfile}
+                      author={p.author}
+                      timeAgo={p.timeAgo}
+                      title={p.title}
+                      content={p.content}
+                      languages={p.languages}
+                      stacks={p.stacks}
+                      likes={p.likes}
+                      comments={p.comments}
+                      views={p.views}
+                      isLiked={p.liked}
+                      isBookmarked={p.scrapped}
                       badge={isMyProfile ? "내 게시글" : null}
                       rightPill={null}
                       onClick={() => handlePostClick(p.id)}
+                      onLike={() => handleTogglePostLike(p.id)}
+                      onBookmark={() => handleTogglePostBookmark(p.id)}
                     />
                   ))}
                 </div>
@@ -642,11 +710,23 @@ function MyPaged() {
                   {myScraps.slice(0, myScrapsCount).map((p) => (
                     <PostCard
                       key={`myscrap-${p.id}`}
-                      {...p}
                       avatar={makeAbsoluteImageUrl(p.avatar) || baseProfile}
+                      author={p.author}
+                      timeAgo={p.timeAgo}
+                      title={p.title}
+                      content={p.content}
+                      languages={p.languages}
+                      stacks={p.stacks}
+                      likes={p.likes}
+                      comments={p.comments}
+                      views={p.views}
+                      isLiked={p.liked}
+                      isBookmarked={p.scrapped}
                       badge="스크랩"
                       rightPill={null}
                       onClick={() => handlePostClick(p.id)}
+                      onLike={() => handleTogglePostLike(p.id)}
+                      onBookmark={() => handleTogglePostBookmark(p.id)}
                     />
                   ))}
                 </div>
