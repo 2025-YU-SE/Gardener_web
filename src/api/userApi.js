@@ -5,6 +5,20 @@ export const signup = (data) => {
   return api.post("/api/user/signup", data);
 };
 
+// 아이디 중복 확인
+export const checkUsername = (userName) => {
+  return api.get("/api/user/check-username", {
+    params: { userName },
+  });
+};
+
+// 이메일 중복 확인
+export const checkEmail = (email) => {
+  return api.get("/api/user/check-email", {
+    params: { email },
+  });
+};
+
 // 로그인
 export const login = async (data) => {
   const res = await api.post("/api/user/login", data);
@@ -66,4 +80,31 @@ export const deleteMyAccount = () => {
 // 관리자 권한으로 특정 사용자 삭제
 export const deleteUserAsAdmin = (userId) => {
   return api.delete(`/api/user/${userId}/admin`);
+};
+
+export const updateProfilePicture = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const response = await api.put("/api/user/profile-picture", formData, {});
+    return response.data;
+  } catch (error) {
+    console.error(
+      "프로필 사진 업로드 실패:",
+      error.response?.status,
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+// 프로필 사진 삭제
+export const deleteProfilePicture = async () => {
+  try {
+    const response = await api.delete("/api/user/profile-picture");
+    return response.data;
+  } catch (error) {
+    console.error("프로필 사진 삭제 실패:", error);
+    throw error;
+  }
 };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaHeart,
   FaRegHeart,
@@ -34,6 +35,8 @@ function PostCard({
         : content
       : "";
 
+  const navigate = useNavigate();
+  
   // 토글 상태
   const [liked, setLiked] = useState(isLiked);
   const [bookmarked, setBookmarked] = useState(isBookmarked);
@@ -41,6 +44,13 @@ function PostCard({
 
   const handleToggleLike = (e) => {
     e.stopPropagation();
+    
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      navigate("/sign-in");
+      return;
+    }
+    
     setLiked((prev) => {
       const next = !prev;
       setLikeCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
@@ -51,6 +61,13 @@ function PostCard({
 
   const handleToggleBookmark = (e) => {
     e.stopPropagation();
+    
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      navigate("/sign-in");
+      return;
+    }
+    
     setBookmarked((prev) => {
       const next = !prev;
       onBookmark && onBookmark(next);
@@ -66,7 +83,7 @@ function PostCard({
       {/* 상단: 작성자/시간 */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-[40px] h-[40px] rounded-full bg-green-100 border border-gray-300 flex items-center justify-center overflow-hidden">
+          <div className="w-[40px] h-[40px] rounded-full border border-gray-300 flex items-center justify-center overflow-hidden">
             <img
               src={avatar}
               alt="profile"
