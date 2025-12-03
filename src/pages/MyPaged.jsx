@@ -238,22 +238,50 @@ function MyPaged() {
 
   // 게시글 스크랩
   const handleTogglePostBookmark = async (postId) => {
+    const current =
+      myPosts.find((p) => p.id === postId) ||
+      myScraps.find((p) => p.id === postId);
+    const wasScrapped = current?.scrapped ?? false;
+    const willScrap = !wasScrapped;
+
+    // 내 게시글 목록에 스크랩 상태 반영
     setMyPosts((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const nextScrapped = !p.scrapped;
-        return { ...p, scrapped: nextScrapped };
-      })
+      prev.map((p) => (p.id === postId ? { ...p, scrapped: willScrap } : p))
     );
 
-    setMyScraps((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const nextScrapped = !p.scrapped;
-        return { ...p, scrapped: nextScrapped };
-      })
-    );
+    // 내 스크랩 목록에 반영
+    setMyScraps((prev) => {
+      if (willScrap) {
+        // 새로 스크랩한 경우
+        if (prev.some((p) => p.id === postId)) {
+          // 이미 목록에 있으면 상태만 맞춰줌
+          return prev.map((p) =>
+            p.id === postId ? { ...p, scrapped: true } : p
+          );
+        }
 
+        // 목록에 없다면 myPosts / current 에서 기반 데이터 찾아서 추가
+        const base =
+          current ||
+          myPosts.find((p) => p.id === postId) ||
+          prev.find((p) => p.id === postId);
+
+        if (!base) return prev;
+        // 새로 스크랩한 글을 맨 위에 추가
+        return [{ ...base, scrapped: true }, ...prev];
+      }
+
+      // 스크랩 해제 -> 해당 카드 제거 (스크랩 탭에서 바로 사라짐)
+      return prev.filter((p) => p.id !== postId);
+    });
+
+    // 프로필의 스크랩 개수 즉시 반영
+    setProfile((prev) => {
+      const next = Math.max(0, (prev.scrapCount || 0) + (willScrap ? 1 : -1));
+      return { ...prev, scrapCount: next };
+    });
+
+    setMyScrapsCount((prev) => Math.max(0, prev + (willScrap ? 1 : -1)));
     try {
       await bookmarkPost(postId);
     } catch (error) {
