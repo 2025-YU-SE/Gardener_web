@@ -8,6 +8,8 @@ export default function FeedbackCodeEditor({
   title = "JAVASCRIPT - 피드백 모드",
   onAddFeedbackRange,
   onSaveFeedback,
+  onRemoveFeedback,
+  onRangesChange,
   initialFeedbacks = [],
 }) {
   const editorRef = useRef(null);
@@ -115,6 +117,7 @@ export default function FeedbackCodeEditor({
     setRanges((prev) => {
       const next = [...prev, newItem];
       applyHighlights(next);
+      onRangesChange?.(next);
       return next;
     });
 
@@ -133,6 +136,7 @@ export default function FeedbackCodeEditor({
       
       // 업데이트된 항목을 onSaveFeedback으로 전달
       onSaveFeedback?.(updated);
+      onRangesChange?.(next);
       
       return next;
     });
@@ -146,8 +150,14 @@ export default function FeedbackCodeEditor({
 
   const removeRange = (id) => {
     setRanges((prev) => {
+      const removed = prev.find((r) => r.id === id);
       const next = prev.filter((r) => r.id !== id);
       applyHighlights(next);
+      // 삭제 콜백 호출
+      if (removed && onRemoveFeedback) {
+        onRemoveFeedback(removed);
+      }
+      onRangesChange?.(next);
       return next;
     });
   };
