@@ -2,18 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 
 export default function FeedbackCodeEditor({
-                                             value,
-                                             language = "javascript",
-                                             height = 420,
-                                             title = "JAVASCRIPT - 피드백 모드",
-                                             onAddFeedbackRange,
-                                             onSaveFeedback,
-                                             initialFeedbacks = [],
-                                           }) {
+  value,
+  language = "javascript",
+  height = 420,
+  title = "JAVASCRIPT - 피드백 모드",
+  onAddFeedbackRange,
+  onSaveFeedback,
+  onRemoveFeedback,
+  onRangesChange,
+  initialFeedbacks = [],
+}) {
   const editorRef = useRef(null);
   const idRef = useRef(0);
   const [ranges, setRanges] = useState([]);
-  const [dragStart, setDragStart] = useState(null);
 
   const containerHeight = useMemo(() => `${height}px`, [height]);
 
@@ -49,7 +50,6 @@ export default function FeedbackCodeEditor({
 
         isDragging = true;
         startLine = line;
-        setDragStart(line);
         decorateTempRange(line, line);
       }
     });
@@ -83,6 +83,25 @@ export default function FeedbackCodeEditor({
     });
   };
 
+  // initialFeedbacks를 초기 ranges로 설정
+  useEffect(() => {
+    if (initialFeedbacks && initialFeedbacks.length > 0 && ranges.length === 0) {
+      const mapped = initialFeedbacks.map((fb, idx) => ({
+        id: fb.id || `r-${idx}-${Date.now()}`,
+        start: fb.start || fb.startLineNumber || 0,
+        end: fb.end || fb.endLineNumber || fb.start || 0,
+        text: fb.text || fb.content || "",
+        editing: false,
+        createdAt: fb.createdAt || new Date(),
+      }));
+      setRanges(mapped);
+
+      if (editorRef.current) {
+        applyHighlights(mapped);
+      }
+    }
+  }, [initialFeedbacks, ranges.length]);
+
   const addRange = (start, end) => {
     idRef.current += 1;
     const id = `r-${idRef.current}-${Date.now()}`;
@@ -98,6 +117,7 @@ export default function FeedbackCodeEditor({
     setRanges((prev) => {
       const next = [...prev, newItem];
       applyHighlights(next);
+      onRangesChange?.(next);
       return next;
     });
 
@@ -105,20 +125,21 @@ export default function FeedbackCodeEditor({
   };
 
   const saveComment = (id, text) => {
-    let updated = null;
-
     setRanges((prev) => {
-      const next = prev.map((r) => {
-        if (r.id === id) {
-          updated = { ...r, text, editing: false };
-          return updated;
-        }
-        return r;
-      });
+      const found = prev.find((r) => r.id === id);
+      if (!found) {
+        return prev;
+      }
+
+      const updated = { ...found, text: text || "", editing: false };
+      const next = prev.map((r) => (r.id === id ? updated : r));
+      
+      // 업데이트된 항목을 onSaveFeedback으로 전달
+      onSaveFeedback?.(updated);
+      onRangesChange?.(next);
+      
       return next;
     });
-
-    if (updated) onSaveFeedback?.(updated);
   };
 
   const editComment = (id) => {
@@ -129,8 +150,14 @@ export default function FeedbackCodeEditor({
 
   const removeRange = (id) => {
     setRanges((prev) => {
+      const removed = prev.find((r) => r.id === id);
       const next = prev.filter((r) => r.id !== id);
       applyHighlights(next);
+      // 삭제 콜백 호출
+      if (removed && onRemoveFeedback) {
+        onRemoveFeedback(removed);
+      }
+      onRangesChange?.(next);
       return next;
     });
   };

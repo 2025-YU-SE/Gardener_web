@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { BsSend } from "react-icons/bs"
 import { FaGithub } from "react-icons/fa"
 import { MdOutlineUploadFile } from "react-icons/md"
@@ -8,28 +8,36 @@ import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
 import CollapsibleFilter from '../components/filter/CollapsibleFilter'
 import WriteCodeEditor from '../components/WriteCodeEditor'
-import { createPost } from '../api/postApi'
+import { createPost, updatePost, getPostDetail } from '../api/postApi'
 
 const getLanguageCode = (languageName) => {
-  const languageMap = {
-    'JavaScript': 'javascript',
-    'Python': 'python',
-    'Java': 'java',
-    'C': 'c',
-    'C++': 'cpp',
-    'C#': 'csharp',
-    'Ruby': 'ruby',
-    'Go': 'go',
-    'PHP': 'php',
-    'Swift': 'swift',
-    'Kotlin': 'kotlin',
-    'TypeScript': 'typescript',
-  };
-  return languageMap[languageName] || 'javascript';
+  if (!languageName) return "javascript";
+
+  const key = String(languageName).toLowerCase();
+
+  if (key.includes("typescript") || key === "ts") return "typescript";
+  if (key.includes("javascript") || key === "js") return "javascript";
+  if (key.includes("python") || key === "py") return "python";
+  if (key === "java") return "java";
+  if (key === "c++" || key === "cpp") return "cpp";
+  if (key === "c#") return "csharp";
+  if (key === "c") return "c";
+  if (key.includes("ruby")) return "ruby";
+  if (key.includes("go")) return "go";
+  if (key.includes("php")) return "php";
+  if (key.includes("swift")) return "swift";
+  if (key.includes("kotlin")) return "kotlin";
+
+  return "javascript";
 };
 
 function Upload() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const editPostId = searchParams.get('edit');
+  const isEditMode = !!editPostId;
+  
   const [activeTab, setActiveTab] = useState('개발')
   const [selectedLanguage, setSelectedLanguage] = useState('JavaScript')
   const [selectedStacks, setSelectedStacks] = useState([])
@@ -49,6 +57,90 @@ function Upload() {
   const [codingFeedbackRequests, setCodingFeedbackRequests] = useState(['', '', ''])
   
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 수정 모드 - 기존 게시글 데이터 불러오기
+  useEffect(() => {
+    const loadPostData = async () => {
+      if (!isEditMode || !editPostId) return;
+      
+      try {
+        if (location.state?.post) {
+          const post = location.state.post;
+          setTitle(post.title || '');
+          setContent(post.content || '');
+          setCode(post.code || '');
+          setGithubUrl(post.githubRepoUrl || '');
+          
+          // 언어 설정
+          if (post.languages) {
+            setSelectedLanguage(post.languages);
+          }
+          
+          // 스택 설정
+          if (post.stacks) {
+            const stacksArray = typeof post.stacks === 'string' 
+              ? post.stacks.split(',').map(s => s.trim()).filter(Boolean)
+              : Array.isArray(post.stacks) ? post.stacks : [];
+            setSelectedStacks(stacksArray);
+          }
+          
+          // 탭 설정
+          if (post.contentsType === false) {
+            setActiveTab('코딩테스트');
+            setCodingTitle(post.title || '');
+            setProblem(post.problemStatement || post.content || '');
+            setCodingCode(post.code || '');
+            setCodeExplanation(post.summary || '');
+          } else {
+            setActiveTab('개발');
+            if (post.summary) {
+              const requests = post.summary.split(',').map(s => s.trim()).filter(Boolean);
+              setFeedbackRequests(requests.length > 0 ? requests : ['', '', '']);
+            }
+          }
+        } else {
+          // location.state가 없으면 API로 데이터 불러오기
+          const res = await getPostDetail(editPostId);
+          const postData = res.data;
+          
+          setTitle(postData.title || '');
+          setContent(postData.content || '');
+          setCode(postData.code || '');
+          setGithubUrl(postData.githubRepoUrl || '');
+          
+          if (postData.languages) {
+            setSelectedLanguage(postData.languages);
+          }
+          
+          if (postData.stacks) {
+            const stacksArray = typeof postData.stacks === 'string' 
+              ? postData.stacks.split(',').map(s => s.trim()).filter(Boolean)
+              : Array.isArray(postData.stacks) ? postData.stacks : [];
+            setSelectedStacks(stacksArray);
+          }
+          
+          if (postData.contentsType === false) {
+            setActiveTab('코딩테스트');
+            setCodingTitle(postData.title || '');
+            setProblem(postData.problemStatement || postData.content || '');
+            setCodingCode(postData.code || '');
+            setCodeExplanation(postData.summary || '');
+          } else {
+            setActiveTab('개발');
+            if (postData.summary) {
+              const requests = postData.summary.split(',').map(s => s.trim()).filter(Boolean);
+              setFeedbackRequests(requests.length > 0 ? requests : ['', '', '']);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('게시글 데이터 불러오기 실패:', err);
+        alert('게시글 데이터를 불러오는데 실패했습니다.');
+      }
+    };
+
+    loadPostData();
+  }, [isEditMode, editPostId, location.state]);
 
   const handleFeedbackRequestChange = (index, value) => {
     const newRequests = [...feedbackRequests]
@@ -99,9 +191,17 @@ function Upload() {
         problemStatement: activeTab === '코딩테스트' ? problem : null
       }
 
-      await createPost(postData)
-      alert('게시물이 업로드되었습니다!')
-      navigate('/posts')
+      if (isEditMode && editPostId) {
+        // 수정 모드
+        await updatePost(editPostId, postData);
+        alert('게시물이 수정되었습니다!');
+        navigate(`/posts/${editPostId}`);
+      } else {
+        // 생성 모드
+        await createPost(postData);
+        alert('게시물이 업로드되었습니다!');
+        navigate('/posts');
+      }
     } catch (err) {
       console.error('업로드 실패:', err)
       alert('업로드에 실패했습니다. 다시 시도해주세요.')
@@ -115,7 +215,9 @@ function Upload() {
       <Header/>
       <div className="flex flex-col items-center py-8 px-4">
         <div className="w-full max-w-4xl">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">코드 심기</h1>
+          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+            {isEditMode ? '게시글 수정' : '코드 심기'}
+          </h1>
           
           {/* 탭 메뉴 */}
           <div className="flex justify-center mb-8">

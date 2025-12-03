@@ -13,6 +13,8 @@ import {
   FaAngleLeft,
   FaAngleRight,
   FaChevronDown,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
 import { IoMdMore, IoMdTime } from "react-icons/io";
 import Header from "../components/header/Header";
@@ -20,7 +22,10 @@ import Loading from "../components/Loading";
 import CollapsibleFilter from "../components/filter/CollapsibleFilter";
 import language from "../components/filter/language";
 import stacks from "../components/filter/stacks";
-import { getPosts } from "../api/postApi";
+import { getPosts, deletePost } from "../api/postApi";
+import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
+import baseProfile from "../assets/baseProfile.png";
 
 import {
   getCurrentPageData,
@@ -39,6 +44,7 @@ function Posts() {
 
   const [selectedSort, setSelectedSort] = useState("최신순");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const sortOptions = ["최신순", "조회순", "피드백 많은 순"];
 
@@ -111,6 +117,9 @@ function Posts() {
       if (!event.target.closest(".dropdown-container")) {
         setIsDropdownOpen(false);
       }
+      if (!event.target.closest(".post-menu-container")) {
+        setOpenMenuId(null);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -130,10 +139,11 @@ function Posts() {
         // 🔥 프론트에서 사용하기 위한 매핑
         const mapped = data.map((p) => ({
           id: p.postId,
+          userId: p.userId,
           title: p.title,
           content: p.content,
           author: p.userName || "익명",
-          avatar: "👤",
+          avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
           timeAgo: p.createdAt ? p.createdAt.slice(0, 10) : "",
           tags: [p.languages, p.stacks].filter(Boolean),
           languages: p.languages,
@@ -249,9 +259,61 @@ function Posts() {
     }
   };
 
-  if (loading) {
-    return <Loading message="게시글을 불러오는 중입니다..." />;
-  }
+  // ===================================================
+  // 🔥 게시글 수정/삭제 권한 체크
+  // ===================================================
+  const canEditOrDelete = (post) => {
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed || !post) return false;
+    
+    const currentUsername = getCurrentUsername();
+    if (!currentUsername) return false;
+    
+    // 관리자는 항상 수정/삭제 가능
+    if (isAdmin()) return true;
+    
+    // 게시글 작성자만 수정/삭제 가능
+    return post.author === currentUsername;
+  };
+
+  // ===================================================
+  // 🔥 게시글 수정
+  // ===================================================
+  const handleEditPost = (post) => {
+    if (!canEditOrDelete(post)) {
+      alert("수정 권한이 없습니다.");
+      return;
+    }
+    navigate(`/upload?edit=${post.id}`, { state: { post } });
+  };
+
+  // ===================================================
+  // 🔥 게시글 삭제
+  // ===================================================
+  const handleDeletePost = async (post) => {
+    if (!canEditOrDelete(post)) {
+      alert("삭제 권한이 없습니다.");
+      return;
+    }
+
+    if (!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await deletePost(post.id);
+      alert("게시글이 삭제되었습니다.");
+      setAllPosts((prev) => prev.filter((p) => p.id !== post.id));
+      setPosts((prev) => prev.filter((p) => p.id !== post.id));
+    } catch (err) {
+      console.error("게시글 삭제 실패:", err);
+      if (err.response?.status === 403) {
+        alert("삭제 권한이 없습니다.");
+      } else {
+        alert("게시글 삭제에 실패했습니다: " + (err.response?.data?.message || err.message));
+      }
+    }
+  };
 
   return (
       <div className="min-h-screen bg-[#f9f9f9]">
@@ -373,8 +435,15 @@ function Posts() {
                     {/* 프로필 */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center border-gray-300 border">
-                          {post.avatar}
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-gray-300 border flex items-center justify-center bg-green-100">
+                          <img
+                            src={post.avatar}
+                            alt={post.author}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = baseProfile;
+                            }}
+                          />
                         </div>
                         <div>
                           <div className="font-semibold text-gray-900">
@@ -386,9 +455,48 @@ function Posts() {
                           </div>
                         </div>
                       </div>
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <IoMdMore size={24} />
-                      </button>
+                      
+                      {/* 드롭다운 메뉴 */}
+                      {canEditOrDelete(post) && (
+                        <div className="relative post-menu-container">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(openMenuId === post.id ? null : post.id);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                          >
+                            <IoMdMore size={24} />
+                          </button>
+                          
+                          {openMenuId === post.id && (
+                            <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                  handleEditPost(post);
+                                }}
+                                className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                              >
+                                <FaEdit className="text-blue-600" />
+                                <span>수정</span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                  handleDeletePost(post);
+                                }}
+                                className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                              >
+                                <FaTrash />
+                                <span>삭제</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* 제목/내용 */}

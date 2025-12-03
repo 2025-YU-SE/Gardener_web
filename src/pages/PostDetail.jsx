@@ -1,7 +1,7 @@
 // -----------------------------------------
 // PostDetail.jsx (완전 수정본 — UI 유지 + 기능추가)
 // -----------------------------------------
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FaHeart,
   FaRegHeart,
@@ -10,7 +10,10 @@ import {
   FaComment,
   FaEye,
   FaStar,
+  FaEdit,
+  FaTrash,
 } from "react-icons/fa";
+import { IoMdMore } from "react-icons/io";
 import Header from "../components/header/Header";
 import Loading from "../components/Loading";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -19,8 +22,16 @@ import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
 import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
 
 // API
-import { getPostDetail } from "../api/postApi";
-import { getFeedbacksByPost, createFeedback } from "../api/feedbackApi";
+import {
+  getPostDetail,
+  deletePost,
+  getAiFeedback,
+  regenerateAiFeedback,
+} from "../api/postApi";
+import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
+import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
+import baseProfile from "../assets/baseProfile.png";
 
 function PostDetail() {
   const { postId } = useParams();
@@ -45,9 +56,34 @@ function PostDetail() {
   const [feedbackRanges, setFeedbackRanges] = useState([]);
 
   const [isAIFeedbackOpen, setIsAIFeedbackOpen] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   const [postLiked, setPostLiked] = useState(false);
   const [postBookmarked, setPostBookmarked] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // ---------------------------------------------------
+  // 코드 에디터 언어 감지
+  // ---------------------------------------------------
+  const editorLanguage = useMemo(() => {
+    const lang = post?.languages;
+    if (!lang) return "javascript";
+
+    const l = String(lang).toLowerCase();
+
+    if (l.includes("typescript") || l.includes("ts")) return "typescript";
+    if (l.includes("javascript") || l.includes("js")) return "javascript";
+    if (l.includes("java")) return "java";
+    if (l.includes("python") || l.includes("py")) return "python";
+    if (l.includes("c++")) return "cpp";
+    if (l.includes("c#")) return "csharp";
+    if (l === "c") return "c";
+    if (l.includes("go")) return "go";
+
+    return "javascript";
+  }, [post?.languages]);
 
   // ===================================================
   // 1. 게시물 상세 불러오기
@@ -61,10 +97,11 @@ function PostDetail() {
 
         setPost({
           id: p.postId,
+          userId: p.userId,
           title: p.title,
           content: p.content,
           author: p.userName ?? "익명",
-          avatar: "👤",
+          avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
           timeAgo: p.createdAt?.slice(0, 10),
           tags: [p.languages, p.stacks],
           likes: p.likesCount,
@@ -72,7 +109,16 @@ function PostDetail() {
           views: p.views,
           bookmarks: p.scrapCount,
           code: p.code,
+          languages: p.languages,
+          stacks: p.stacks,
+          contentsType: p.contentsType,
+          summary: p.summary,
+          githubRepoUrl: p.githubRepoUrl,
+          problemStatement: p.problemStatement,
+          aiFeedback: p.aiFeedback || "",
         });
+
+        setAiFeedback(p.aiFeedback || "");
       } catch (err) {
         console.error("게시글 로드 실패:", err);
       } finally {
@@ -96,14 +142,14 @@ function PostDetail() {
 
         const mapped = list.map((fb) => ({
           id: fb.feedbackId,
-          author: `User ${fb.userId}`,
-          avatarInitial: String(fb.userId)[0],
+          author: fb.userName || `User ${fb.userId}`,
+          avatar: makeAbsoluteImageUrl(fb.userPicture) || baseProfile,
           rating: fb.rating,
           content: fb.content,
           timeAgo: fb.createdAt?.slice(0, 10),
           likes: fb.likesCount,
           views: 0,
-        })); // 유저 아이디로 임시 표기 버전
+        }));
 
         setFeedbacks(mapped);
       } catch (err) {
@@ -114,6 +160,20 @@ function PostDetail() {
     loadFeedbacks();
   }, [postId]);
 
+  // 드롭다운 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".post-menu-container")) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   if (loading || !post) {
     return <Loading message="게시글을 불러오는 중입니다..." />;
   }
@@ -122,26 +182,54 @@ function PostDetail() {
   // 🔥 피드백 등록
   // ===================================================
   const handleSubmitFeedback = async () => {
+    // 인증 확인
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
     try {
       const feedbackPayload = {
         postId: Number(postId),
         content: feedbackContent,
         rating: rating,
-        title: feedbackTitle,
-        lineFeedbacks: feedbackRanges.map((r) => ({
-          lineNumber: r.start,
-          endLineNumber: r.end,
-          content: r.text || "",
-        })),
       };
 
-      await createFeedback(feedbackPayload);
+      const createdFeedback = await createFeedback(feedbackPayload);
+      const feedbackId = createdFeedback.feedbackId || createdFeedback.id;
+
+        // 2. 각 라인 피드백을 개별적으로 등록
+        if (feedbackRanges && feedbackRanges.length > 0) {
+          // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
+          const lineFeedbackPromises = feedbackRanges.map((r) => {
+            // text 필드 확인 (text 또는 content 필드 모두 확인)
+            const rawText = r.text || r.content || "";
+            const content = rawText.trim();
+            
+            const payload = {
+              lineNumber: r.start,
+              endLineNumber: r.end,
+              content: content,
+            };
+            
+            return createLineFeedback(feedbackId, payload);
+          });
+
+          await Promise.all(lineFeedbackPromises);
+        }
 
       alert("피드백이 등록되었습니다!");
       window.location.reload();
     } catch (err) {
-      console.error(err);
-      alert("피드백 등록 실패");
+      if (err.response?.status === 403) {
+        alert("권한이 없습니다. 로그인 상태를 확인해주세요.");
+        localStorage.removeItem("accessToken");
+        navigate("/sign-in", { state: { from: location.pathname } });
+      } else {
+        alert("피드백 등록 실패: " + (err.response?.data?.message || err.message || "알 수 없는 오류"));
+      }
     }
   };
 
@@ -154,6 +242,107 @@ function PostDetail() {
     setIsFeedbackFormOpen(true);
   };
 
+  // ===================================================
+  // 🔥 AI 피드백 불러오기 / 재생성
+  // ===================================================
+
+  const fetchAiFeedback = async () => {
+    try {
+      setAiLoading(true);
+      setAiError("");
+      const res = await getAiFeedback(postId);
+      const text = res?.data ?? res;
+      setAiFeedback(text || "");
+    } catch (err) {
+      console.error("AI 피드백 조회 실패:", err);
+      setAiError("AI 피드백을 불러오지 못했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleToggleAIFeedback = async () => {
+    if (!isAIFeedbackOpen && !aiFeedback) {
+      await fetchAiFeedback();
+    }
+    setIsAIFeedbackOpen((v) => !v);
+  };
+
+  const handleRegenerateAIFeedback = async () => {
+    try {
+      if (!window.confirm("AI 피드백을 다시 생성하시겠습니까?")) return;
+      setAiLoading(true);
+      setAiError("");
+      const res = await regenerateAiFeedback(postId);
+      const dto = res?.data ?? res;
+      const text = dto?.aiFeedback || "";
+      setAiFeedback(text);
+
+      setPost((prev) =>
+        prev ? { ...prev, aiFeedback: text } : prev
+      );
+    } catch (err) {
+      console.error("AI 피드백 재생성 실패:", err);
+      setAiError("AI 피드백 재생성에 실패했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // ===================================================
+  // 🔥 게시글 수정/삭제 권한 체크
+  // ===================================================
+  const canEditOrDelete = () => {
+    if (!isAuthed || !post) return false;
+    
+    const currentUsername = getCurrentUsername();
+    if (!currentUsername) return false;
+    
+    // 관리자는 항상 수정/삭제 가능
+    if (isAdmin()) return true;
+    
+    // 게시글 작성자만 수정/삭제 가능
+    return post.author === currentUsername;
+  };
+
+  // ===================================================
+  // 🔥 게시글 수정
+  // ===================================================
+  const handleEditPost = () => {
+    if (!canEditOrDelete()) {
+      alert("수정 권한이 없습니다.");
+      return;
+    }
+    navigate(`/upload?edit=${postId}`, { state: { post } });
+  };
+
+  // ===================================================
+  // 🔥 게시글 삭제
+  // ===================================================
+  const handleDeletePost = async () => {
+    if (!canEditOrDelete()) {
+      alert("삭제 권한이 없습니다.");
+      return;
+    }
+
+    if (!window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await deletePost(postId);
+      alert("게시글이 삭제되었습니다.");
+      navigate("/posts");
+    } catch (err) {
+      console.error("게시글 삭제 실패:", err);
+      if (err.response?.status === 403) {
+        alert("삭제 권한이 없습니다.");
+      } else {
+        alert("게시글 삭제에 실패했습니다: " + (err.response?.data?.message || err.message));
+      }
+    }
+  };
+
   return (
       <div className="min-h-screen bg-[#F9FAFB]">
         <Header />
@@ -163,13 +352,59 @@ function PostDetail() {
           {/* 게시글 카드 */}
           {/* -------------------------------- */}
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">{post.title}</h1>
+            <div className="flex items-start justify-between mb-2">
+              <h1 className="text-2xl font-bold text-gray-800 flex-1">{post.title}</h1>
+              
+              {/* 드롭다운 메뉴 */}
+              {canEditOrDelete() && (
+                <div className="relative post-menu-container ml-4">
+                  <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <IoMdMore size={24} />
+                  </button>
+                  
+                  {isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleEditPost();
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FaEdit className="text-blue-600" />
+                        <span>수정</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleDeletePost();
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FaTrash />
+                        <span>삭제</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <p className="text-gray-600 mb-6">{post.content}</p>
 
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center text-white font-bold mr-3">
-                {post.avatar}
+              <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
+                <img
+                  src={post.avatar}
+                  alt={post.author}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = baseProfile;
+                  }}
+                />
               </div>
               <div>
                 <p className="font-semibold">{post.author}</p>
@@ -234,8 +469,8 @@ function PostDetail() {
               </div>
 
               <button
-                  onClick={() => setIsAIFeedbackOpen((v) => !v)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md"
+                onClick={handleToggleAIFeedback}
+                className="bg-green-600 text-white px-4 py-2 rounded-md"
               >
                 {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
               </button>
@@ -250,26 +485,31 @@ function PostDetail() {
             <div className="lg:col-span-2">
               <div className="bg-white border rounded-lg p-6">
                 {isFeedbackFormOpen ? (
-                    <FeedbackCodeEditor
-                        value={post.code}
-                        language="java"
-                        title="라인 피드백 입력"
-                        initialFeedbacks={[]}
-                        onAddFeedbackRange={(range) => {
-                          setFeedbackRanges((prev) => [...prev, range]);
-                        }}
-                        onSaveFeedback={(item) => {
-                          setFeedbackRanges((prev) =>
-                              prev.map((r) => (r.id === item.id ? item : r))
-                          );
-                        }}
-                    />
+                  <FeedbackCodeEditor
+                    value={post.code}
+                    language={editorLanguage}
+                    title="라인 피드백 입력"
+                    initialFeedbacks={[]}
+                    onAddFeedbackRange={(range) => {
+                      setFeedbackRanges((prev) => [...prev, range]);
+                    }}
+                    onSaveFeedback={(item) => {
+                      setFeedbackRanges((prev) => {
+                        const exists = prev.some((r) => r.id === item.id);
+                        if (exists) {
+                          return prev.map((r) => (r.id === item.id ? item : r));
+                        } else {
+                          return [...prev, item];
+                        }
+                      });
+                    }}
+                  />
                 ) : (
-                    <ReadonlyCodeEditor
-                        value={post.code}
-                        language="java"
-                        title="코드"
-                    />
+                  <ReadonlyCodeEditor
+                    value={post.code}
+                    language={editorLanguage}
+                    title="코드"
+                  />
                 )}
               </div>
             </div>
@@ -374,8 +614,15 @@ function PostDetail() {
                                 onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
                             >
                               <div className="flex items-center mb-1">
-                                <div className="w-8 h-8 bg-green-500 text-white rounded-full flex justify-center items-center mr-2">
-                                  {fb.avatarInitial}
+                                <div className="w-8 h-8 rounded-full overflow-hidden flex justify-center items-center mr-2 bg-green-100 border border-gray-300">
+                                  <img
+                                    src={fb.avatar}
+                                    alt={fb.author}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.src = baseProfile;
+                                    }}
+                                  />
                                 </div>
                                 <div>
                                   <p className="font-semibold text-sm">{fb.author}</p>
@@ -416,6 +663,42 @@ function PostDetail() {
               </div>
             </div>
           </div>
+
+          {/* AI 피드백 */}
+          {isAIFeedbackOpen && (
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  AI 피드백
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleRegenerateAIFeedback}
+                  className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
+                >
+                  다시 생성
+                </button>
+              </div>
+
+              {aiLoading && (
+                <p className="text-sm text-gray-500">AI 피드백 생성 중...</p>
+              )}
+
+              {!aiLoading && aiError && (
+                <p className="text-sm text-red-500">{aiError}</p>
+              )}
+
+              {!aiLoading && !aiError && (
+                <div className="mt-2 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
+                  <p className="whitespace-pre-wrap text-sm text-gray-800">
+                    {aiFeedback && aiFeedback.trim()
+                      ? aiFeedback
+                      : "AI 피드백이 아직 생성되지 않았습니다."}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
   );
