@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaHeart,
@@ -28,6 +28,8 @@ function PostCard({
   onLike,
   onBookmark,
 }) {
+  const navigate = useNavigate();
+
   // 설명 110자 초과 시 '...' 표시
   const truncatedContent =
     typeof content === "string"
@@ -36,44 +38,28 @@ function PostCard({
         : content
       : "";
 
-  const navigate = useNavigate();
-  
-  // 토글 상태
-  const [liked, setLiked] = useState(isLiked);
-  const [bookmarked, setBookmarked] = useState(isBookmarked);
-  const [likeCount, setLikeCount] = useState(likes);
-
   const handleToggleLike = (e) => {
     e.stopPropagation();
-    
+
     const isAuthed = Boolean(localStorage.getItem("accessToken"));
     if (!isAuthed) {
       navigate("/sign-in");
       return;
     }
-    
-    setLiked((prev) => {
-      const next = !prev;
-      setLikeCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
-      onLike && onLike(next);
-      return next;
-    });
+
+    if (onLike) onLike();
   };
 
   const handleToggleBookmark = (e) => {
     e.stopPropagation();
-    
+
     const isAuthed = Boolean(localStorage.getItem("accessToken"));
     if (!isAuthed) {
       navigate("/sign-in");
       return;
     }
-    
-    setBookmarked((prev) => {
-      const next = !prev;
-      onBookmark && onBookmark(next);
-      return next;
-    });
+
+    if (onBookmark) onBookmark();
   };
 
   return (
@@ -152,20 +138,20 @@ function PostCard({
             type="button"
             aria-label="좋아요"
           >
-            {liked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-            <span className="text-[10px] font-medium">{likeCount}</span>
+            {isLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+            <span className="text-[10px] font-medium">{likes}</span>
           </button>
 
           {/* 스크랩 */}
           <button
             className={`flex items-center gap-1 transition ${
-              bookmarked ? "text-blue-500" : "hover:text-blue-500"
+              isBookmarked ? "text-blue-500" : "hover:text-blue-500"
             }`}
             onClick={handleToggleBookmark}
             type="button"
             aria-label="스크랩"
           >
-            {bookmarked ? <FaBookmark /> : <FaRegBookmark />}
+            {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
             <span className="text-[10px] font-medium">스크랩</span>
           </button>
 

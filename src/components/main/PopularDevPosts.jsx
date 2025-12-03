@@ -1,14 +1,68 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PostCard from "../PostCard";
 import baseProfile from "../../assets/baseProfile.png";
 import { useNavigate } from "react-router-dom";
 import { timeAgo } from "../../utils/date";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
+import { likePost, bookmarkPost } from "../../api/postApi";
 
 export default function PopularDevPosts({ posts = [] }) {
   const navigate = useNavigate();
-  const postsToShow = posts.slice(0, 4);
+  const [localPosts, setLocalPosts] = useState(() => posts.slice(0, 4));
+  useEffect(() => {
+    setLocalPosts(posts.slice(0, 4));
+  }, [posts]);
+
+  const postsToShow = localPosts;
   if (postsToShow.length === 0) return null;
+
+  // 좋아요
+  const handleToggleLike = async (postId) => {
+    setLocalPosts((prev) =>
+      prev.map((post) => {
+        if (post.postId !== postId) return post;
+
+        const nextLiked = !post.liked;
+        const nextLikesCount = post.likesCount + (nextLiked ? 1 : -1);
+
+        return {
+          ...post,
+          liked: nextLiked,
+          likesCount: nextLikesCount < 0 ? 0 : nextLikesCount,
+        };
+      })
+    );
+
+    try {
+      await likePost(postId);
+    } catch (err) {
+      console.error("게시글 좋아요 API 호출 실패:", err);
+    }
+  };
+
+  // 스크랩
+  const handleToggleScrap = async (postId) => {
+    setLocalPosts((prev) =>
+      prev.map((post) => {
+        if (post.postId !== postId) return post;
+
+        const nextScrapped = !post.scrapped;
+        const nextScrapCount = post.scrapCount + (nextScrapped ? 1 : -1);
+
+        return {
+          ...post,
+          scrapped: nextScrapped,
+          scrapCount: nextScrapCount < 0 ? 0 : nextScrapCount,
+        };
+      })
+    );
+
+    try {
+      await bookmarkPost(postId);
+    } catch (err) {
+      console.error("게시글 스크랩 API 호출 실패:", err);
+    }
+  };
 
   return (
     <section className="mt-10">
@@ -26,7 +80,6 @@ export default function PopularDevPosts({ posts = [] }) {
             .map((t) => t.trim())
             .filter(Boolean);
 
-          // 프로필 이미지 절대 경로 변환
           const avatarImg =
             makeAbsoluteImageUrl(post.userPicture) || baseProfile;
 
@@ -43,7 +96,11 @@ export default function PopularDevPosts({ posts = [] }) {
               likes={post.likesCount}
               comments={post.feedbackCount}
               views={post.views}
+              isLiked={post.liked}
+              isBookmarked={post.scrapped}
               onClick={() => navigate(`/posts/${post.postId}`)}
+              onLike={() => handleToggleLike(post.postId)}
+              onBookmark={() => handleToggleScrap(post.postId)}
             />
           );
         })}
