@@ -27,6 +27,8 @@ import {
   deletePost,
   getAiFeedback,
   regenerateAiFeedback,
+  likePost,
+  bookmarkPost,
 } from "../api/postApi";
 import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
@@ -119,6 +121,18 @@ function PostDetail() {
         });
 
         setAiFeedback(p.aiFeedback || "");
+
+
+        const username = getCurrentUsername();
+        if (username) {
+          const likedKey = `postLiked:${username}:${postId}`;
+          const scrappedKey = `postScrapped:${username}:${postId}`;
+          setPostLiked(localStorage.getItem(likedKey) === "true");
+          setPostBookmarked(localStorage.getItem(scrappedKey) === "true");
+        } else {
+          setPostLiked(false);
+          setPostBookmarked(false);
+        }
       } catch (err) {
         console.error("게시글 로드 실패:", err);
       } finally {
@@ -240,6 +254,78 @@ function PostDetail() {
     }
 
     setIsFeedbackFormOpen(true);
+  };
+
+  // ===================================================
+  // 🔥 좋아요 / 스크랩
+  // ===================================================
+
+  const handleToggleLike = async () => {
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
+    const username = getCurrentUsername();
+    const likedKey = username ? `postLiked:${username}:${postId}` : null;
+    const wasLiked = likedKey ? localStorage.getItem(likedKey) === "true" : false;
+    const willLike = !wasLiked;
+
+    try {
+      await likePost(postId);
+
+      if (likedKey) {
+        if (willLike) localStorage.setItem(likedKey, "true");
+        else localStorage.removeItem(likedKey);
+      }
+
+      setPostLiked(willLike);
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              likes: Math.max(0, prev.likes + (willLike ? 1 : -1)),
+            }
+          : prev
+      );
+    } catch (err) {
+      console.error("게시글 좋아요 토글 실패:", err);
+      alert("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleToggleBookmark = async () => {
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
+    const username = getCurrentUsername();
+    const scrapKey = username ? `postScrapped:${username}:${postId}` : null;
+    const wasScrapped = scrapKey ? localStorage.getItem(scrapKey) === "true" : false;
+    const willScrap = !wasScrapped;
+
+    try {
+      await bookmarkPost(postId);
+
+      if (scrapKey) {
+        if (willScrap) localStorage.setItem(scrapKey, "true");
+        else localStorage.removeItem(scrapKey);
+      }
+
+      setPostBookmarked(willScrap);
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              bookmarks: Math.max(0, prev.bookmarks + (willScrap ? 1 : -1)),
+            }
+          : prev
+      );
+    } catch (err) {
+      console.error("게시글 스크랩 토글 실패:", err);
+      alert("스크랩 처리 중 오류가 발생했습니다.");
+    }
   };
 
   // ===================================================
@@ -426,27 +512,15 @@ function PostDetail() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-6">
                 <button
-                    onClick={() => {
-                      if (!isAuthed) {
-                        navigate("/sign-in", { state: { from: location.pathname } });
-                        return;
-                      }
-                      setPostLiked((v) => !v);
-                    }}
+                    onClick={handleToggleLike}
                     className="flex items-center gap-1 text-gray-600"
                 >
                   {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-                  <span>{post.likes + (postLiked ? 1 : 0)}</span>
+                  <span>{post.likes}</span>
                 </button>
 
                 <button
-                    onClick={() => {
-                      if (!isAuthed) {
-                        navigate("/sign-in", { state: { from: location.pathname } });
-                        return;
-                      }
-                      setPostBookmarked((v) => !v);
-                    }}
+                    onClick={handleToggleBookmark}
                     className="flex items-center gap-1 text-gray-600"
                 >
                   {postBookmarked ? (
@@ -454,7 +528,7 @@ function PostDetail() {
                   ) : (
                       <FaRegBookmark />
                   )}
-                  <span>{post.bookmarks + (postBookmarked ? 1 : 0)}</span>
+                  <span>{post.bookmarks}</span>
                 </button>
 
                 <span className="flex items-center gap-1 text-gray-600">
