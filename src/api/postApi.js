@@ -20,9 +20,9 @@ export const likePost = (postId) => {
   return api.post(`/api/posts/${postId}/like`);
 };
 
-// 📌 게시글 북마크 (POST /api/posts/{postId}/bookmark)
+// 📌 게시글 스크랩 (POST /api/posts/{postId}/scrap)
 export const bookmarkPost = (postId) => {
-  return api.post(`/api/posts/${postId}/bookmark`);
+  return api.post(`/api/posts/${postId}/scrap`);
 };
 
 // 📌 게시글 수정 (PUT /api/posts/{postId})

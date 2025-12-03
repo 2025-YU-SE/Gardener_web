@@ -22,7 +22,7 @@ import Loading from "../components/Loading";
 import CollapsibleFilter from "../components/filter/CollapsibleFilter";
 import language from "../components/filter/language";
 import stacks from "../components/filter/stacks";
-import { getPosts, deletePost } from "../api/postApi";
+import { getPosts, deletePost, likePost, bookmarkPost } from "../api/postApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
 import baseProfile from "../assets/baseProfile.png";
@@ -63,45 +63,89 @@ function Posts() {
     navigate(`/posts/${postId}`);
   };
 
-  // 🔥 좋아요 (UI만 변경)
-  const toggleLike = (postId) => {
+  // 🔥 좋아요
+  const toggleLike = async (postId) => {
     const isAuthed = Boolean(localStorage.getItem("accessToken"));
     if (!isAuthed) {
       navigate("/sign-in");
       return;
     }
-    
+
+    const username = getCurrentUsername();
+    const likedKey = username ? `postLiked:${username}:${postId}` : null;
+    const wasLiked = likedKey ? localStorage.getItem(likedKey) === "true" : false;
+    const willLike = !wasLiked;
+
     const updatePost = (post) => {
       if (post.id === postId) {
+        const nextLikes = Math.max(0, post.likes + (willLike ? 1 : -1));
         return {
           ...post,
-          isLiked: !post.isLiked,
-          likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+          isLiked: willLike,
+          likes: nextLikes,
         };
       }
       return post;
     };
-    
+
     setAllPosts((prev) => prev.map(updatePost));
     setPosts((prevPosts) => prevPosts.map(updatePost));
+
+    if (likedKey) {
+      if (willLike) localStorage.setItem(likedKey, "true");
+      else localStorage.removeItem(likedKey);
+    }
+
+    try {
+      await likePost(postId);
+    } catch (err) {
+      console.error("게시글 좋아요 토글 실패:", err);
+
+      const rollbackLike = !willLike;
+      const rollbackUpdate = (post) => {
+        if (post.id === postId) {
+          const nextLikes = Math.max(0, post.likes + (rollbackLike ? 1 : -1));
+          return {
+            ...post,
+            isLiked: rollbackLike,
+            likes: nextLikes,
+          };
+        }
+        return post;
+      };
+      setAllPosts((prev) => prev.map(rollbackUpdate));
+      setPosts((prevPosts) => prevPosts.map(rollbackUpdate));
+
+      if (likedKey) {
+        if (rollbackLike) localStorage.setItem(likedKey, "true");
+        else localStorage.removeItem(likedKey);
+      }
+    }
   };
 
-  // 🔥 북마크 (UI만 변경)
-  const toggleBookmark = (postId) => {
+  // 🔥 북마크
+  const toggleBookmark = async (postId) => {
     const isAuthed = Boolean(localStorage.getItem("accessToken"));
     if (!isAuthed) {
       navigate("/sign-in");
       return;
     }
-    
+
+    const username = getCurrentUsername();
+    const scrapKey = username ? `postScrapped:${username}:${postId}` : null;
+    const wasScrapped = scrapKey ? localStorage.getItem(scrapKey) === "true" : false;
+    const willScrap = !wasScrapped;
+
     const updatePost = (post) => {
       if (post.id === postId) {
+        const nextBookmarks = Math.max(
+          0,
+          post.bookmarks + (willScrap ? 1 : -1)
+        );
         return {
           ...post,
-          isBookmarked: !post.isBookmarked,
-          bookmarks: post.isBookmarked
-              ? post.bookmarks - 1
-              : post.bookmarks + 1,
+          isBookmarked: willScrap,
+          bookmarks: nextBookmarks,
         };
       }
       return post;
@@ -109,6 +153,40 @@ function Posts() {
     
     setAllPosts((prev) => prev.map(updatePost));
     setPosts((prevPosts) => prevPosts.map(updatePost));
+
+    if (scrapKey) {
+      if (willScrap) localStorage.setItem(scrapKey, "true");
+      else localStorage.removeItem(scrapKey);
+    }
+
+    try {
+      await bookmarkPost(postId);
+    } catch (err) {
+      console.error("게시글 스크랩 토글 실패:", err);
+
+      const rollbackScrap = !willScrap;
+      const rollbackUpdate = (post) => {
+        if (post.id === postId) {
+          const nextBookmarks = Math.max(
+            0,
+            post.bookmarks + (rollbackScrap ? 1 : -1)
+          );
+          return {
+            ...post,
+            isBookmarked: rollbackScrap,
+            bookmarks: nextBookmarks,
+          };
+        }
+        return post;
+      };
+      setAllPosts((prev) => prev.map(rollbackUpdate));
+      setPosts((prevPosts) => prevPosts.map(rollbackUpdate));
+
+      if (scrapKey) {
+        if (rollbackScrap) localStorage.setItem(scrapKey, "true");
+        else localStorage.removeItem(scrapKey);
+      }
+    }
   };
 
   // 🔥 드롭다운 외부 클릭 시 닫기
@@ -137,27 +215,44 @@ function Posts() {
         const data = res.data?.content || [];
 
         // 🔥 프론트에서 사용하기 위한 매핑
-        const mapped = data.map((p) => ({
-          id: p.postId,
-          userId: p.userId,
-          title: p.title,
-          content: p.content,
-          author: p.userName || "익명",
-          avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
-          timeAgo: p.createdAt ? p.createdAt.slice(0, 10) : "",
-          tags: [p.languages, p.stacks].filter(Boolean),
-          languages: p.languages,
-          stacks: p.stacks,
-          category: p.category ||"개발",
-          likes: p.likesCount,
-          bookmarks: p.scrapCount,
-          comments: p.feedbackCount,
-          views: p.views,
-          createdAt: p.createdAt, // 정렬
+        const username = getCurrentUsername();
+        const mapped = data.map((p) => {
+          const base = {
+            id: p.postId,
+            userId: p.userId,
+            title: p.title,
+            content: p.content,
+            author: p.userName || "익명",
+            avatar: makeAbsoluteImageUrl(p.userPicture) || baseProfile,
+            timeAgo: p.createdAt ? p.createdAt.slice(0, 10) : "",
+            tags: [p.languages, p.stacks].filter(Boolean),
+            languages: p.languages,
+            stacks: p.stacks,
+            category: p.category || "개발",
+            likes: p.likesCount,
+            bookmarks: p.scrapCount,
+            comments: p.feedbackCount,
+            views: p.views,
+            createdAt: p.createdAt, // 정렬
+          };
 
-          isLiked: false,
-          isBookmarked: false,
-        }));
+          if (!username) {
+            return {
+              ...base,
+              isLiked: false,
+              isBookmarked: false,
+            };
+          }
+
+          const likedKey = `postLiked:${username}:${p.postId}`;
+          const scrappedKey = `postScrapped:${username}:${p.postId}`;
+
+          return {
+            ...base,
+            isLiked: localStorage.getItem(likedKey) === "true",
+            isBookmarked: localStorage.getItem(scrappedKey) === "true",
+          };
+        });
 
         setAllPosts(mapped);
         setPosts(mapped);
@@ -314,6 +409,10 @@ function Posts() {
       }
     }
   };
+
+  if (loading) {
+    return <Loading message="게시글을 불러오는 중입니다..." />;
+  }
 
   return (
       <div className="min-h-screen bg-[#f9f9f9]">
