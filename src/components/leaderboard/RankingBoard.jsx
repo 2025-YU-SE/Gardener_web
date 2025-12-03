@@ -1,5 +1,6 @@
 import React from "react";
 import { TbCoin } from "react-icons/tb";
+import { useNavigate } from "react-router-dom";
 import profile from "../../assets/baseProfile.png";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
@@ -27,6 +28,8 @@ function RankingBoard({
   onLoadMore,
   onCollapse,
 }) {
+  const navigate = useNavigate();
+
   const DEFAULT_DISPLAY_COUNT = 7;
   const top3Leaders = leaders.slice(0, 3);
   const first = top3Leaders[0];
@@ -50,6 +53,7 @@ function RankingBoard({
     profileImage,
     grade,
     tone = "neutral",
+    userId,
   }) => {
     const displayScore = score || 0;
     const absoluteImageUrl = profileImage
@@ -60,11 +64,13 @@ function RankingBoard({
       gold: "bg-[#FEF9C3] border-[#FACC15]",
       silver: "bg-[#F3F4F6] border-[#D1D5DB]",
       bronze: "bg-[#FFE4D6] border-[#FDBA74]",
+      neutral: "bg-white border-[#E5E7EB]",
     };
 
     return (
       <div
-        className={`w-[280px] h-[220px] p-6 flex flex-col items-center justify-center rounded-2xl shadow-sm border ${toneMap[tone]}`}
+        className={`w-[280px] h-[220px] p-6 flex flex-col items-center justify-center rounded-2xl shadow-sm border cursor-pointer ${toneMap[tone]}`}
+        onClick={() => navigate(`/my-paged/${userId}`)}
       >
         {/* 등수 배지 */}
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/70 text-[13px] font-bold border border-black/10">
@@ -93,7 +99,7 @@ function RankingBoard({
   };
 
   // 4위 이하 일반 리스트용 카드
-  const RowCard = ({ rank, name, score, profileImage, grade }) => {
+  const RowCard = ({ rank, name, score, profileImage, grade, userId }) => {
     const absoluteImageUrl = profileImage
       ? makeAbsoluteImageUrl(profileImage)
       : profile;
@@ -102,7 +108,10 @@ function RankingBoard({
     const badgeStyle = getGradeBadgeStyle(grade);
 
     return (
-      <div className="flex items-center justify-between w-full px-10 py-4 rounded-xl bg-white border border-[#E5E7EB] shadow-sm">
+      <div
+        className="flex items-center justify-between w-full px-10 py-4 rounded-xl bg-white border border-[#E5E7EB] shadow-sm cursor-pointer hover:bg-[#F9FAFB] transition"
+        onClick={() => navigate(`/my-paged/${userId}`)}
+      >
         {/* 왼쪽 영역 */}
         <div className="flex items-center gap-4">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#F3F4F6] text-[#374151] text-[13px] font-bold">
@@ -178,6 +187,7 @@ function RankingBoard({
                 profileImage={second.userPicture}
                 grade={second.grade}
                 tone="silver"
+                userId={second.userId}
               />
             )}
           </div>
@@ -194,6 +204,7 @@ function RankingBoard({
                 profileImage={first.userPicture}
                 grade={first.grade}
                 tone="gold"
+                userId={first.userId}
               />
             )}
           </div>
@@ -210,6 +221,7 @@ function RankingBoard({
                 profileImage={third.userPicture}
                 grade={third.grade}
                 tone="bronze"
+                userId={third.userId}
               />
             )}
           </div>
@@ -239,6 +251,7 @@ function RankingBoard({
               }
               profileImage={item.userPicture}
               grade={item.grade}
+              userId={item.userId}
             />
           ))}
           {loading && (
