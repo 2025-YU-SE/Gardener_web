@@ -18,6 +18,7 @@ import {
   updateProfilePicture,
   deleteProfilePicture,
 } from "../api/userApi";
+import { likePost, bookmarkPost } from "../api/postApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 
 // 날짜 포맷팅 함수
@@ -117,15 +118,26 @@ function MyPaged() {
               )
             : 0;
 
-        // 스크랩은 본인 프로필일 때만
-        let calculatedScrapCount = 0;
+        // 스크랩
+        let scrapCount = 0;
         if (isMyProfile) {
-          const scrapsRes = await getUserRecentScraps(targetUserId);
-          const mappedScraps = scrapsRes.data.map((post) =>
+          // 최근 스크랩 4개
+          const recentScrapsRes = await getUserRecentScraps(targetUserId);
+          const mappedScraps = recentScrapsRes.data.map((post) =>
             mapApiToPostData(post, pData)
           );
           setMyScraps(mappedScraps);
-          calculatedScrapCount = pData.scrapCount || mappedScraps.length;
+
+          // 전체 스크랩 개수
+          try {
+            const scrapPageRes = await getUserScraps(targetUserId, 0, 1);
+            const total = scrapPageRes?.data?.totalElements;
+            scrapCount =
+              typeof total === "number" ? total : mappedScraps.length;
+          } catch (e) {
+            console.error("스크랩 개수 조회 실패:", e);
+            scrapCount = mappedScraps.length;
+          }
         } else {
           setMyScraps([]);
         }
@@ -137,7 +149,7 @@ function MyPaged() {
           selectRate: selectRate,
           postCount: pData.postCount,
           feedbackCount: pData.totalFeedbackCount,
-          scrapCount: isMyProfile ? calculatedScrapCount : 0,
+          scrapCount: isMyProfile ? scrapCount : 0,
           gradeLabel: pData.grade,
         });
 
@@ -187,11 +199,94 @@ function MyPaged() {
       author: profileData.userName,
       avatar: profileData.userPicture,
       createdAt: apiPost.createdAt,
+      liked: apiPost.liked ?? false,
+      scrapped: apiPost.scrapped ?? false,
+      scrapCount: apiPost.scrapCount ?? 0,
     };
   };
 
   const handlePostClick = (postId) => {
     navigate(`/posts/${postId}`);
+  };
+
+  // 게시글 좋아요
+  const handleTogglePostLike = async (postId) => {
+    setMyPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextLiked = !p.liked;
+        const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
+        return { ...p, liked: nextLiked, likes: nextLikes };
+      })
+    );
+
+    setMyScraps((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const nextLiked = !p.liked;
+        const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
+        return { ...p, liked: nextLiked, likes: nextLikes };
+      })
+    );
+
+    try {
+      await likePost(postId);
+    } catch (error) {
+      console.error("게시글 좋아요 API 호출 실패:", error);
+    }
+  };
+
+  // 게시글 스크랩
+  const handleTogglePostBookmark = async (postId) => {
+    const current =
+      myPosts.find((p) => p.id === postId) ||
+      myScraps.find((p) => p.id === postId);
+    const wasScrapped = current?.scrapped ?? false;
+    const willScrap = !wasScrapped;
+
+    // 내 게시글 목록에 스크랩 상태 반영
+    setMyPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, scrapped: willScrap } : p))
+    );
+
+    // 내 스크랩 목록에 반영
+    setMyScraps((prev) => {
+      if (willScrap) {
+        // 새로 스크랩한 경우
+        if (prev.some((p) => p.id === postId)) {
+          // 이미 목록에 있으면 상태만 맞춰줌
+          return prev.map((p) =>
+            p.id === postId ? { ...p, scrapped: true } : p
+          );
+        }
+
+        // 목록에 없다면 myPosts / current 에서 기반 데이터 찾아서 추가
+        const base =
+          current ||
+          myPosts.find((p) => p.id === postId) ||
+          prev.find((p) => p.id === postId);
+
+        if (!base) return prev;
+        // 새로 스크랩한 글을 맨 위에 추가
+        return [{ ...base, scrapped: true }, ...prev];
+      }
+
+      // 스크랩 해제 -> 해당 카드 제거 (스크랩 탭에서 바로 사라짐)
+      return prev.filter((p) => p.id !== postId);
+    });
+
+    // 프로필의 스크랩 개수 즉시 반영
+    setProfile((prev) => {
+      const next = Math.max(0, (prev.scrapCount || 0) + (willScrap ? 1 : -1));
+      return { ...prev, scrapCount: next };
+    });
+
+    setMyScrapsCount((prev) => Math.max(0, prev + (willScrap ? 1 : -1)));
+    try {
+      await bookmarkPost(postId);
+    } catch (error) {
+      console.error("게시글 스크랩 API 호출 실패:", error);
+    }
   };
 
   // 파일 업로드
@@ -305,6 +400,7 @@ function MyPaged() {
 
     if (!hasFetchedAllScraps) {
       try {
+        //전체 스크랩 목록 조회
         const res = await getUserScraps(targetUserId, 0, profile.scrapCount);
         const contentList = res.data.content || [];
         const allScrapsMapped = contentList.map((post) =>
@@ -542,11 +638,23 @@ function MyPaged() {
                   {myPosts.slice(0, myPostsDisplayCount).map((p) => (
                     <PostCard
                       key={`mypost-${p.id}`}
-                      {...p}
                       avatar={makeAbsoluteImageUrl(p.avatar) || baseProfile}
+                      author={p.author}
+                      timeAgo={p.timeAgo}
+                      title={p.title}
+                      content={p.content}
+                      languages={p.languages}
+                      stacks={p.stacks}
+                      likes={p.likes}
+                      comments={p.comments}
+                      views={p.views}
+                      isLiked={p.liked}
+                      isBookmarked={p.scrapped}
                       badge={isMyProfile ? "내 게시글" : null}
                       rightPill={null}
                       onClick={() => handlePostClick(p.id)}
+                      onLike={() => handleTogglePostLike(p.id)}
+                      onBookmark={() => handleTogglePostBookmark(p.id)}
                     />
                   ))}
                 </div>
@@ -642,11 +750,23 @@ function MyPaged() {
                   {myScraps.slice(0, myScrapsCount).map((p) => (
                     <PostCard
                       key={`myscrap-${p.id}`}
-                      {...p}
                       avatar={makeAbsoluteImageUrl(p.avatar) || baseProfile}
+                      author={p.author}
+                      timeAgo={p.timeAgo}
+                      title={p.title}
+                      content={p.content}
+                      languages={p.languages}
+                      stacks={p.stacks}
+                      likes={p.likes}
+                      comments={p.comments}
+                      views={p.views}
+                      isLiked={p.liked}
+                      isBookmarked={p.scrapped}
                       badge="스크랩"
                       rightPill={null}
                       onClick={() => handlePostClick(p.id)}
+                      onLike={() => handleTogglePostLike(p.id)}
+                      onBookmark={() => handleTogglePostBookmark(p.id)}
                     />
                   ))}
                 </div>
