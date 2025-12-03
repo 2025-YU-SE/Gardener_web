@@ -9,11 +9,11 @@ import RankingBoard from "../components/leaderboard/RankingBoard.jsx";
 import {
   getTop3Leaders,
   getFullLeaders,
-  getWeeklyFeedbackCount,
+  getWeeklyStats,
 } from "../api/leaderboardApi";
 
 function LeaderBoard() {
-  const PAGE_SIZE = 10; // 한 페이지당 가져올 데이터 수
+  const PAGE_SIZE = 10;
   const [top3Leaders, setTop3Leaders] = useState([]);
   const [fullLeaders, setFullLeaders] = useState([]);
   const [pagingInfo, setPagingInfo] = useState({
@@ -25,29 +25,51 @@ function LeaderBoard() {
   const [loading, setLoading] = useState(true);
   const [currentCriteria, setCurrentCriteria] = useState("points");
 
-  // 이번 주 피드백 수
-  const [weeklyFeedbackCount, setWeeklyFeedbackCount] = useState(0);
+  // 이번 주 통계 (신규 가드너 / 게시글 / 피드백)
+  const [weeklyStats, setWeeklyStats] = useState({
+    newUsersCount: 0,
+    newPostsCount: 0,
+    newFeedbacksCount: 0,
+  });
 
   // 상단 통계 카드 데이터
   const stats = [
-    { icon: icon1, value: 24, unit: "명", label: "이번 주 신규 가드너" },
-    { icon: icon2, value: 127, unit: "개", label: "이번 주 게시글 수" },
+    {
+      icon: icon1,
+      value: weeklyStats.newUsersCount ?? 0,
+      unit: "명",
+      label: "이번 주 신규 가드너",
+    },
+    {
+      icon: icon2,
+      value: weeklyStats.newPostsCount ?? 0,
+      unit: "개",
+      label: "이번 주 게시글 수",
+    },
     {
       icon: icon3,
-      value: weeklyFeedbackCount ?? 0,
+      value: weeklyStats.newFeedbacksCount ?? 0,
       unit: "개",
       label: "이번 주 피드백 수",
     },
   ];
 
-  // 이번 주 피드백 수 로딩
-  const fetchWeeklyFeedback = async () => {
+  // 이번 주 통계 로딩
+  const fetchWeeklyStatsData = async () => {
     try {
-      const count = await getWeeklyFeedbackCount();
-      setWeeklyFeedbackCount(Number(count) || 0);
+      const data = await getWeeklyStats();
+      setWeeklyStats({
+        newUsersCount: Number(data.newUsersCount) || 0,
+        newPostsCount: Number(data.newPostsCount) || 0,
+        newFeedbacksCount: Number(data.newFeedbacksCount) || 0,
+      });
     } catch (error) {
-      console.error("Failed to fetch weekly feedback count:", error);
-      setWeeklyFeedbackCount(0);
+      console.error("Failed to fetch weekly stats:", error);
+      setWeeklyStats({
+        newUsersCount: 0,
+        newPostsCount: 0,
+        newFeedbacksCount: 0,
+      });
     }
   };
 
@@ -116,7 +138,7 @@ function LeaderBoard() {
   useEffect(() => {
     fetchTop3Leaders(currentCriteria);
     fetchFullLeaders(currentCriteria, 0);
-    fetchWeeklyFeedback();
+    fetchWeeklyStatsData();
   }, []);
 
   return (

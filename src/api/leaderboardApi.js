@@ -26,8 +26,8 @@ export const getFullLeaders = async (
   return response.data;
 };
 
-// 이번 주 피드백 수 조회
-export async function getWeeklyFeedbackCount() {
-  const res = await api.get("api/feedback/week");
+// 이번 주 통계(신규 유저/게시글/피드백 수) 조회
+export async function getWeeklyStats() {
+  const res = await api.get("/api/leaderboard/weekly-stats");
   return res.data;
 }
