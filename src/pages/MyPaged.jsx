@@ -118,15 +118,26 @@ function MyPaged() {
               )
             : 0;
 
-        // 스크랩은 본인 프로필일 때만
-        let calculatedScrapCount = 0;
+        // 스크랩
+        let scrapCount = 0;
         if (isMyProfile) {
-          const scrapsRes = await getUserRecentScraps(targetUserId);
-          const mappedScraps = scrapsRes.data.map((post) =>
+          // 최근 스크랩 4개
+          const recentScrapsRes = await getUserRecentScraps(targetUserId);
+          const mappedScraps = recentScrapsRes.data.map((post) =>
             mapApiToPostData(post, pData)
           );
           setMyScraps(mappedScraps);
-          calculatedScrapCount = pData.scrapCount || mappedScraps.length;
+
+          // 전체 스크랩 개수
+          try {
+            const scrapPageRes = await getUserScraps(targetUserId, 0, 1);
+            const total = scrapPageRes?.data?.totalElements;
+            scrapCount =
+              typeof total === "number" ? total : mappedScraps.length;
+          } catch (e) {
+            console.error("스크랩 개수 조회 실패:", e);
+            scrapCount = mappedScraps.length;
+          }
         } else {
           setMyScraps([]);
         }
@@ -138,7 +149,7 @@ function MyPaged() {
           selectRate: selectRate,
           postCount: pData.postCount,
           feedbackCount: pData.totalFeedbackCount,
-          scrapCount: isMyProfile ? calculatedScrapCount : 0,
+          scrapCount: isMyProfile ? scrapCount : 0,
           gradeLabel: pData.grade,
         });
 
@@ -361,6 +372,7 @@ function MyPaged() {
 
     if (!hasFetchedAllScraps) {
       try {
+        //전체 스크랩 목록 조회
         const res = await getUserScraps(targetUserId, 0, profile.scrapCount);
         const contentList = res.data.content || [];
         const allScrapsMapped = contentList.map((post) =>
