@@ -11,21 +11,24 @@ import WriteCodeEditor from '../components/WriteCodeEditor'
 import { createPost, updatePost, getPostDetail } from '../api/postApi'
 
 const getLanguageCode = (languageName) => {
-  const languageMap = {
-    'JavaScript': 'javascript',
-    'Python': 'python',
-    'Java': 'java',
-    'C': 'c',
-    'C++': 'cpp',
-    'C#': 'csharp',
-    'Ruby': 'ruby',
-    'Go': 'go',
-    'PHP': 'php',
-    'Swift': 'swift',
-    'Kotlin': 'kotlin',
-    'TypeScript': 'typescript',
-  };
-  return languageMap[languageName] || 'javascript';
+  if (!languageName) return "javascript";
+
+  const key = String(languageName).toLowerCase();
+
+  if (key.includes("typescript") || key === "ts") return "typescript";
+  if (key.includes("javascript") || key === "js") return "javascript";
+  if (key.includes("python") || key === "py") return "python";
+  if (key === "java") return "java";
+  if (key === "c++" || key === "cpp") return "cpp";
+  if (key === "c#") return "csharp";
+  if (key === "c") return "c";
+  if (key.includes("ruby")) return "ruby";
+  if (key.includes("go")) return "go";
+  if (key.includes("php")) return "php";
+  if (key.includes("swift")) return "swift";
+  if (key.includes("kotlin")) return "kotlin";
+
+  return "javascript";
 };
 
 function Upload() {

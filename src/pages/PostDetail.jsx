@@ -1,7 +1,7 @@
 // -----------------------------------------
 // PostDetail.jsx (완전 수정본 — UI 유지 + 기능추가)
 // -----------------------------------------
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FaHeart,
   FaRegHeart,
@@ -63,6 +63,27 @@ function PostDetail() {
   const [postLiked, setPostLiked] = useState(false);
   const [postBookmarked, setPostBookmarked] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // ---------------------------------------------------
+  // 코드 에디터 언어 감지
+  // ---------------------------------------------------
+  const editorLanguage = useMemo(() => {
+    const lang = post?.languages;
+    if (!lang) return "javascript";
+
+    const l = String(lang).toLowerCase();
+
+    if (l.includes("typescript") || l.includes("ts")) return "typescript";
+    if (l.includes("javascript") || l.includes("js")) return "javascript";
+    if (l.includes("java")) return "java";
+    if (l.includes("python") || l.includes("py")) return "python";
+    if (l.includes("c++")) return "cpp";
+    if (l.includes("c#")) return "csharp";
+    if (l === "c") return "c";
+    if (l.includes("go")) return "go";
+
+    return "javascript";
+  }, [post?.languages]);
 
   // ===================================================
   // 1. 게시물 상세 불러오기
@@ -464,31 +485,31 @@ function PostDetail() {
             <div className="lg:col-span-2">
               <div className="bg-white border rounded-lg p-6">
                 {isFeedbackFormOpen ? (
-                    <FeedbackCodeEditor
-                        value={post.code}
-                        language="java"
-                        title="라인 피드백 입력"
-                        initialFeedbacks={[]}
-                        onAddFeedbackRange={(range) => {
-                          setFeedbackRanges((prev) => [...prev, range]);
-                        }}
-                        onSaveFeedback={(item) => {
-                          setFeedbackRanges((prev) => {
-                            const exists = prev.some((r) => r.id === item.id);
-                            if (exists) {
-                              return prev.map((r) => (r.id === item.id ? item : r));
-                            } else {
-                              return [...prev, item];
-                            }
-                          });
-                        }}
-                    />
+                  <FeedbackCodeEditor
+                    value={post.code}
+                    language={editorLanguage}
+                    title="라인 피드백 입력"
+                    initialFeedbacks={[]}
+                    onAddFeedbackRange={(range) => {
+                      setFeedbackRanges((prev) => [...prev, range]);
+                    }}
+                    onSaveFeedback={(item) => {
+                      setFeedbackRanges((prev) => {
+                        const exists = prev.some((r) => r.id === item.id);
+                        if (exists) {
+                          return prev.map((r) => (r.id === item.id ? item : r));
+                        } else {
+                          return [...prev, item];
+                        }
+                      });
+                    }}
+                  />
                 ) : (
-                    <ReadonlyCodeEditor
-                        value={post.code}
-                        language="java"
-                        title="코드"
-                    />
+                  <ReadonlyCodeEditor
+                    value={post.code}
+                    language={editorLanguage}
+                    title="코드"
+                  />
                 )}
               </div>
             </div>

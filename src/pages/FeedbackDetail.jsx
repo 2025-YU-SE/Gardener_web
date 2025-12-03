@@ -1,5 +1,5 @@
 // src/pages/FeedbackDetail.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Header from "../components/header/Header";
 import Loading from "../components/Loading";
 import { FiChevronLeft } from "react-icons/fi";
@@ -65,6 +65,7 @@ function FeedbackDetail() {
           timeAgo: p.createdAt?.slice(0, 10),
           tags: [p.languages, p.stacks].filter(Boolean),
           code: p.code || p.codeContent || p.content || "// 코드가 없습니다.",
+          languages: p.languages,
         });
 
         // 피드백
@@ -228,7 +229,7 @@ function FeedbackDetail() {
         rating: editRating,
       };
       const res = await api.put(`/api/feedback/${feedbackId}`, body);
-      const updated = res?.data || res;
+      const updated = res?.data || res; // eslint-disable-line no-unused-vars
 
       // 2. 라인 피드백 변경사항 저장
       // 기존 라인 피드백 ID 목록
@@ -378,6 +379,24 @@ function FeedbackDetail() {
   // ===================================================
   // 3. 로딩 / 예외 처리
   // ===================================================
+  const editorLanguage = useMemo(() => {
+    const lang = post?.languages;
+    if (!lang) return "javascript";
+
+    const l = String(lang).toLowerCase();
+
+    if (l.includes("typescript") || l.includes("ts")) return "typescript";
+    if (l.includes("javascript") || l.includes("js")) return "javascript";
+    if (l.includes("java")) return "java";
+    if (l.includes("python") || l.includes("py")) return "python";
+    if (l.includes("c++")) return "cpp";
+    if (l.includes("c#")) return "csharp";
+    if (l === "c") return "c";
+    if (l.includes("go")) return "go";
+
+    return "javascript";
+  }, [post?.languages]);
+
   if (loading) {
     return <Loading message="피드백을 불러오는 중입니다..." />;
   }
@@ -607,8 +626,8 @@ function FeedbackDetail() {
                 {isEditing ? (
                   <FeedbackCodeEditor
                     value={post.code}
-                    language="javascript"
-                    title="JAVASCRIPT - 피드백 수정 모드"
+                    language={editorLanguage}
+                    title="피드백 수정 모드"
                     initialFeedbacks={editLineFeedbacks}
                     onRangesChange={(ranges) => {
                       // FeedbackCodeEditor의 ranges와 editLineFeedbacks 동기화
@@ -654,8 +673,8 @@ function FeedbackDetail() {
                 ) : (
                   <FeedbackReadonlyCodeEditor
                     value={post.code}
-                    language="javascript"
-                    title="JAVASCRIPT - 피드백된 코드"
+                    language={editorLanguage}
+                    title="피드백된 코드"
                     feedbacks={lineFeedbacks}
                   />
                 )}
@@ -698,9 +717,9 @@ function FeedbackDetail() {
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
               <ReadonlyCodeEditor
-                  value={post.code}
-                  language="javascript"
-                  title="JAVASCRIPT - 읽기 전용"
+                value={post.code}
+                language={editorLanguage}
+                title="읽기 전용"
               />
             </div>
 
