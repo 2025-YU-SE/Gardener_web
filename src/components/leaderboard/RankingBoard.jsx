@@ -1,59 +1,76 @@
-import React, { useMemo, useState } from "react";
-import samplePosts from "../postcontext.jsx";
+import React from "react";
 import { TbCoin } from "react-icons/tb";
-import profile from "../../assets/profile.png";
+import { useNavigate } from "react-router-dom";
+import profile from "../../assets/baseProfile.png";
+import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
 
-// 포인트 기준 내림차순으로 정렬해 랭킹 배열 생성
-function rankByPoints(posts) {
-  return [...posts]
-    .sort((a, b) => b.points - a.points)
-    .map((post, idx) => ({
-      rank: idx + 1, // 1부터 시작하는 등수
-      name: post.author, // 사용자 이름
-      score: post.points, // 포인트
-      profileImage: profile, // 임시 프로필 이미지 -> 추후 연동
-    }));
-}
+// 등급별 배지 스타일 매핑 함수
+const getGradeBadgeStyle = (grade) => {
+  switch (grade) {
+    case "숲의 현자":
+      return "bg-[#DBEAFE] text-[#193CB8]";
+    case "나무 개발자":
+      return "bg-[#FEF3C7] text-[#92400E]";
+    case "잎새 개발자":
+      return "bg-[#D1FAE5] text-[#065F46]";
+    case "새싹 개발자":
+    default:
+      return "bg-[#ECFCCB] text-[#4D7C0F]";
+  }
+};
 
-function RankingBoard() {
-  const ranked = useMemo(() => rankByPoints(samplePosts, profile), []);
+function RankingBoard({
+  leaders,
+  loading,
+  fullLeaders,
+  totalElements,
+  isLast,
+  onLoadMore,
+  onCollapse,
+}) {
+  const navigate = useNavigate();
 
-  const DEFAULT_COUNT = 10; // 기본 표시 인원
-  const MAX_EXPANDED = 50; // 더보기로 펼칠 수 있는 최대 인원
+  const DEFAULT_DISPLAY_COUNT = 7;
+  const top3Leaders = leaders.slice(0, 3);
+  const first = top3Leaders[0];
+  const second = top3Leaders[1];
+  const third = top3Leaders[2];
+  const rest = fullLeaders;
 
-  // 전체 순위에서 표시할 총 인원(Top3 포함)
-  const [showCount, setShowCount] = useState(DEFAULT_COUNT);
+  // 현재 전체 순위 리스트에 표시된 항목의 총 수 (Top 3 제외)
+  const currentDisplayedCount = rest.length;
+  // API의 전체 항목 수
+  const maxTotalCount = totalElements;
+  const isExpanded = currentDisplayedCount > DEFAULT_DISPLAY_COUNT;
+  const isAtMax = isLast; // 마지막 페이지이면 더보기 버튼 비활성화
+  const isAtDefault = !isExpanded; // 기본 개수라면 접기 버튼 비활성화
 
-  // 상단 Top3 데이터(1~3위)
-  const top3 = ranked.slice(0, 3);
+  // 상단 Top 3 전용 카드
+  const TopCard = ({
+    rank,
+    name,
+    score,
+    profileImage,
+    grade,
+    tone = "neutral",
+    userId,
+  }) => {
+    const displayScore = score || 0;
+    const absoluteImageUrl = profileImage
+      ? makeAbsoluteImageUrl(profileImage)
+      : profile;
 
-  // 실제로 표시 가능한 최대 인원(데이터 수와 상한 중 더 작은 값)
-  const maxShowable = Math.min(ranked.length, MAX_EXPANDED);
-
-  // 목록에서 4위 ~ showCount 까지 잘라낸 데이터
-  const rest = ranked.slice(3, Math.min(showCount, maxShowable));
-
-  // 버튼 활성/비활성 판단 값
-  const isAtDefault = showCount === DEFAULT_COUNT; // 접기 비활성 조건(이미 기본 상태)
-  const isAtMax = showCount >= maxShowable; // 더보기 비활성 조건(이미 최대로 펼친 상태)
-
-  // 더보기: 한 번에 maxShowable 까지 펼침
-  const handleMore = () => setShowCount(maxShowable);
-
-  // 접기: 기본 인원으로 복귀
-  const handleCollapse = () => setShowCount(DEFAULT_COUNT);
-
-  // 상단 TOP 3 전용 카드
-  const TopCard = ({ rank, name, score, profileImage, tone = "neutral" }) => {
     const toneMap = {
-      gold: "bg-[#FEF9C3] border-[#FACC15]", // 1등
-      silver: "bg-[#F3F4F6] border-[#D1D5DB]", // 2등
-      bronze: "bg-[#FFE4D6] border-[#FDBA74]", // 3등
+      gold: "bg-[#FEF9C3] border-[#FACC15]",
+      silver: "bg-[#F3F4F6] border-[#D1D5DB]",
+      bronze: "bg-[#FFE4D6] border-[#FDBA74]",
+      neutral: "bg-white border-[#E5E7EB]",
     };
 
     return (
       <div
-        className={`w-[280px] h-[220px] p-6 flex flex-col items-center justify-center rounded-2xl shadow-sm border ${toneMap[tone]}`}
+        className={`w-[280px] h-[220px] p-6 flex flex-col items-center justify-center rounded-2xl shadow-sm border cursor-pointer ${toneMap[tone]}`}
+        onClick={() => navigate(`/my-paged/${userId}`)}
       >
         {/* 등수 배지 */}
         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/70 text-[13px] font-bold border border-black/10">
@@ -63,19 +80,18 @@ function RankingBoard() {
         {/* 프로필 이미지 */}
         <div className="mt-4 w-16 h-16 rounded-full bg-white/50 flex items-center justify-center border border-black/10 overflow-hidden">
           <img
-            src={profile}
+            src={absoluteImageUrl}
             alt={`${name} profile`}
             className="w-full h-full object-cover"
             draggable={false}
           />
         </div>
 
-        {/* 이름 + 포인트 */}
         <div className="mt-4 text-center">
           <div className="text-[16px] font-semibold">{name}</div>
           <div className="flex items-center justify-center gap-1 text-[14px] text-[#4D4D4D] mt-1">
             <TbCoin size={14} />
-            {score.toLocaleString()}
+            {displayScore.toLocaleString()}
           </div>
         </div>
       </div>
@@ -83,46 +99,71 @@ function RankingBoard() {
   };
 
   // 4위 이하 일반 리스트용 카드
-  const RowCard = ({ rank, name, score, profileImage }) => (
-    <div className="flex items-center justify-between w-full px-10 py-4 rounded-xl bg-white border border-[#E5E7EB] shadow-sm">
-      {/* 왼쪽 영역 */}
-      <div className="flex items-center gap-4">
-        {/* 등수 배지 */}
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#F3F4F6] text-[#374151] text-[13px] font-bold">
-          {rank}
-        </span>
+  const RowCard = ({ rank, name, score, profileImage, grade, userId }) => {
+    const absoluteImageUrl = profileImage
+      ? makeAbsoluteImageUrl(profileImage)
+      : profile;
 
-        {/* 프로필 이미지 + 이름 */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#F9FAFB] border border-[#E5E7EB] overflow-hidden">
-            <img
-              src={profile}
-              alt={`${name} profile`}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
+    // grade가 없거나 이상한 값이면 '새싹 개발자' 스타일 적용 (default case)
+    const badgeStyle = getGradeBadgeStyle(grade);
+
+    return (
+      <div
+        className="flex items-center justify-between w-full px-10 py-4 rounded-xl bg-white border border-[#E5E7EB] shadow-sm cursor-pointer hover:bg-[#F9FAFB] transition"
+        onClick={() => navigate(`/my-paged/${userId}`)}
+      >
+        {/* 왼쪽 영역 */}
+        <div className="flex items-center gap-4">
+          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#F3F4F6] text-[#374151] text-[13px] font-bold">
+            {rank}
+          </span>
+
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#F9FAFB] border border-[#E5E7EB] overflow-hidden">
+              <img
+                src={absoluteImageUrl}
+                alt={`${name} profile`}
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
+            </div>
+            <div className="text-[15px] font-semibold">{name}</div>
           </div>
-          <div className="text-[15px] font-semibold">{name}</div>
+
+          {/* 등급 배지 */}
+          {grade && (
+            <span
+              className={`text-[11px] px-2 py-[2px] rounded-full ${badgeStyle}`}
+            >
+              {grade}
+            </span>
+          )}
         </div>
 
-        {/* 등급 배지 -> 추후 연동 */}
-        <span className="text-[11px] px-2 py-[2px] rounded-full bg-[#DBEAFE] text-[#193CB8]">
-          숲의 현자
-        </span>
+        {/* 오른쪽 영역: 포인트 */}
+        <div className="flex items-center justify-center gap-1 text-[14px] text-[#4D4D4D] mt-1">
+          <TbCoin size={13} />
+          {score.toLocaleString()}
+        </div>
       </div>
+    );
+  };
 
-      {/* 오른쪽 영역: 포인트 */}
-      <div className="flex items-center justify-center gap-1 text-[14px] text-[#4D4D4D] mt-1">
-        <TbCoin size={13} />
-        {score.toLocaleString()}
+  if (loading && top3Leaders.length === 0) {
+    return (
+      <div className="mt-12 text-center text-[#6B7280]">
+        <p>데이터를 불러오는 중입니다...</p>
       </div>
-    </div>
-  );
+    );
+  }
 
-  // Top3 개별 참조(가독성)
-  const first = top3[0];
-  const second = top3[1];
-  const third = top3[2];
+  if (top3Leaders.length === 0 && maxTotalCount === 0) {
+    return (
+      <div className="mt-12 text-center text-[#6B7280]">
+        <p>😭 아직 리더보드 데이터가 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-8">
@@ -134,46 +175,107 @@ function RankingBoard() {
 
         <div className="flex items-end justify-center gap-4">
           <div className="translate-y-2">
-            {second && <TopCard {...second} tone="silver" />}
+            {second && (
+              <TopCard
+                rank={2}
+                name={second.userName}
+                score={
+                  second.points ||
+                  second.adoptedFeedbackCount ||
+                  second.totalFeedbackCount
+                }
+                profileImage={second.userPicture}
+                grade={second.grade}
+                tone="silver"
+                userId={second.userId}
+              />
+            )}
           </div>
           <div className="-translate-y-2">
-            {first && <TopCard {...first} tone="gold" />}
+            {first && (
+              <TopCard
+                rank={1}
+                name={first.userName}
+                score={
+                  first.points ||
+                  first.adoptedFeedbackCount ||
+                  first.totalFeedbackCount
+                }
+                profileImage={first.userPicture}
+                grade={first.grade}
+                tone="gold"
+                userId={first.userId}
+              />
+            )}
           </div>
           <div className="translate-y-2">
-            {third && <TopCard {...third} tone="bronze" />}
+            {third && (
+              <TopCard
+                rank={3}
+                name={third.userName}
+                score={
+                  third.points ||
+                  third.adoptedFeedbackCount ||
+                  third.totalFeedbackCount
+                }
+                profileImage={third.userPicture}
+                grade={third.grade}
+                tone="bronze"
+                userId={third.userId}
+              />
+            )}
           </div>
         </div>
       </div>
 
       {/* 전체 순위 영역 */}
       <div className="mt-6 rounded-xl border border-[#E5E7EB] bg-white/70">
-        {/* 헤더: 제목 + 표시 인원 */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E7EB]">
           <div className="text-[13px] text-[#111827]">전체 순위</div>
           <div className="text-[12px] text-[#6B7280]">
-            {/* 예: 123명 중 10명 표시 */}
-            {ranked.length}명 중 {Math.min(showCount, maxShowable)}명 표시
+            {maxTotalCount}명 중{" "}
+            {Math.min(maxTotalCount, 3 + currentDisplayedCount)}명 표시
           </div>
         </div>
 
-        {/* 리스트 */}
         <div className="p-4 space-y-3">
-          {rest.map((item) => (
-            <RowCard key={item.rank} {...item} />
+          {rest.map((item, index) => (
+            <RowCard
+              key={item.userId}
+              rank={index + 4}
+              name={item.userName}
+              score={
+                item.points ||
+                item.adoptedFeedbackCount ||
+                item.totalFeedbackCount
+              }
+              profileImage={item.userPicture}
+              grade={item.grade}
+              userId={item.userId}
+            />
           ))}
+          {loading && (
+            <p className="text-center text-[#9CA3AF] py-4">
+              다음 순위 목록을 불러오는 중입니다...
+            </p>
+          )}
+
+          {maxTotalCount > 0 && currentDisplayedCount === 0 && !loading && (
+            <p className="text-center text-[#9CA3AF] py-4">
+              4위 이하 목록이 현재 순위 기준에 없습니다.
+            </p>
+          )}
         </div>
 
-        {/* 더보기 / 접기 버튼 */}
         <div className="px-4 pb-4">
           <div className="mx-auto max-w-[360px] flex items-center justify-center gap-3">
-            {/* 더보기: 이미 최대로 펼쳐진 경우 비활성화 */}
             <button
               type="button"
-              onClick={handleMore}
-              disabled={isAtMax}
+              onClick={onLoadMore}
+              disabled={isAtMax || loading}
               className={`w-full px-4 py-2 rounded-lg border text-[13px] transition
                 ${
-                  isAtMax
+                  isAtMax || loading
                     ? "bg-[#F3F4F6] border-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed"
                     : "bg-white border-[#D1D5DB] text-[#111827] hover:bg-[#F9FAFB]"
                 }`}
@@ -181,10 +283,9 @@ function RankingBoard() {
               더보기
             </button>
 
-            {/* 접기: 이미 기본 상태면 비활성화 */}
             <button
               type="button"
-              onClick={handleCollapse}
+              onClick={onCollapse}
               disabled={isAtDefault}
               className={`w-full px-4 py-2 rounded-lg border text-[13px] transition
                 ${
