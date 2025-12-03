@@ -5,6 +5,7 @@ import MainTop3 from "../components/main/MainTop3";
 import MainRankingList from "../components/main/MainRankingList";
 import PopularDevPosts from "../components/main/PopularDevPosts";
 import PopularCodingPosts from "../components/main/PopularCodingPosts";
+import Loading from "../components/Loading";
 import fetchMain from "../api/main.jsx";
 
 function Main() {
@@ -70,15 +71,7 @@ function Main() {
       };
 
   if (loading && !mainData) {
-    return (
-      <div>
-        <Header />
-        <Banner {...bannerProps} />
-        <div className="max-w-[1080px] mx-auto px-4 mt-10">
-          <p>메인 데이터를 불러오는 중입니다...</p>
-        </div>
-      </div>
-    );
+    return <Loading message="메인 데이터를 불러오는 중입니다..." />;
   }
 
   if (error && !mainData) {

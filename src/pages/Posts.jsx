@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { IoMdMore, IoMdTime } from "react-icons/io";
 import Header from "../components/header/Header";
+import Loading from "../components/Loading";
 import CollapsibleFilter from "../components/filter/CollapsibleFilter";
 import language from "../components/filter/language";
 import stacks from "../components/filter/stacks";
@@ -43,6 +44,7 @@ function Posts() {
 
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]); // 원본 데이터 저장
+  const [loading, setLoading] = useState(true);
   
   // 검색어 상태
   const [searchQuery, setSearchQuery] = useState("");
@@ -121,6 +123,7 @@ function Posts() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const res = await getPosts(); // GET /api/posts
         const data = res.data?.content || [];
 
@@ -150,6 +153,8 @@ function Posts() {
         setPosts(mapped);
       } catch (err) {
         console.error("게시글 불러오기 실패:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -243,6 +248,10 @@ function Posts() {
       handleSearch();
     }
   };
+
+  if (loading) {
+    return <Loading message="게시글을 불러오는 중입니다..." />;
+  }
 
   return (
       <div className="min-h-screen bg-[#f9f9f9]">

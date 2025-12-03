@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEdit, FaTrash, FaStar } from "react-icons/fa";
 import Header from "../components/header/Header";
+import Loading from "../components/Loading";
 import WriteCodeEditor from "../components/WriteCodeEditor";
 import CollapsibleFilter from "../components/filter/CollapsibleFilter";
 import language from "../components/filter/language";
@@ -161,14 +162,7 @@ function Admin() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f9f9f9]">
-        <Header />
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <p>로딩 중...</p>
-        </div>
-      </div>
-    );
+    return <Loading message="데이터를 불러오는 중입니다..." />;
   }
 
   return (

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import Header from "../components/header/Header";
+import Loading from "../components/Loading";
 import baseProfile from "../assets/baseProfile.png";
 import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
@@ -52,6 +53,7 @@ function MyPaged() {
     isLoggedIn &&
     (!urlUserId || (urlUserId && targetUserId === loggedInUserId));
 
+  const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
     name: "Loading...",
     avatar: null,
@@ -103,6 +105,7 @@ function MyPaged() {
 
     const fetchData = async () => {
       try {
+        setLoading(true);
         const profileRes = await getUserProfile(targetUserId);
         const pData = profileRes.data;
 
@@ -151,6 +154,8 @@ function MyPaged() {
       } catch (error) {
         console.error("데이터 로딩 중 오류 발생:", error);
         alert("프로필 데이터를 불러오는 데 실패했습니다.");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -321,6 +326,10 @@ function MyPaged() {
     setMyScrapsCount(INITIAL_COUNT);
     scrapsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+
+  if (loading) {
+    return <Loading message="프로필을 불러오는 중입니다..." />;
+  }
 
   const profileImgSrc = makeAbsoluteImageUrl(profile.avatar) || baseProfile;
   const isPostsExpanded = myPostsDisplayCount >= profile.postCount;
