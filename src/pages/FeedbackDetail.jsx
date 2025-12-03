@@ -1,6 +1,7 @@
 // src/pages/FeedbackDetail.jsx
 import React, { useEffect, useState } from "react";
 import Header from "../components/header/Header";
+import Loading from "../components/Loading";
 import { FiChevronLeft } from "react-icons/fi";
 import { FaHeart, FaRegHeart, FaComment, FaStar, FaEdit, FaTrash } from "react-icons/fa";
 import { IoMdMore } from "react-icons/io";
@@ -378,11 +379,7 @@ function FeedbackDetail() {
   // 3. 로딩 / 예외 처리
   // ===================================================
   if (loading) {
-    return (
-        <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
-          <p>불러오는 중...</p>
-        </div>
-    );
+    return <Loading message="피드백을 불러오는 중입니다..." />;
   }
 
   if (!post || !feedback) {
