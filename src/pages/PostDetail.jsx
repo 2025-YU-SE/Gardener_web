@@ -21,7 +21,12 @@ import ReadonlyCodeEditor from "../components/ReadonlyCodeEditor";
 import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
 
 // API
-import { getPostDetail, deletePost } from "../api/postApi";
+import {
+  getPostDetail,
+  deletePost,
+  getAiFeedback,
+  regenerateAiFeedback,
+} from "../api/postApi";
 import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
@@ -49,6 +54,9 @@ function PostDetail() {
   const [feedbackRanges, setFeedbackRanges] = useState([]);
 
   const [isAIFeedbackOpen, setIsAIFeedbackOpen] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   const [postLiked, setPostLiked] = useState(false);
   const [postBookmarked, setPostBookmarked] = useState(false);
@@ -83,7 +91,10 @@ function PostDetail() {
           summary: p.summary,
           githubRepoUrl: p.githubRepoUrl,
           problemStatement: p.problemStatement,
+          aiFeedback: p.aiFeedback || "",
         });
+
+        setAiFeedback(p.aiFeedback || "");
       } catch (err) {
         console.error("게시글 로드 실패:", err);
       }
@@ -207,6 +218,53 @@ function PostDetail() {
     }
 
     setIsFeedbackFormOpen(true);
+  };
+
+  // ===================================================
+  // 🔥 AI 피드백 불러오기 / 재생성
+  // ===================================================
+
+  const fetchAiFeedback = async () => {
+    try {
+      setAiLoading(true);
+      setAiError("");
+      const res = await getAiFeedback(postId);
+      const text = res?.data ?? res;
+      setAiFeedback(text || "");
+    } catch (err) {
+      console.error("AI 피드백 조회 실패:", err);
+      setAiError("AI 피드백을 불러오지 못했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleToggleAIFeedback = async () => {
+    if (!isAIFeedbackOpen && !aiFeedback) {
+      await fetchAiFeedback();
+    }
+    setIsAIFeedbackOpen((v) => !v);
+  };
+
+  const handleRegenerateAIFeedback = async () => {
+    try {
+      if (!window.confirm("AI 피드백을 다시 생성하시겠습니까?")) return;
+      setAiLoading(true);
+      setAiError("");
+      const res = await regenerateAiFeedback(postId);
+      const dto = res?.data ?? res;
+      const text = dto?.aiFeedback || "";
+      setAiFeedback(text);
+
+      setPost((prev) =>
+        prev ? { ...prev, aiFeedback: text } : prev
+      );
+    } catch (err) {
+      console.error("AI 피드백 재생성 실패:", err);
+      setAiError("AI 피드백 재생성에 실패했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // ===================================================
@@ -389,8 +447,8 @@ function PostDetail() {
               </div>
 
               <button
-                  onClick={() => setIsAIFeedbackOpen((v) => !v)}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md"
+                onClick={handleToggleAIFeedback}
+                className="bg-green-600 text-white px-4 py-2 rounded-md"
               >
                 {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
               </button>
@@ -583,6 +641,42 @@ function PostDetail() {
               </div>
             </div>
           </div>
+
+          {/* AI 피드백 */}
+          {isAIFeedbackOpen && (
+            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  AI 피드백
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleRegenerateAIFeedback}
+                  className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
+                >
+                  다시 생성
+                </button>
+              </div>
+
+              {aiLoading && (
+                <p className="text-sm text-gray-500">AI 피드백 생성 중...</p>
+              )}
+
+              {!aiLoading && aiError && (
+                <p className="text-sm text-red-500">{aiError}</p>
+              )}
+
+              {!aiLoading && !aiError && (
+                <div className="mt-2 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
+                  <p className="whitespace-pre-wrap text-sm text-gray-800">
+                    {aiFeedback && aiFeedback.trim()
+                      ? aiFeedback
+                      : "AI 피드백이 아직 생성되지 않았습니다."}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
   );
