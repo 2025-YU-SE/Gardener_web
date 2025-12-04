@@ -188,7 +188,7 @@ function FeedbackDetail() {
     // 이미 채택된 피드백은 다시 채택 불가
     if (feedback.adoptedTF) return false;
 
-    // 게시물 작성자만 채택 가능 (백엔드 권한 체크와 동일하게 맞춤)
+    // 게시물 작성자만 채택 가능
     return post.author === currentUsername;
   };
 
@@ -238,7 +238,6 @@ function FeedbackDetail() {
     try {
       await adoptFeedback(feedbackId);
 
-      // 상태 즉시 반영
       setFeedback((prev) =>
         prev
           ? {

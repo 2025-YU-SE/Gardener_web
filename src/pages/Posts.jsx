@@ -228,7 +228,7 @@ function Posts() {
             tags: [p.languages, p.stacks].filter(Boolean),
             languages: p.languages,
             stacks: p.stacks,
-            category: p.category || "개발",
+            category: p.contentsType === false ? "코딩테스트" : "개발",
             likes: p.likesCount,
             bookmarks: p.scrapCount,
             comments: p.feedbackCount,
