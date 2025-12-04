@@ -2,14 +2,22 @@ import React from "react";
 import { TbCoin } from "react-icons/tb";
 import baseProfile from "../../assets/baseProfile.png";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
+import { useNavigate } from "react-router-dom";
 
 export default function MainRankingList({ users = [] }) {
+  const navigate = useNavigate();
+
   if (!users.length) return null;
 
   const slicedUsers = users.slice(3, 7).map((user, i) => ({
     ...user,
     rank: 4 + i,
   }));
+
+  const goUserPage = (userId) => {
+    if (!userId) return;
+    navigate(`/my-paged/${userId}`);
+  };
 
   return (
     <div className="space-y-3">
@@ -19,7 +27,9 @@ export default function MainRankingList({ users = [] }) {
         return (
           <div
             key={item.rank}
-            className="w-[400px] min-w-[260px] px-4 py-3 rounded-xl bg-white border border-[#E5E7EB] shadow-sm flex items-center justify-between"
+            onClick={() => goUserPage(item.userId)}
+            className="w-[400px] min-w-[260px] px-4 py-3 rounded-xl bg-white border border-[#E5E7EB] shadow-sm 
+            flex items-center justify-between cursor-pointer"
           >
             {/* 왼쪽 영역 */}
             <div className="flex items-center gap-3">
@@ -37,7 +47,7 @@ export default function MainRankingList({ users = [] }) {
                     className="w-full h-full object-cover block"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = profile;
+                      e.currentTarget.src = baseProfile;
                     }}
                   />
                 </div>
