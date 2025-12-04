@@ -289,21 +289,27 @@ function Posts() {
       });
     }
 
-    // 언어 필터링
+    // 언어 필터링 (대소문자 구분 없이 비교)
     if (selectedLanguages.length > 0) {
       filtered = filtered.filter((post) => {
-        return selectedLanguages.some((lang) => 
-          post.languages === lang || post.tags?.includes(lang)
-        );
+        return selectedLanguages.some((lang) => {
+          const langLower = lang.toLowerCase();
+          const postLangLower = post.languages?.toLowerCase() || '';
+          const postTagsLower = post.tags?.map(t => t?.toLowerCase() || '') || [];
+          return postLangLower === langLower || postTagsLower.includes(langLower);
+        });
       });
     }
 
-    // 스택 필터링
+    // 스택 필터링 (대소문자 구분 없이 비교)
     if (selectedStacks.length > 0) {
       filtered = filtered.filter((post) => {
-        return selectedStacks.some((stack) => 
-          post.stacks === stack || post.tags?.includes(stack)
-        );
+        return selectedStacks.some((stack) => {
+          const stackLower = stack.toLowerCase();
+          const postStackLower = post.stacks?.toLowerCase() || '';
+          const postTagsLower = post.tags?.map(t => t?.toLowerCase() || '') || [];
+          return postStackLower === stackLower || postTagsLower.includes(stackLower);
+        });
       });
     }
 
