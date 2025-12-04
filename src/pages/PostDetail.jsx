@@ -163,7 +163,14 @@ function PostDetail() {
           timeAgo: fb.createdAt?.slice(0, 10),
           likes: fb.likesCount,
           views: 0,
+          adoptedTF: fb.adoptedTF === true,
         }));
+
+        // 채택된 피드백이 상단
+        mapped.sort((a, b) => {
+          if (a.adoptedTF === b.adoptedTF) return 0;
+          return a.adoptedTF ? -1 : 1;
+        });
 
         setFeedbacks(mapped);
       } catch (err) {
@@ -716,6 +723,13 @@ function PostDetail() {
                                     />
                                 ))}
                               </div>
+
+                          {/* 채택 여부 표시 */}
+                          {fb.adoptedTF && (
+                            <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100 mb-1">
+                              채택된 피드백
+                            </div>
+                          )}
 
                               <div className="max-h-[150px] overflow-y-auto pr-2">
                                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{fb.content}</p>
