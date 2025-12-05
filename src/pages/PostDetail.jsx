@@ -12,7 +12,6 @@ import {
   FaStar,
   FaEdit,
   FaTrash,
-  FaGithub,
 } from "react-icons/fa";
 import { IoMdMore } from "react-icons/io";
 import Header from "../components/header/Header";
@@ -55,7 +54,10 @@ function PostDetail() {
   // 피드백 작성 상태
   // -----------------------------
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false);
+  const [feedbackTitle, setFeedbackTitle] = useState(""); // ⬅ 추가됨
   const [feedbackContent, setFeedbackContent] = useState("");
+  const [selectedFeedbackType, setSelectedFeedbackType] =
+    useState("일반 피드백");
   const [rating, setRating] = useState(5);
 
   const [feedbackRanges, setFeedbackRanges] = useState([]);
@@ -406,7 +408,7 @@ function PostDetail() {
   // ===================================================
   // 🔥 게시글 수정/삭제 권한 체크
   // ===================================================
-  const canEditOre = () => {
+  const canEditOrDelete = () => {
     if (!isAuthed || !post) return false;
 
     const currentUsername = getCurrentUsername();
@@ -461,73 +463,53 @@ function PostDetail() {
   };
 
   return (
+    <div className="min-h-screen bg-[#F9FAFB]">
+      <Header />
 
-      <div className="min-h-screen bg-[#F9FAFB]">
-        <Header />
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* -------------------------------- */}
+        {/* 게시글 카드 */}
+        {/* -------------------------------- */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+          <div className="flex items-start justify-between mb-2">
+            <h1 className="text-2xl font-bold text-gray-800 flex-1">
+              {post.title}
+            </h1>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          {/* -------------------------------- */}
-          {/* 게시글 카드 */}
-          {/* -------------------------------- */}
-          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
-            <div className="flex items-start justify-between mb-2 gap-2">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex-1 break-words">{post.title}</h1>
-              
-              {/* 드롭다운 메뉴 */}
-              {canEditOrDelete() && (
-                <div className="relative post-menu-container ml-4">
-                  <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                  >
-                    <IoMdMore size={24} />
-                  </button>
-                  
-                  {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          handleEditPost();
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                      >
-                        <FaEdit className="text-blue-600" />
-                        <span>수정</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          handleDeletePost();
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                      >
-                        <FaTrash />
-                        <span>삭제</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* 드롭다운 메뉴 */}
+            {canEditOrDelete() && (
+              <div className="relative post-menu-container ml-4">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <IoMdMore size={24} />
+                </button>
 
-            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">{post.content}</p>
-
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex justify-center items-center mr-2 sm:mr-3 bg-green-100 border border-gray-300 shrink-0">
-                <img
-                  src={post.avatar}
-                  alt={post.author}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = baseProfile;
-                  }}
-                />
-              </div>
-              <div>
-                <p className="font-semibold">{post.author}</p>
-                <p className="text-sm text-gray-500">{post.timeAgo}</p>
-
+                {isMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleEditPost();
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                    >
+                      <FaEdit className="text-blue-600" />
+                      <span>수정</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleDeletePost();
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                    >
+                      <FaTrash />
+                      <span>삭제</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -551,109 +533,30 @@ function PostDetail() {
             </div>
           </div>
 
-      <div className="min-h-screen bg-[#F9FAFB]">
-        <Header />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          {/* -------------------------------- */}
-          {/* 게시글 카드 */}
-          {/* -------------------------------- */}
-          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
-            <div className="flex items-start justify-between mb-2 gap-2">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex-1 break-words">{post.title}</h1>
-              
-              {/* 드롭다운 메뉴 */}
-              {canEditOrDelete() && (
-                <div className="relative post-menu-container ml-4">
-                  <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                  >
-                    <IoMdMore size={24} />
-                  </button>
-                  
-                  {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          handleEditPost();
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                      >
-                        <FaEdit className="text-blue-600" />
-                        <span>수정</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          handleDeletePost();
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                      >
-                        <FaTrash />
-                        <span>삭제</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">{post.content}</p>
-
-            <div className="flex items-center mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex justify-center items-center mr-2 sm:mr-3 bg-green-100 border border-gray-300 shrink-0">
-                <img
-                  src={post.avatar}
-                  alt={post.author}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = baseProfile;
-                  }}
-                />
-              </div>
-              <div>
-                <p className="font-semibold">{post.author}</p>
-                <p className="text-sm text-gray-500">{post.timeAgo}</p>
-
+          <div className="flex gap-2 mb-4">
+            {post.tags?.filter(Boolean).map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+              >
                 {tag}
               </span>
             ))}
           </div>
 
-            {/* GitHub 레포지토리 링크 */}
-            {post.githubRepoUrl && (() => {
-              // URL이 http:// 또는 https://로 시작하지 않으면 https://를 추가
-              const githubUrl = post.githubRepoUrl.startsWith('http://') || post.githubRepoUrl.startsWith('https://')
-                ? post.githubRepoUrl
-                : `https://${post.githubRepoUrl}`;
-              
-              return (
-                <div className="mb-4 sm:mb-6">
-                  <a
-                    href={githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm sm:text-base text-gray-600 hover:text-green-600 transition-colors"
-                  >
-                    <FaGithub className="text-lg sm:text-xl" />
-                    <span className="break-all">{post.githubRepoUrl}</span>
-                  </a>
-                </div>
-              );
-            })()}
-
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
-                <button
-                    onClick={handleToggleLike}
-                    className="flex items-center gap-1 text-gray-600"
-                >
-                  {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-                  <span>{post.likes}</span>
-                </button>
-
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={handleToggleLike}
+                className="flex items-center gap-1 text-gray-600"
+              >
+                {postLiked ? (
+                  <FaHeart className="text-red-500" />
+                ) : (
+                  <FaRegHeart />
+                )}
+                <span>{post.likes}</span>
+              </button>
 
               <button
                 onClick={handleToggleBookmark}
@@ -676,14 +579,6 @@ function PostDetail() {
                 <FaEye />
                 {post.views}
               </span>
-              </div>
-              <button
-                onClick={handleToggleAIFeedback}
-                className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base w-full sm:w-auto"
-              >
-                {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
-              </button>
-
             </div>
 
             <button
@@ -695,202 +590,220 @@ function PostDetail() {
           </div>
         </div>
 
-          {/* -------------------------------- */}
-          {/* 코드 영역 + 피드백 */}
-          {/* -------------------------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* 코드 */}
-            <div className="lg:col-span-2">
-              <div className="bg-white border rounded-lg p-4 sm:p-6">
-                {isFeedbackFormOpen ? (
-                  <FeedbackCodeEditor
-                    value={post.code}
-                    language={editorLanguage}
-                    title="라인 피드백 입력"
-                    initialFeedbacks={[]}
-                    onAddFeedbackRange={(range) => {
-                      setFeedbackRanges((prev) => [...prev, range]);
-                    }}
-                    onSaveFeedback={(item) => {
-                      setFeedbackRanges((prev) => {
-                        const exists = prev.some((r) => r.id === item.id);
-                        if (exists) {
-                          return prev.map((r) => (r.id === item.id ? item : r));
-                        } else {
-                          return [...prev, item];
-                        }
-                      });
-                    }}
-                  />
-                ) : (
-                  <ReadonlyCodeEditor
-                    value={post.code}
-                    language={editorLanguage}
-                    title="코드"
-                  />
-                )}
-              </div>
-
+        {/* -------------------------------- */}
+        {/* 코드 영역 + 피드백 */}
+        {/* -------------------------------- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* 코드 */}
+          <div className="lg:col-span-2">
+            <div className="bg-white border rounded-lg p-6">
+              {isFeedbackFormOpen ? (
+                <FeedbackCodeEditor
+                  value={post.code}
+                  language={editorLanguage}
+                  title="라인 피드백 입력"
+                  initialFeedbacks={[]}
+                  onAddFeedbackRange={(range) => {
+                    setFeedbackRanges((prev) => [...prev, range]);
+                  }}
+                  onSaveFeedback={(item) => {
+                    setFeedbackRanges((prev) => {
+                      const exists = prev.some((r) => r.id === item.id);
+                      if (exists) {
+                        return prev.map((r) => (r.id === item.id ? item : r));
+                      } else {
+                        return [...prev, item];
+                      }
+                    });
+                  }}
+                />
+              ) : (
+                <ReadonlyCodeEditor
+                  value={post.code}
+                  language={editorLanguage}
+                  title="코드"
+                />
+              )}
             </div>
           </div>
 
-            {/* 오른쪽: 피드백 작성 */}
-            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
-              <div className="bg-white border rounded-lg p-4 sm:p-6">
-                <h3 className="font-bold text-base sm:text-lg mb-4">피드백 작성</h3>
+          {/* 오른쪽: 피드백 작성 */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="font-bold text-lg mb-4">피드백 작성</h3>
 
-                {!isFeedbackFormOpen ? (
-                    <button
-                        onClick={handleFeedbackButtonClick}
-                        className="w-full bg-green-600 text-white py-2 rounded-md"
-                    >
-                      피드백 작성하기
-                    </button>
-                ) : (
-                    <div className="space-y-4">
-                      {/* 평점 */}
-                      <div>
-                        <label className="block mb-2 text-xs sm:text-sm">평점</label>
-                        <div className="flex gap-1">
+              {!isFeedbackFormOpen ? (
+                <button
+                  onClick={handleFeedbackButtonClick}
+                  className="w-full bg-green-600 text-white py-2 rounded-md"
+                >
+                  피드백 작성하기
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  {/* 🔥 피드백 제목 입력칸 추가됨 */}
+                  <div>
+                    <label className="block mb-1 text-sm font-semibold">
+                      피드백 제목
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border rounded-md px-3 py-2"
+                      placeholder="예: 코드 복잡도 개선 제안"
+                      value={feedbackTitle}
+                      onChange={(e) => setFeedbackTitle(e.target.value)}
+                    />
+                  </div>
+
+                  {/* 피드백 유형 */}
+                  <div>
+                    <label className="block mb-2 text-sm">피드백 유형</label>
+                    <div className="flex gap-2">
+                      {["일반 피드백", "개선 제안", "버그 신고"].map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setSelectedFeedbackType(type)}
+                          className={`px-3 py-1 rounded ${
+                            selectedFeedbackType === type
+                              ? "bg-green-600 text-white"
+                              : "bg-gray-200"
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 평점 */}
+                  <div>
+                    <label className="block mb-2 text-sm">평점</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={`text-2xl cursor-pointer ${
+                            star <= rating ? "text-yellow-400" : "text-gray-300"
+                          }`}
+                          onClick={() => setRating(star)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 내용 */}
+                  <div>
+                    <textarea
+                      className="w-full border rounded-md p-2"
+                      rows="4"
+                      placeholder="피드백 내용을 작성해주세요."
+                      value={feedbackContent}
+                      onChange={(e) => setFeedbackContent(e.target.value)}
+                    />
+                  </div>
+
+                  {/* 제출 */}
+                  <button
+                    onClick={handleSubmitFeedback}
+                    className="w-full bg-green-600 text-white py-2 rounded-md"
+                  >
+                    피드백 제출
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 기존 피드백 */}
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="font-bold text-lg mb-4">기존 피드백</h3>
+
+              {feedbacks.length === 0 ? (
+                <p className="text-gray-500">아직 피드백이 없습니다.</p>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
+                      <div
+                        key={fb.id}
+                        className="border p-3 rounded-md cursor-pointer hover:bg-gray-50"
+                        onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
+                      >
+                        <div className="flex items-center mb-1">
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex justify-center items-center mr-2 bg-green-100 border border-gray-300">
+                            <img
+                              src={fb.avatar}
+                              alt={fb.author}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.src = baseProfile;
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">{fb.author}</p>
+                            <p className="text-xs text-gray-500">
+                              {fb.timeAgo}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex mb-2">
                           {[1, 2, 3, 4, 5].map((star) => (
-                              <FaStar
-                                  key={star}
-                                  className={`text-lg sm:text-xl md:text-2xl cursor-pointer ${
-                                      star <= rating ? "text-yellow-400" : "text-gray-300"
-                                  }`}
-                                  onClick={() => setRating(star)}
-                              />
-
+                            <FaStar
+                              key={star}
+                              className={`text-sm ${
+                                star <= fb.rating
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
                           ))}
                         </div>
 
-                      {/* 내용 */}
-                      <div>
-                    <textarea
-                        className="w-full border rounded-md p-2 text-sm sm:text-base"
-                        rows="4"
-                        placeholder="피드백 내용을 작성해주세요."
-                        value={feedbackContent}
-                        onChange={(e) => setFeedbackContent(e.target.value)}
-                    />
+                        {/* 채택 여부 표시 */}
+                        {fb.adoptedTF && (
+                          <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100 mb-1">
+                            채택된 피드백
+                          </div>
+                        )}
 
+                        <div className="max-h-[150px] overflow-y-auto pr-2">
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                            {fb.content}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                      {/* 제출 */}
-                      <button
-                          onClick={handleSubmitFeedback}
-                          className="w-full bg-green-600 text-white py-2 rounded-md text-sm sm:text-base"
-                      >
-                        피드백 제출
-                      </button>
-                    </div>
-                )}
-              </div>
-
-              {/* 기존 피드백 */}
-              <div className="bg-white border rounded-lg p-4 sm:p-6">
-                <h3 className="font-bold text-base sm:text-lg mb-4">기존 피드백</h3>
-
-                {feedbacks.length === 0 ? (
-                    <p className="text-gray-500">아직 피드백이 없습니다.</p>
-                ) : (
-                    <>
-                      <div className="space-y-3">
-                        {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
-                            <div
-                                key={fb.id}
-                                className="border p-2 sm:p-3 rounded-md cursor-pointer hover:bg-gray-50"
-                                onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
-                            >
-                              <div className="flex items-center mb-1 gap-2">
-                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex justify-center items-center bg-green-100 border border-gray-300 shrink-0">
-                                  <img
-                                    src={fb.avatar}
-                                    alt={fb.author}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.target.src = baseProfile;
-                                    }}
-                                  />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-semibold text-xs sm:text-sm truncate">{fb.author}</p>
-                                  <p className="text-[10px] sm:text-xs text-gray-500">{fb.timeAgo}</p>
-                                </div>
-                              </div>
-
-                              <div className="flex mb-2">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <FaStar
-                                        key={star}
-                                        className={`text-xs sm:text-sm ${
-                                            star <= fb.rating
-                                                ? "text-yellow-400"
-                                                : "text-gray-300"
-                                        }`}
-                                    />
-                                ))}
-                              </div>
-
-                              <div className="max-h-[120px] sm:max-h-[150px] overflow-y-auto pr-2">
-                                <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap break-words">{fb.content}</p>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                      
-                      {feedbacks.length > displayedFeedbacksCount && (
-                          <button
-                              onClick={() => setDisplayedFeedbacksCount(prev => prev + 5)}
-                              className="w-full mt-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
-                          >
-                            더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
-                          </button>
-                      )}
-                    </>
-                )}
-              </div>
-
+                  {feedbacks.length > displayedFeedbacksCount && (
+                    <button
+                      onClick={() =>
+                        setDisplayedFeedbacksCount((prev) => prev + 5)
+                      }
+                      className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
 
-          {/* AI 피드백 */}
-          {isAIFeedbackOpen && (
-            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8 mt-6 sm:mt-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-800">
-                  AI 피드백
-                </h2>
-                <button
-                  type="button"
-                  onClick={handleRegenerateAIFeedback}
-                  className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
-                >
-                  다시 생성
-                </button>
-              </div>
-
-              {aiLoading && (
-                <p className="text-sm text-gray-500">AI 피드백 생성 중...</p>
-              )}
-
-              {!aiLoading && aiError && (
-                <p className="text-sm text-red-500">{aiError}</p>
-              )}
-
-              {!aiLoading && !aiError && (
-                <div className="mt-2 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
-                  <p className="whitespace-pre-wrap text-sm text-gray-800">
-                    {aiFeedback && aiFeedback.trim()
-                      ? aiFeedback
-                      : "AI 피드백이 아직 생성되지 않았습니다."}
-                  </p>
-                </div>
-              )}
-
+        {/* AI 피드백 */}
+        {isAIFeedbackOpen && (
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">AI 피드백</h2>
+              <button
+                type="button"
+                onClick={handleRegenerateAIFeedback}
+                className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
+              >
+                다시 생성
+              </button>
             </div>
 
             {aiLoading && (
