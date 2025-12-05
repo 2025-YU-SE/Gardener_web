@@ -574,10 +574,10 @@ function MyPaged() {
       <div className="mx-auto max-w-[1100px] px-4 py-8">
         <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
           {/* 프로필 영역 */}
-          <div className="flex items-center gap-5 px-20 mb-10">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5 px-4 sm:px-8 lg:px-12 mb-10">
             {/* 프로필 이미지 */}
             <div
-              className={`h-full w-[132px] relative ${
+              className={`h-[132px] w-[132px] sm:h-full sm:w-[132px] relative shrink-0 ${
                 isMyProfile ? "cursor-pointer" : ""
               }`}
               onClick={() => isMyProfile && fileInputRef.current?.click()}
@@ -628,10 +628,10 @@ function MyPaged() {
             </div>
 
             {/* 프로필 정보 */}
-            <div className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden">
-              <div className="flex-1 min-w-0">
-                <h2 className="text-[22px] font-semibold mb-2">{profile.name}</h2>
-                <ul className="space-y-2 text-[14px]">
+            <div className="flex-1 min-w-0 w-full rounded-[10px] border border-[#ACACAC] bg-white pl-4 sm:pl-6 pr-4 sm:pr-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 box-border">
+              <div className="flex-1 min-w-0 w-full sm:w-auto">
+                <h2 className="text-lg sm:text-[22px] font-semibold mb-2 break-words">{profile.name}</h2>
+                <ul className="space-y-2 text-xs sm:text-[14px]">
                   <Row
                     icon={<TbCoin className="text-[#4D4D4D]" size={18} />}
                     label="누적포인트"
@@ -656,7 +656,7 @@ function MyPaged() {
                   />
                 </ul>
               </div>
-              <div className="shrink-0 ml-16 mr-5">
+              <div className="shrink-0 flex-shrink-0 self-center sm:self-auto">
                 <GradeDonut label={profile.gradeLabel} />
               </div>
             </div>
@@ -881,12 +881,12 @@ function MyPaged() {
 
 function Row({ icon, label, value }) {
   return (
-    <li className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-gray-800">
-        <span className="shrink-0">{icon}</span>
-        <span className="font-medium">{label}</span>
+    <li className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-gray-800 min-w-0 flex-1">
+        <span className="shrink-0 flex-shrink-0">{icon}</span>
+        <span className="font-medium whitespace-nowrap">{label}</span>
       </div>
-      <span className="font-semibold text-gray-900">{value}</span>
+      <span className="font-semibold text-gray-900 shrink-0 flex-shrink-0 whitespace-nowrap">{value}</span>
     </li>
   );
 }
