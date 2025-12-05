@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaEdit, FaTrash, FaStar } from "react-icons/fa";
 import Header from "../components/header/Header";
 import Loading from "../components/Loading";
@@ -9,6 +9,7 @@ import language from "../components/filter/language";
 import stacks from "../components/filter/stacks";
 import { getPosts, updatePost, deletePost } from "../api/postApi";
 import { getAllFeedbacks, updateFeedback, deleteFeedback } from "../api/feedbackApi";
+import { isAdmin } from "../utils/jwtHelper";
 
 const getLanguageCode = (languageName) => {
   const languageMap = {
@@ -30,6 +31,7 @@ const getLanguageCode = (languageName) => {
 
 function Admin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("posts"); // "posts" or "feedbacks"
   
   const [posts, setPosts] = useState([]);
@@ -40,7 +42,23 @@ function Admin() {
   const [editingFeedback, setEditingFeedback] = useState(null);
   const [editForm, setEditForm] = useState({});
 
+  // 관리자 권한 체크
   useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+    if (!isAdmin()) {
+      alert("관리자만 접근할 수 있습니다.");
+      navigate("/main", { replace: true });
+      return;
+    }
+  }, [navigate, location.pathname]);
+
+  useEffect(() => {
+    if (!isAdmin()) return; // 관리자가 아니면 데이터 로드하지 않음
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
