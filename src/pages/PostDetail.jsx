@@ -433,13 +433,13 @@ function PostDetail() {
       <div className="min-h-screen bg-[#F9FAFB]">
         <Header />
 
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* -------------------------------- */}
           {/* 게시글 카드 */}
           {/* -------------------------------- */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <div className="flex items-start justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-800 flex-1">{post.title}</h1>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex items-start justify-between mb-2 gap-2">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex-1 break-words">{post.title}</h1>
               
               {/* 드롭다운 메뉴 */}
               {canEditOrDelete() && (
@@ -479,10 +479,10 @@ function PostDetail() {
               )}
             </div>
 
-            <p className="text-gray-600 mb-6">{post.content}</p>
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">{post.content}</p>
 
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex justify-center items-center mr-2 sm:mr-3 bg-green-100 border border-gray-300 shrink-0">
                 <img
                   src={post.avatar}
                   alt={post.author}
@@ -498,19 +498,19 @@ function PostDetail() {
               </div>
             </div>
 
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               {post.tags?.filter(Boolean).map((tag) => (
                   <span
                       key={tag}
-                      className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                      className="px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm"
                   >
                 {tag}
               </span>
               ))}
             </div>
 
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
                 <button
                     onClick={handleToggleLike}
                     className="flex items-center gap-1 text-gray-600"
@@ -544,7 +544,7 @@ function PostDetail() {
 
               <button
                 onClick={handleToggleAIFeedback}
-                className="bg-green-600 text-white px-4 py-2 rounded-md"
+                className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base w-full sm:w-auto"
               >
                 {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
               </button>
@@ -554,10 +554,10 @@ function PostDetail() {
           {/* -------------------------------- */}
           {/* 코드 영역 + 피드백 */}
           {/* -------------------------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* 코드 */}
             <div className="lg:col-span-2">
-              <div className="bg-white border rounded-lg p-6">
+              <div className="bg-white border rounded-lg p-4 sm:p-6">
                 {isFeedbackFormOpen ? (
                   <FeedbackCodeEditor
                     value={post.code}
@@ -589,9 +589,9 @@ function PostDetail() {
             </div>
 
             {/* 오른쪽: 피드백 작성 */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="font-bold text-lg mb-4">피드백 작성</h3>
+            <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+              <div className="bg-white border rounded-lg p-4 sm:p-6">
+                <h3 className="font-bold text-base sm:text-lg mb-4">피드백 작성</h3>
 
                 {!isFeedbackFormOpen ? (
                     <button
@@ -604,10 +604,10 @@ function PostDetail() {
                     <div className="space-y-4">
                       {/* 🔥 피드백 제목 입력칸 추가됨 */}
                       <div>
-                        <label className="block mb-1 text-sm font-semibold">피드백 제목</label>
+                        <label className="block mb-1 text-xs sm:text-sm font-semibold">피드백 제목</label>
                         <input
                             type="text"
-                            className="w-full border rounded-md px-3 py-2"
+                            className="w-full border rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-sm sm:text-base"
                             placeholder="예: 코드 복잡도 개선 제안"
                             value={feedbackTitle}
                             onChange={(e) => setFeedbackTitle(e.target.value)}
@@ -616,13 +616,13 @@ function PostDetail() {
 
                       {/* 피드백 유형 */}
                       <div>
-                        <label className="block mb-2 text-sm">피드백 유형</label>
-                        <div className="flex gap-2">
+                        <label className="block mb-2 text-xs sm:text-sm">피드백 유형</label>
+                        <div className="flex flex-wrap gap-2">
                           {["일반 피드백", "개선 제안", "버그 신고"].map((type) => (
                               <button
                                   key={type}
                                   onClick={() => setSelectedFeedbackType(type)}
-                                  className={`px-3 py-1 rounded ${
+                                  className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm ${
                                       selectedFeedbackType === type
                                           ? "bg-green-600 text-white"
                                           : "bg-gray-200"
@@ -636,12 +636,12 @@ function PostDetail() {
 
                       {/* 평점 */}
                       <div>
-                        <label className="block mb-2 text-sm">평점</label>
+                        <label className="block mb-2 text-xs sm:text-sm">평점</label>
                         <div className="flex gap-1">
                           {[1, 2, 3, 4, 5].map((star) => (
                               <FaStar
                                   key={star}
-                                  className={`text-2xl cursor-pointer ${
+                                  className={`text-lg sm:text-xl md:text-2xl cursor-pointer ${
                                       star <= rating ? "text-yellow-400" : "text-gray-300"
                                   }`}
                                   onClick={() => setRating(star)}
@@ -653,7 +653,7 @@ function PostDetail() {
                       {/* 내용 */}
                       <div>
                     <textarea
-                        className="w-full border rounded-md p-2"
+                        className="w-full border rounded-md p-2 text-sm sm:text-base"
                         rows="4"
                         placeholder="피드백 내용을 작성해주세요."
                         value={feedbackContent}
@@ -664,7 +664,7 @@ function PostDetail() {
                       {/* 제출 */}
                       <button
                           onClick={handleSubmitFeedback}
-                          className="w-full bg-green-600 text-white py-2 rounded-md"
+                          className="w-full bg-green-600 text-white py-2 rounded-md text-sm sm:text-base"
                       >
                         피드백 제출
                       </button>
@@ -673,8 +673,8 @@ function PostDetail() {
               </div>
 
               {/* 기존 피드백 */}
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="font-bold text-lg mb-4">기존 피드백</h3>
+              <div className="bg-white border rounded-lg p-4 sm:p-6">
+                <h3 className="font-bold text-base sm:text-lg mb-4">기존 피드백</h3>
 
                 {feedbacks.length === 0 ? (
                     <p className="text-gray-500">아직 피드백이 없습니다.</p>
@@ -684,11 +684,11 @@ function PostDetail() {
                         {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
                             <div
                                 key={fb.id}
-                                className="border p-3 rounded-md cursor-pointer hover:bg-gray-50"
+                                className="border p-2 sm:p-3 rounded-md cursor-pointer hover:bg-gray-50"
                                 onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
                             >
-                              <div className="flex items-center mb-1">
-                                <div className="w-8 h-8 rounded-full overflow-hidden flex justify-center items-center mr-2 bg-green-100 border border-gray-300">
+                              <div className="flex items-center mb-1 gap-2">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden flex justify-center items-center bg-green-100 border border-gray-300 shrink-0">
                                   <img
                                     src={fb.avatar}
                                     alt={fb.author}
@@ -698,9 +698,9 @@ function PostDetail() {
                                     }}
                                   />
                                 </div>
-                                <div>
-                                  <p className="font-semibold text-sm">{fb.author}</p>
-                                  <p className="text-xs text-gray-500">{fb.timeAgo}</p>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-semibold text-xs sm:text-sm truncate">{fb.author}</p>
+                                  <p className="text-[10px] sm:text-xs text-gray-500">{fb.timeAgo}</p>
                                 </div>
                               </div>
 
@@ -708,7 +708,7 @@ function PostDetail() {
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <FaStar
                                         key={star}
-                                        className={`text-sm ${
+                                        className={`text-xs sm:text-sm ${
                                             star <= fb.rating
                                                 ? "text-yellow-400"
                                                 : "text-gray-300"
@@ -717,8 +717,8 @@ function PostDetail() {
                                 ))}
                               </div>
 
-                              <div className="max-h-[150px] overflow-y-auto pr-2">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{fb.content}</p>
+                              <div className="max-h-[120px] sm:max-h-[150px] overflow-y-auto pr-2">
+                                <p className="text-xs sm:text-sm text-gray-700 whitespace-pre-wrap break-words">{fb.content}</p>
                               </div>
                             </div>
                         ))}
@@ -727,7 +727,7 @@ function PostDetail() {
                       {feedbacks.length > displayedFeedbacksCount && (
                           <button
                               onClick={() => setDisplayedFeedbacksCount(prev => prev + 5)}
-                              className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                              className="w-full mt-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
                           >
                             더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
                           </button>
@@ -740,9 +740,9 @@ function PostDetail() {
 
           {/* AI 피드백 */}
           {isAIFeedbackOpen && (
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-800">
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8 mt-6 sm:mt-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800">
                   AI 피드백
                 </h2>
                 <button

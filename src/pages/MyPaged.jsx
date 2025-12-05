@@ -456,8 +456,8 @@ function MyPaged() {
     const dash = (percent / 100) * c;
 
     return (
-      <div className="relative">
-        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-[120px] md:h-[120px]">
+        <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -478,7 +478,7 @@ function MyPaged() {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[13px] font-semibold text-gray-800">
+          <span className="text-[10px] sm:text-xs md:text-[13px] font-semibold text-gray-800 text-center px-1">
             {label}
           </span>
         </div>
@@ -489,19 +489,19 @@ function MyPaged() {
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
       <Header />
-      <div className="mx-auto max-w-[1100px] px-4 py-8">
-        <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 py-6 sm:py-8">
+        <div className="rounded-[10px] border border-gray-200 bg-white px-4 sm:px-6 lg:px-10 py-4 sm:py-5 shadow-sm">
           {/* 프로필 */}
-          <div className="flex items-center gap-5 px-20 mb-10">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 px-0 sm:px-4 lg:px-20 mb-6 sm:mb-10">
             {/* 프로필 이미지 영역 */}
             <div
-              className={`h-full w-[132px] relative ${
+              className={`h-auto w-full max-w-[132px] sm:w-[132px] sm:h-[132px] mx-auto sm:mx-0 relative ${
                 isMyProfile ? "cursor-pointer" : ""
               }`}
               onClick={() => isMyProfile && fileInputRef.current?.click()}
             >
               <div
-                className={`h-full w-full overflow-hidden rounded-[10px] ${
+                className={`h-full w-full aspect-square overflow-hidden rounded-[10px] ${
                   isMyProfile ? "group" : ""
                 }`}
               >
@@ -546,12 +546,12 @@ function MyPaged() {
               )}
             </div>
 
-            <div className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden">
-              <div className="flex-1 min-w-0">
-                <h2 className="text-[22px] font-semibold mb-2">
+            <div className="flex-1 w-full sm:w-auto rounded-[10px] border border-[#ACACAC] bg-white pl-4 sm:pl-6 pr-3 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between box-border overflow-hidden gap-4">
+              <div className="flex-1 min-w-0 w-full sm:w-auto">
+                <h2 className="text-lg sm:text-[22px] font-semibold mb-2">
                   {profile.name}
                 </h2>
-                <ul className="space-y-2 text-[14px]">
+                <ul className="space-y-2 text-sm sm:text-[14px]">
                   <Row
                     icon={<TbCoin className="text-[#4D4D4D]" size={18} />}
                     label="누적포인트"
@@ -576,14 +576,14 @@ function MyPaged() {
                   />
                 </ul>
               </div>
-              <div className="shrink-0 ml-16 mr-5">
+              <div className="shrink-0 mx-auto sm:ml-8 lg:ml-16 sm:mr-5">
                 <GradeDonut label={profile.gradeLabel} />
               </div>
             </div>
           </div>
 
           {/* 탭 */}
-          <div className="flex gap-2 mb-5 px-1">
+          <div className="flex gap-2 mb-4 sm:mb-5 px-1 flex-wrap">
             <button
               onClick={() => setActiveTab("posts")}
               className={`px-3 py-1.5 rounded-full text-sm border transition ${
@@ -634,7 +634,7 @@ function MyPaged() {
                   등록된 게시글이 없습니다.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {myPosts.slice(0, myPostsDisplayCount).map((p) => (
                     <PostCard
                       key={`mypost-${p.id}`}

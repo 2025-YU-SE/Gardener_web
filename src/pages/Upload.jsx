@@ -213,17 +213,17 @@ function Upload() {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">  
       <Header/>
-      <div className="flex flex-col items-center py-8 px-4">
+      <div className="flex flex-col items-center py-6 sm:py-8 px-4 sm:px-6">
         <div className="w-full max-w-4xl">
-          <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800">
             {isEditMode ? '게시글 수정' : '코드 심기'}
           </h1>
           
           {/* 탭 메뉴 */}
-          <div className="flex justify-center mb-8">
-            <div className="flex border-b border-gray-200">
+          <div className="flex justify-center mb-6 sm:mb-8">
+            <div className="flex border-b border-gray-200 w-full sm:w-auto">
               <button 
-                className={`px-6 py-3 font-medium ${
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-3 font-medium text-sm sm:text-base ${
                   activeTab === '개발' 
                     ? 'text-green-600 border-b-2 border-green-600' 
                     : 'text-gray-500 hover:text-gray-700'
@@ -233,7 +233,7 @@ function Upload() {
                 개발
               </button>
               <button 
-                className={`px-6 py-3 font-medium ${
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-3 font-medium text-sm sm:text-base ${
                   activeTab === '코딩테스트' 
                     ? 'text-green-600 border-b-2 border-green-600' 
                     : 'text-gray-500 hover:text-gray-700'
@@ -247,10 +247,10 @@ function Upload() {
 
           {/* 개발 탭 내용 */}
           {activeTab === '개발' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-              <div className="flex items-center mb-6">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                <h2 className="text-xl font-bold text-gray-800">필수 항목</h2>
+            <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+              <div className="flex items-center mb-4 sm:mb-6">
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-2 sm:mr-3"></div>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800">필수 항목</h2>
               </div>
               
               <div className="space-y-6">
@@ -333,28 +333,28 @@ function Upload() {
                 
                 {/* 피드백 요청 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청 *
                   </label>
                   <div className="space-y-2">
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm sm:text-base"
                       value={feedbackRequests[0]}
                       onChange={(e) => handleFeedbackRequestChange(0, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm sm:text-base"
                       value={feedbackRequests[1]}
                       onChange={(e) => handleFeedbackRequestChange(1, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm sm:text-base"
                       value={feedbackRequests[2]}
                       onChange={(e) => handleFeedbackRequestChange(2, e.target.value)}
                     />
@@ -451,28 +451,28 @@ function Upload() {
 
                 {/* 피드백 요청 */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청 *
                   </label>
                   <div className="space-y-2">
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm sm:text-base"
                       value={codingFeedbackRequests[0]}
                       onChange={(e) => handleCodingFeedbackRequestChange(0, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm sm:text-base"
                       value={codingFeedbackRequests[1]}
                       onChange={(e) => handleCodingFeedbackRequestChange(1, e.target.value)}
                     />
                     <input 
                       type="text" 
                       placeholder="예: 성능 최적화, 코드 구조, 보안, 가독성 등 특별히 피드백받고 싶은 부분을 명시해주세요"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm sm:text-base"
                       value={codingFeedbackRequests[2]}
                       onChange={(e) => handleCodingFeedbackRequestChange(2, e.target.value)}
                     />
@@ -556,12 +556,12 @@ function Upload() {
           )}
 
           {/* 하단 버튼 */}
-          <div className="flex justify-between items-center py-5 px-5 bg-white border border-gray-200 rounded-lg p-3 mb-6">
-            <div className="text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 sm:py-5 px-4 sm:px-5 bg-white border border-gray-200 rounded-lg mb-4 sm:mb-6">
+            <div className="text-xs sm:text-sm text-gray-500">
               • 표시된 항목은 필수 입력 사항입니다.
             </div>
             <button 
-              className='m-2 px-4 py-2 rounded-md bg-[#16A34A] text-white flex items-center gap-2 hover:bg-[#15803d] disabled:opacity-50 disabled:cursor-not-allowed'
+              className='w-full sm:w-auto px-4 py-2 rounded-md bg-[#16A34A] text-white flex items-center justify-center gap-2 hover:bg-[#15803d] disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base'
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
