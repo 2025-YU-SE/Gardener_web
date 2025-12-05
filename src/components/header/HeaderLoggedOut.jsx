@@ -26,7 +26,7 @@ const HeaderLoggedOut = () => {
           onClick={() => setIsMenuOpen(false)}
         >
           <img src={logo} alt="logo" className="w-10 h-10 sm:w-12 sm:h-12 md:w-[50px] md:h-[50px]" />
-          <div className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">Code Gardener</div>
+          <div className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 whitespace-nowrap">Code Gardener</div>
         </Link>
 
         {/* 데스크톱 메뉴 */}
