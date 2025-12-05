@@ -607,7 +607,19 @@ function MyPaged() {
     <div className="min-h-screen bg-[#F5F7FA]">
       <Header />
       <div className="mx-auto max-w-[1100px] px-4 py-8">
-        <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
+        <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm relative">
+          {/* 회원 탈퇴 버튼 - 오른쪽 상단 */}
+          {isMyProfile && (
+            <div className="absolute top-5 right-5">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                className="text-xs sm:text-sm text-gray-400 hover:text-red-500 transition-colors"
+              >
+                회원 탈퇴
+              </button>
+            </div>
+          )}
           {/* 프로필 영역 */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5 px-4 sm:px-8 lg:px-12 mb-10">
             {/* 프로필 이미지 */}
@@ -696,18 +708,6 @@ function MyPaged() {
               </div>
             </div>
           </div>
-
-          {isMyProfile && (
-            <div className="flex justify-end w-full px-1 sm:px-0 mb-3">
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                className="text-sm text-red-500 hover:text-red-600 underline underline-offset-2"
-              >
-                회원 탈퇴
-              </button>
-            </div>
-          )}
 
           {/* 탭 */}
           <div className="flex gap-2 mb-5 px-1">
