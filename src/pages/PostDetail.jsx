@@ -54,10 +54,7 @@ function PostDetail() {
   // 피드백 작성 상태
   // -----------------------------
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false);
-  const [feedbackTitle, setFeedbackTitle] = useState(""); // ⬅ 추가됨
   const [feedbackContent, setFeedbackContent] = useState("");
-  const [selectedFeedbackType, setSelectedFeedbackType] =
-    useState("일반 피드백");
   const [rating, setRating] = useState(5);
 
   const [feedbackRanges, setFeedbackRanges] = useState([]);
@@ -641,40 +638,6 @@ function PostDetail() {
                 </button>
               ) : (
                 <div className="space-y-4">
-                  {/* 🔥 피드백 제목 입력칸 추가됨 */}
-                  <div>
-                    <label className="block mb-1 text-sm font-semibold">
-                      피드백 제목
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border rounded-md px-3 py-2"
-                      placeholder="예: 코드 복잡도 개선 제안"
-                      value={feedbackTitle}
-                      onChange={(e) => setFeedbackTitle(e.target.value)}
-                    />
-                  </div>
-
-                  {/* 피드백 유형 */}
-                  <div>
-                    <label className="block mb-2 text-sm">피드백 유형</label>
-                    <div className="flex gap-2">
-                      {["일반 피드백", "개선 제안", "버그 신고"].map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => setSelectedFeedbackType(type)}
-                          className={`px-3 py-1 rounded ${
-                            selectedFeedbackType === type
-                              ? "bg-green-600 text-white"
-                              : "bg-gray-200"
-                          }`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* 평점 */}
                   <div>
                     <label className="block mb-2 text-sm">평점</label>
