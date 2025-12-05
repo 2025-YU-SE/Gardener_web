@@ -659,8 +659,28 @@ function PostDetail() {
             </div>
           </div>
 
-          {/* 오른쪽: 피드백 작성 */}
+          {/* 오른쪽: 피드백 요청 + 피드백 작성 */}
           <div className="lg:col-span-1 space-y-6">
+            {/* 피드백 요청 섹션 */}
+            {post.summary && post.summary.trim() && (
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="font-bold text-lg mb-4">피드백 요청</h3>
+                <div className="space-y-2">
+                  {post.summary.split(',').map((item, index) => {
+                    const trimmed = item.trim();
+                    return trimmed ? (
+                      <div
+                        key={index}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        {trimmed}
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="bg-white border rounded-lg p-6">
               <h3 className="font-bold text-lg mb-4">피드백 작성</h3>
 
