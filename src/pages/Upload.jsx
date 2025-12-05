@@ -8,7 +8,7 @@ import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
 import CollapsibleFilter from '../components/filter/CollapsibleFilter'
 import WriteCodeEditor from '../components/WriteCodeEditor'
-import { createPost, updatePost, getPostDetail } from '../api/postApi'
+import { createPost, updatePost, getPostDetail, regenerateAiFeedback } from '../api/postApi'
 
 const getLanguageCode = (languageName) => {
   if (!languageName) return "javascript";
@@ -198,7 +198,19 @@ function Upload() {
         navigate(`/posts/${editPostId}`);
       } else {
         // 생성 모드
-        await createPost(postData);
+        const response = await createPost(postData);
+        const createdPostId = response?.data?.postId || response?.data?.id;
+        
+        // 게시물 생성 후 AI 피드백 자동 생성
+        if (createdPostId) {
+          try {
+            await regenerateAiFeedback(createdPostId);
+            console.log('AI 피드백이 자동으로 생성되었습니다.');
+          } catch (aiError) {
+            console.error('AI 피드백 생성 실패:', aiError);
+          }
+        }
+        
         alert('게시물이 업로드되었습니다!');
         navigate('/posts');
       }
