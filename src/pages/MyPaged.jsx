@@ -17,6 +17,7 @@ import {
   getUserScraps,
   updateProfilePicture,
   deleteProfilePicture,
+  deleteMyAccount,
 } from "../api/userApi";
 import { likePost, bookmarkPost } from "../api/postApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
@@ -432,6 +433,29 @@ function MyPaged() {
     }
   };
 
+  // 회원 탈퇴
+  const handleDeleteAccount = async () => {
+    if (!isMyProfile) return;
+
+    const confirmed = window.confirm(
+      "정말로 회원 탈퇴하시겠습니까? 모든 데이터가 삭제됩니다."
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteMyAccount();
+      alert("회원 탈퇴가 완료되었습니다.");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("loggedInUserId");
+      navigate("/sign-in");
+    } catch (error) {
+      console.error("회원 탈퇴 실패:", error);
+      const msg =
+        error.response?.data?.message || error.message || "알 수 없는 오류";
+      alert(`회원 탈퇴에 실패했습니다: ${msg}`);
+    }
+  };
+
   // 게시글 더보기
   const INITIAL_COUNT_VAL = INITIAL_COUNT;
 
@@ -672,6 +696,18 @@ function MyPaged() {
               </div>
             </div>
           </div>
+
+          {isMyProfile && (
+            <div className="flex justify-end w-full px-1 sm:px-0 mb-3">
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                className="text-sm text-red-500 hover:text-red-600 underline underline-offset-2"
+              >
+                회원 탈퇴
+              </button>
+            </div>
+          )}
 
           {/* 탭 */}
           <div className="flex gap-2 mb-5 px-1">
