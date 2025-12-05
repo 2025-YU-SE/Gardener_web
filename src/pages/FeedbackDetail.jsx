@@ -13,7 +13,7 @@ import FeedbackReadonlyCodeEditor from "../components/FeedbackReadonlyCodeEditor
 import FeedbackCodeEditor from "../components/FeedbackCodeEditor";
 
 import { getPostDetail } from "../api/postApi";
-import { getFeedbackDetail, getLineFeedbacks } from "../api/feedbackApi";
+import { getFeedbackDetail, getLineFeedbacks, adoptFeedback } from "../api/feedbackApi";
 import api from "../api/axiosInterceptor";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
@@ -99,6 +99,16 @@ function FeedbackDetail() {
         setEditContent(f.content);
         setEditRating(f.rating);
         
+        // 초기 좋아요 상태 확인
+        if (isAuthed) {
+          const currentUsername = getCurrentUsername();
+          if (currentUsername) {
+            const likedKey = `feedbackLiked:${currentUsername}:${feedbackId}`;
+            const storedLiked = localStorage.getItem(likedKey);
+            setDetailLiked(storedLiked === "true");
+          }
+        }
+        
         // 라인 피드백을 수정용 형식으로 변환
         const mappedLineFeedbacks = lineFeedbacksData.map((lf) => ({
           id: lf.lineFeedbackId,
@@ -159,8 +169,7 @@ function FeedbackDetail() {
   // 2. 좋아요 / 수정 / 삭제 / 댓글 CRUD
   // ===================================================
 
-  const baseLikes = feedback?.likesCount ?? 0;
-  const detailLikes = baseLikes + (detailLiked ? 1 : 0);
+  const detailLikes = feedback?.likesCount ?? 0;
 
   // ===================================================
   // 피드백 수정/삭제 권한 체크
@@ -178,6 +187,20 @@ function FeedbackDetail() {
     return feedback.userName === currentUsername;
   };
 
+  // 게시물 작성자가 피드백을 채택할 수 있는지 여부
+  const canAdoptFeedback = () => {
+    if (!isAuthed || !post || !feedback) return false;
+
+    const currentUsername = getCurrentUsername();
+    if (!currentUsername) return false;
+
+    // 이미 채택된 피드백은 다시 채택 불가
+    if (feedback.adoptedTF) return false;
+
+    // 게시물 작성자만 채택 가능
+    return post.author === currentUsername;
+  };
+
   // 피드백 좋아요 토글
   const toggleDetailLike = async () => {
     if (!feedback) return;
@@ -187,19 +210,112 @@ function FeedbackDetail() {
       return;
     }
     
+    const currentUsername = getCurrentUsername();
+    const likedKey = currentUsername ? `feedbackLiked:${currentUsername}:${feedbackId}` : null;
+    
+    // 이전 상태 저장
+    const wasLiked = detailLiked;
+    const willLike = !wasLiked;
+    const prevLikesCount = feedback.likesCount ?? 0;
+    
+    setDetailLiked(willLike);
+    setFeedback((prev) =>
+        prev
+            ? {
+              ...prev,
+              likesCount: Math.max(0, prevLikesCount + (willLike ? 1 : -1)),
+            }
+            : prev
+    );
+    
+    if (likedKey) {
+      if (willLike) {
+        localStorage.setItem(likedKey, "true");
+      } else {
+        localStorage.removeItem(likedKey);
+      }
+    }
+    
     try {
       await api.post(`/api/feedback/${feedbackId}/like`);
-      setDetailLiked((prev) => !prev);
+      
+      // 성공 시 피드백 상세를 다시 조회하여 정확한 상태로 업데이트
+      const fbRes = await getFeedbackDetail(feedbackId);
+      const f = fbRes?.data || fbRes;
+      
+      if (f) {
+        setFeedback((prev) => ({
+          ...prev,
+          ...f,
+          lineFeedbacks: prev?.lineFeedbacks || f.lineFeedbacks || [],
+        }));
+        // 상상태 동기화
+        setDetailLiked(willLike);
+      }
+    } catch (err) {
+      console.error("피드백 좋아요 토글 실패:", err);
+      
+      // 실패 시 이전 상태로 롤백
+      setDetailLiked(wasLiked);
       setFeedback((prev) =>
           prev
               ? {
                 ...prev,
-                likesCount: prev.likesCount + (detailLiked ? -1 : 1),
+                likesCount: prevLikesCount,
               }
               : prev
       );
+      
+      if (likedKey) {
+        if (wasLiked) {
+          localStorage.setItem(likedKey, "true");
+        } else {
+          localStorage.removeItem(likedKey);
+        }
+      }
+      
+      alert("좋아요 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 피드백 채택
+  const handleAdoptFeedback = async () => {
+    if (!feedback) return;
+
+    if (!isAuthed) {
+      navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
+    if (!canAdoptFeedback()) {
+      alert("이 피드백을 채택할 권한이 없습니다.");
+      return;
+    }
+
+    if (!window.confirm("이 피드백을 채택하시겠습니까? 채택 후에는 수정/삭제가 제한될 수 있습니다.")) {
+      return;
+    }
+
+    try {
+      await adoptFeedback(feedbackId);
+
+      setFeedback((prev) =>
+        prev
+          ? {
+              ...prev,
+              adoptedTF: true,
+            }
+          : prev
+      );
+
+      alert("피드백이 채택되었습니다.");
     } catch (err) {
-      console.error("피드백 좋아요 토글 실패:", err);
+      console.error("피드백 채택 실패:", err);
+      const message =
+        err.response?.data ||
+        err.response?.data?.message ||
+        "피드백 채택에 실패했습니다.";
+      alert(message);
     }
   };
 
@@ -498,59 +614,72 @@ function FeedbackDetail() {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="font-semibold text-gray-900">
-                    {feedback.userName || "작성자"}
-                  </span>
+                    <span className="font-semibold text-gray-900">
+                      {feedback.userName || "작성자"}
+                    </span>
                     <span>·</span>
                     <span>{feedback.createdAt?.slice(0, 10) || ""}</span>
                   </div>
-                  {/* 채택되지 않은 경우에만 수정/삭제 노출 (작성자만 보이도록) */}
-                  {!feedback.adoptedTF && !isEditing && canEditOrDelete() && (
-                    <div className="relative feedback-menu-container ml-4">
+                  <div className="flex items-center gap-2 ml-4">
+                    {/* 채택 버튼: 게시물 작성자이면서 아직 채택되지 않은 경우에만 노출 */}
+                    {canAdoptFeedback() && (
                       <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        type="button"
+                        onClick={handleAdoptFeedback}
+                        className="px-3 py-1 text-xs font-semibold rounded-full bg-green-600 text-white hover:bg-green-700"
                       >
-                        <IoMdMore size={24} />
+                        피드백 채택
                       </button>
-                      
-                      {isMenuOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                          <button
-                          onClick={() => {
-                            setIsMenuOpen(false);
-                            setIsEditing(true);
-                            // 수정 모드 진입 시 현재 라인 피드백을 편집용으로 설정
-                            const mapped = (feedback.lineFeedbacks || []).map((lf) => ({
-                              id: lf.lineFeedbackId,
-                              start: Number(lf.lineNumber) || 0,
-                              end: Number(lf.endLineNumber) || Number(lf.lineNumber) || 0,
-                              text: lf.content || "",
-                              editing: false,
-                              createdAt: lf.createdAt,
-                              lineFeedbackId: lf.lineFeedbackId,
-                            }));
-                            setEditLineFeedbacks(mapped);
-                          }}
-                            className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                          >
-                            <FaEdit className="text-blue-600" />
-                            <span>수정</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setIsMenuOpen(false);
-                              handleDelete();
-                            }}
-                            className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                          >
-                            <FaTrash />
-                            <span>삭제</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                    )}
+
+                    {/* 채택되지 않은 경우에만 수정/삭제 노출 (피드백 작성자/관리자만 보이도록) */}
+                    {!feedback.adoptedTF && !isEditing && canEditOrDelete() && (
+                      <div className="relative feedback-menu-container">
+                        <button
+                          onClick={() => setIsMenuOpen(!isMenuOpen)}
+                          className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <IoMdMore size={24} />
+                        </button>
+                        
+                        {isMenuOpen && (
+                          <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                            <button
+                              onClick={() => {
+                                setIsMenuOpen(false);
+                                setIsEditing(true);
+                                // 수정 모드 진입 시 현재 라인 피드백을 편집용으로 설정
+                                const mapped = (feedback.lineFeedbacks || []).map((lf) => ({
+                                  id: lf.lineFeedbackId,
+                                  start: Number(lf.lineNumber) || 0,
+                                  end: Number(lf.endLineNumber) || Number(lf.lineNumber) || 0,
+                                  text: lf.content || "",
+                                  editing: false,
+                                  createdAt: lf.createdAt,
+                                  lineFeedbackId: lf.lineFeedbackId,
+                                }));
+                                setEditLineFeedbacks(mapped);
+                              }}
+                              className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                            >
+                              <FaEdit className="text-blue-600" />
+                              <span>수정</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setIsMenuOpen(false);
+                                handleDelete();
+                              }}
+                              className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                            >
+                              <FaTrash />
+                              <span>삭제</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {isEditing && (
                     <div className="flex gap-2 text-xs text-gray-500">
                       <button
@@ -705,7 +834,7 @@ function FeedbackDetail() {
                 ) : (
                     <FaRegHeart />
                 )}
-                <span className="text-sm font-medium">{detailLikes}</span>
+                <span className="text-sm font-medium">{feedback?.likesCount ?? 0}</span>
               </button>
               <div className="inline-flex items-center gap-1">
                 <FaComment /> {replyCount}

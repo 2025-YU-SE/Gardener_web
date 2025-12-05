@@ -31,7 +31,11 @@ import {
   likePost,
   bookmarkPost,
 } from "../api/postApi";
-import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
+import {
+  getFeedbacksByPost,
+  createFeedback,
+  createLineFeedback,
+} from "../api/feedbackApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
 import baseProfile from "../assets/baseProfile.png";
@@ -121,7 +125,6 @@ function PostDetail() {
 
         setAiFeedback(p.aiFeedback || "");
 
-
         const username = getCurrentUsername();
         if (username) {
           const likedKey = `postLiked:${username}:${postId}`;
@@ -151,8 +154,6 @@ function PostDetail() {
         const res = await getFeedbacksByPost(postId);
         const list = Array.isArray(res) ? res : res.data || [];
 
-
-
         const mapped = list.map((fb) => ({
           id: fb.feedbackId,
           author: fb.userName || `User ${fb.userId}`,
@@ -162,7 +163,14 @@ function PostDetail() {
           timeAgo: fb.createdAt?.slice(0, 10),
           likes: fb.likesCount,
           views: 0,
+          adoptedTF: fb.adoptedTF === true,
         }));
+
+        // 채택된 피드백이 상단
+        mapped.sort((a, b) => {
+          if (a.adoptedTF === b.adoptedTF) return 0;
+          return a.adoptedTF ? -1 : 1;
+        });
 
         setFeedbacks(mapped);
       } catch (err) {
@@ -213,25 +221,25 @@ function PostDetail() {
       const createdFeedback = await createFeedback(feedbackPayload);
       const feedbackId = createdFeedback.feedbackId || createdFeedback.id;
 
-        // 2. 각 라인 피드백을 개별적으로 등록
-        if (feedbackRanges && feedbackRanges.length > 0) {
-          // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
-          const lineFeedbackPromises = feedbackRanges.map((r) => {
-            // text 필드 확인 (text 또는 content 필드 모두 확인)
-            const rawText = r.text || r.content || "";
-            const content = rawText.trim();
-            
-            const payload = {
-              lineNumber: r.start,
-              endLineNumber: r.end,
-              content: content,
-            };
-            
-            return createLineFeedback(feedbackId, payload);
-          });
+      // 2. 각 라인 피드백을 개별적으로 등록
+      if (feedbackRanges && feedbackRanges.length > 0) {
+        // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
+        const lineFeedbackPromises = feedbackRanges.map((r) => {
+          // text 필드 확인 (text 또는 content 필드 모두 확인)
+          const rawText = r.text || r.content || "";
+          const content = rawText.trim();
 
-          await Promise.all(lineFeedbackPromises);
-        }
+          const payload = {
+            lineNumber: r.start,
+            endLineNumber: r.end,
+            content: content,
+          };
+
+          return createLineFeedback(feedbackId, payload);
+        });
+
+        await Promise.all(lineFeedbackPromises);
+      }
 
       alert("피드백이 등록되었습니다!");
       window.location.reload();
@@ -241,7 +249,10 @@ function PostDetail() {
         localStorage.removeItem("accessToken");
         navigate("/sign-in", { state: { from: location.pathname } });
       } else {
-        alert("피드백 등록 실패: " + (err.response?.data?.message || err.message || "알 수 없는 오류"));
+        alert(
+          "피드백 등록 실패: " +
+            (err.response?.data?.message || err.message || "알 수 없는 오류")
+        );
       }
     }
   };
@@ -267,8 +278,19 @@ function PostDetail() {
 
     const username = getCurrentUsername();
     const likedKey = username ? `postLiked:${username}:${postId}` : null;
-    const wasLiked = likedKey ? localStorage.getItem(likedKey) === "true" : false;
+
+    const wasLiked = postLiked;
     const willLike = !wasLiked;
+
+    let prevLikes = post?.likes ?? 0;
+
+    setPost((prev) => {
+      if (!prev) return prev;
+      prevLikes = prev.likes;
+      const nextLikes = Math.max(0, prev.likes + (willLike ? 1 : -1));
+      return { ...prev, likes: nextLikes };
+    });
+    setPostLiked(willLike);
 
     try {
       await likePost(postId);
@@ -277,18 +299,17 @@ function PostDetail() {
         if (willLike) localStorage.setItem(likedKey, "true");
         else localStorage.removeItem(likedKey);
       }
-
-      setPostLiked(willLike);
-      setPost((prev) =>
-        prev
-          ? {
-              ...prev,
-              likes: Math.max(0, prev.likes + (willLike ? 1 : -1)),
-            }
-          : prev
-      );
     } catch (err) {
       console.error("게시글 좋아요 토글 실패:", err);
+
+      setPost((prev) => (prev ? { ...prev, likes: prevLikes } : prev));
+      setPostLiked(wasLiked);
+
+      if (likedKey) {
+        if (wasLiked) localStorage.setItem(likedKey, "true");
+        else localStorage.removeItem(likedKey);
+      }
+
       alert("좋아요 처리 중 오류가 발생했습니다.");
     }
   };
@@ -301,8 +322,19 @@ function PostDetail() {
 
     const username = getCurrentUsername();
     const scrapKey = username ? `postScrapped:${username}:${postId}` : null;
-    const wasScrapped = scrapKey ? localStorage.getItem(scrapKey) === "true" : false;
+
+    const wasScrapped = postBookmarked;
     const willScrap = !wasScrapped;
+
+    let prevBookmarks = post?.bookmarks ?? 0;
+
+    setPost((prev) => {
+      if (!prev) return prev;
+      prevBookmarks = prev.bookmarks;
+      const nextBookmarks = Math.max(0, prev.bookmarks + (willScrap ? 1 : -1));
+      return { ...prev, bookmarks: nextBookmarks };
+    });
+    setPostBookmarked(willScrap);
 
     try {
       await bookmarkPost(postId);
@@ -311,18 +343,17 @@ function PostDetail() {
         if (willScrap) localStorage.setItem(scrapKey, "true");
         else localStorage.removeItem(scrapKey);
       }
-
-      setPostBookmarked(willScrap);
-      setPost((prev) =>
-        prev
-          ? {
-              ...prev,
-              bookmarks: Math.max(0, prev.bookmarks + (willScrap ? 1 : -1)),
-            }
-          : prev
-      );
     } catch (err) {
       console.error("게시글 스크랩 토글 실패:", err);
+
+      setPost((prev) => (prev ? { ...prev, bookmarks: prevBookmarks } : prev));
+      setPostBookmarked(wasScrapped);
+
+      if (scrapKey) {
+        if (wasScrapped) localStorage.setItem(scrapKey, "true");
+        else localStorage.removeItem(scrapKey);
+      }
+
       alert("스크랩 처리 중 오류가 발생했습니다.");
     }
   };
@@ -363,9 +394,7 @@ function PostDetail() {
       const text = dto?.aiFeedback || "";
       setAiFeedback(text);
 
-      setPost((prev) =>
-        prev ? { ...prev, aiFeedback: text } : prev
-      );
+      setPost((prev) => (prev ? { ...prev, aiFeedback: text } : prev));
     } catch (err) {
       console.error("AI 피드백 재생성 실패:", err);
       setAiError("AI 피드백 재생성에 실패했습니다.");
@@ -377,15 +406,15 @@ function PostDetail() {
   // ===================================================
   // 🔥 게시글 수정/삭제 권한 체크
   // ===================================================
-  const canEditOrDelete = () => {
+  const canEditOre = () => {
     if (!isAuthed || !post) return false;
-    
+
     const currentUsername = getCurrentUsername();
     if (!currentUsername) return false;
-    
+
     // 관리자는 항상 수정/삭제 가능
     if (isAdmin()) return true;
-    
+
     // 게시글 작성자만 수정/삭제 가능
     return post.author === currentUsername;
   };
@@ -423,12 +452,16 @@ function PostDetail() {
       if (err.response?.status === 403) {
         alert("삭제 권한이 없습니다.");
       } else {
-        alert("게시글 삭제에 실패했습니다: " + (err.response?.data?.message || err.message));
+        alert(
+          "게시글 삭제에 실패했습니다: " +
+            (err.response?.data?.message || err.message)
+        );
       }
     }
   };
 
   return (
+
       <div className="min-h-screen bg-[#F9FAFB]">
         <Header />
 
@@ -494,19 +527,100 @@ function PostDetail() {
               <div>
                 <p className="font-semibold">{post.author}</p>
                 <p className="text-sm text-gray-500">{post.timeAgo}</p>
+
               </div>
+            )}
+          </div>
+
+          <p className="text-gray-600 mb-6">{post.content}</p>
+
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
+              <img
+                src={post.avatar}
+                alt={post.author}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = baseProfile;
+                }}
+              />
+            </div>
+            <div>
+              <p className="font-semibold">{post.author}</p>
+              <p className="text-sm text-gray-500">{post.timeAgo}</p>
+            </div>
+          </div>
+
+      <div className="min-h-screen bg-[#F9FAFB]">
+        <Header />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          {/* -------------------------------- */}
+          {/* 게시글 카드 */}
+          {/* -------------------------------- */}
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex items-start justify-between mb-2 gap-2">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 flex-1 break-words">{post.title}</h1>
+              
+              {/* 드롭다운 메뉴 */}
+              {canEditOrDelete() && (
+                <div className="relative post-menu-container ml-4">
+                  <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <IoMdMore size={24} />
+                  </button>
+                  
+                  {isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleEditPost();
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FaEdit className="text-blue-600" />
+                        <span>수정</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          handleDeletePost();
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                      >
+                        <FaTrash />
+                        <span>삭제</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-4">
-              {post.tags?.filter(Boolean).map((tag) => (
-                  <span
-                      key={tag}
-                      className="px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs sm:text-sm"
-                  >
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 break-words">{post.content}</p>
+
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex justify-center items-center mr-2 sm:mr-3 bg-green-100 border border-gray-300 shrink-0">
+                <img
+                  src={post.avatar}
+                  alt={post.author}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = baseProfile;
+                  }}
+                />
+              </div>
+              <div>
+                <p className="font-semibold">{post.author}</p>
+                <p className="text-sm text-gray-500">{post.timeAgo}</p>
+
                 {tag}
               </span>
-              ))}
-            </div>
+            ))}
+          </div>
 
             {/* GitHub 레포지토리 링크 */}
             {post.githubRepoUrl && (() => {
@@ -540,37 +654,46 @@ function PostDetail() {
                   <span>{post.likes}</span>
                 </button>
 
-                <button
-                    onClick={handleToggleBookmark}
-                    className="flex items-center gap-1 text-gray-600"
-                >
-                  {postBookmarked ? (
-                      <FaBookmark className="text-blue-500" />
-                  ) : (
-                      <FaRegBookmark />
-                  )}
-                  <span>{post.bookmarks}</span>
-                </button>
 
-                <span className="flex items-center gap-1 text-gray-600">
+              <button
+                onClick={handleToggleBookmark}
+                className="flex items-center gap-1 text-gray-600"
+              >
+                {postBookmarked ? (
+                  <FaBookmark className="text-blue-500" />
+                ) : (
+                  <FaRegBookmark />
+                )}
+                <span>{post.bookmarks}</span>
+              </button>
+
+              <span className="flex items-center gap-1 text-gray-600">
                 <FaComment />
-                  {post.comments}
+                {post.comments}
               </span>
 
-                <span className="flex items-center gap-1 text-gray-600">
+              <span className="flex items-center gap-1 text-gray-600">
                 <FaEye />
-                  {post.views}
+                {post.views}
               </span>
               </div>
-
               <button
                 onClick={handleToggleAIFeedback}
                 className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md text-sm sm:text-base w-full sm:w-auto"
               >
                 {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
               </button>
+
             </div>
+
+            <button
+              onClick={handleToggleAIFeedback}
+              className="bg-green-600 text-white px-4 py-2 rounded-md"
+            >
+              {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
+            </button>
           </div>
+        </div>
 
           {/* -------------------------------- */}
           {/* 코드 영역 + 피드백 */}
@@ -607,7 +730,9 @@ function PostDetail() {
                   />
                 )}
               </div>
+
             </div>
+          </div>
 
             {/* 오른쪽: 피드백 작성 */}
             <div className="lg:col-span-1 space-y-4 sm:space-y-6">
@@ -635,9 +760,9 @@ function PostDetail() {
                                   }`}
                                   onClick={() => setRating(star)}
                               />
+
                           ))}
                         </div>
-                      </div>
 
                       {/* 내용 */}
                       <div>
@@ -648,7 +773,10 @@ function PostDetail() {
                         value={feedbackContent}
                         onChange={(e) => setFeedbackContent(e.target.value)}
                     />
+
                       </div>
+                    ))}
+                  </div>
 
                       {/* 제출 */}
                       <button
@@ -724,8 +852,10 @@ function PostDetail() {
                     </>
                 )}
               </div>
+
             </div>
           </div>
+        </div>
 
           {/* AI 피드백 */}
           {isAIFeedbackOpen && (
@@ -760,10 +890,30 @@ function PostDetail() {
                   </p>
                 </div>
               )}
+
             </div>
-          )}
-        </div>
+
+            {aiLoading && (
+              <p className="text-sm text-gray-500">AI 피드백 생성 중...</p>
+            )}
+
+            {!aiLoading && aiError && (
+              <p className="text-sm text-red-500">{aiError}</p>
+            )}
+
+            {!aiLoading && !aiError && (
+              <div className="mt-2 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
+                <p className="whitespace-pre-wrap text-sm text-gray-800">
+                  {aiFeedback && aiFeedback.trim()
+                    ? aiFeedback
+                    : "AI 피드백이 아직 생성되지 않았습니다."}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+    </div>
   );
 }
 
