@@ -551,7 +551,7 @@ function FeedbackDetail() {
   return (
       <div className="min-h-screen bg-[#F9FAFB]">
         <Header />
-        <div className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
           <button
               type="button"
               onClick={() => navigate(-1)}
@@ -562,10 +562,10 @@ function FeedbackDetail() {
           </button>
 
           {/* 요약 */}
-          <section className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-full overflow-hidden flex items-center justify-center bg-green-100 border border-gray-300">
+          <section className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full overflow-hidden flex items-center justify-center bg-green-100 border border-gray-300 shrink-0">
                   <img
                     src={post.avatar}
                     alt={post.author}
@@ -584,11 +584,11 @@ function FeedbackDetail() {
                   </div>
                 </div>
               </div>
-              <div className="ml-4 flex flex-wrap gap-2">
+              <div className="w-full sm:w-auto sm:ml-4 flex flex-wrap gap-2">
                 {(post.tags || []).map((tag) => (
                     <span
                         key={tag}
-                        className="px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs border border-green-100"
+                        className="px-2 sm:px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs border border-green-100"
                     >
                   {tag}
                 </span>
@@ -598,10 +598,10 @@ function FeedbackDetail() {
           </section>
 
           {/* 상세 내용 */}
-          <section className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
+          <section className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
             {/* 작성자 + 수정/삭제 버튼 */}
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300">
+            <div className="flex items-start gap-2 sm:gap-3 mb-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300 shrink-0">
                 <img
                   src={makeAbsoluteImageUrl(feedback.userPicture) || baseProfile}
                   alt={feedback.userName || "작성자"}
@@ -843,8 +843,8 @@ function FeedbackDetail() {
           </section>
 
           {/* 코드에디터 (읽기 전용 원본 코드) + 댓글 */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
               <ReadonlyCodeEditor
                 value={post.code}
                 language={editorLanguage}
@@ -853,8 +853,8 @@ function FeedbackDetail() {
             </div>
 
             {/* 답글 영역 */}
-            <section className="bg-white border border-gray-200 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            <section className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
                 답글 ({replyCount}개)
               </h2>
               {/* 답글 목록 */}
@@ -863,14 +863,14 @@ function FeedbackDetail() {
                   {replies.slice(0, displayedRepliesCount).map((fb, idx) => (
                       <div
                           key={fb.id}
-                          className={`py-4 ${
+                          className={`py-3 sm:py-4 ${
                               idx !== replies.slice(0, displayedRepliesCount).length - 1
                                   ? "border-b border-gray-200"
                                   : ""
                           }`}
                       >
-                        <div className="flex items-start">
-                          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300 mr-3">
+                        <div className="flex items-start gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300 shrink-0">
                             <img
                               src={fb.avatar}
                               alt={fb.author}
@@ -880,37 +880,37 @@ function FeedbackDetail() {
                               }}
                             />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 text-sm">
-                          <span className="font-semibold text-gray-900">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                          <span className="font-semibold text-gray-900 truncate">
                             {fb.author}
                           </span>
                               <span className="text-gray-400">·</span>
-                              <span className="text-gray-500">{fb.timeAgo}</span>
+                              <span className="text-gray-500 whitespace-nowrap">{fb.timeAgo}</span>
                             </div>
-                            <div className="mt-2 max-h-[200px] overflow-y-auto pr-2">
-                              <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                            <div className="mt-2 max-h-[150px] sm:max-h-[200px] overflow-y-auto pr-2">
+                              <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
                                 {fb.content}
                               </p>
                             </div>
-                            <div className="mt-2 flex items-center gap-6 text-sm text-gray-600">
+                            <div className="mt-2 flex items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600">
                               <button
                                   type="button"
                                   onClick={() => toggleReplyLike(fb.id)}
                                   className="inline-flex items-center gap-1 hover:opacity-90"
                               >
                                 {replyLikeState[fb.id]?.liked ? (
-                                    <FaHeart className="text-red-500" />
+                                    <FaHeart className="text-red-500 text-xs sm:text-sm" />
                                 ) : (
-                                    <FaRegHeart />
+                                    <FaRegHeart className="text-xs sm:text-sm" />
                                 )}
-                                <span className="text-sm font-medium">
+                                <span className="text-xs sm:text-sm font-medium">
                               {replyLikeState[fb.id]?.count ?? fb.likes ?? 0}
                             </span>
                               </button>
                               <button
                                   type="button"
-                                  className="text-gray-500 hover:text-gray-700"
+                                  className="text-gray-500 hover:text-gray-700 text-xs sm:text-sm"
                               >
                                 답글
                               </button>
@@ -925,7 +925,7 @@ function FeedbackDetail() {
                     <button
                         type="button"
                         onClick={() => setDisplayedRepliesCount(prev => prev + 5)}
-                        className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                        className="w-full mt-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       더보기 ({replies.length - displayedRepliesCount}개 더)
                     </button>
@@ -933,21 +933,21 @@ function FeedbackDetail() {
               </div>
 
               {/* 입력 박스 */}
-                <div className="rounded-xl border border-gray-200 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300">
+                <div className="rounded-xl border border-gray-200 p-3 sm:p-4">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 border border-gray-300 shrink-0">
                       <img
                         src={baseProfile}
                         alt="프로필"
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="w-full">
-                      <div className="border border-gray-300 rounded-lg p-3">
+                    <div className="w-full min-w-0">
+                      <div className="border border-gray-300 rounded-lg p-2 sm:p-3">
                       <textarea
-                          rows={5}
+                          rows={4}
                           placeholder="이 피드백에 대한 의견을 남겨주세요..."
-                          className="w-full min-h-28 outline-none focus:ring-0 resize-none border-0 p-0"
+                          className="w-full min-h-24 sm:min-h-28 outline-none focus:ring-0 resize-none border-0 p-0 text-sm sm:text-base"
                           value={replyInput}
                           onChange={(e) => setReplyInput(e.target.value)}
                       />
@@ -955,9 +955,9 @@ function FeedbackDetail() {
                           <button
                               type="button"
                               onClick={handleSendReply}
-                              className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700"
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-600 text-white flex items-center justify-center hover:bg-green-700 shrink-0"
                           >
-                            <BsSend />
+                            <BsSend className="text-sm sm:text-base" />
                           </button>
                         </div>
                       </div>

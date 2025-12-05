@@ -423,16 +423,16 @@ function Posts() {
   return (
       <div className="min-h-screen bg-[#f9f9f9]">
         <Header />
-        <div className="flex max-w-7xl mx-auto px-6 py-10  gap-8">
+        <div className="flex flex-col lg:flex-row max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 gap-6 lg:gap-8">
 
           {/* 사이드바 */}
-          <div className="space-y-10 py-8">
+          <div className="w-full lg:w-auto space-y-6 lg:space-y-10 py-4 lg:py-8">
             {/* 검색창 */}
-            <div className="flex space-x-2 px-5 py-3 bg-white border border-gray-300 rounded-2xl">
+            <div className="flex space-x-2 px-4 sm:px-5 py-3 bg-white border border-gray-300 rounded-2xl">
               <input
                   type="text"
                   placeholder="제목, 내용, 아이디로 검색"
-                  className="focus:outline-none flex-1"
+                  className="focus:outline-none flex-1 text-sm sm:text-base"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onKeyPress={handleSearchKeyPress}
@@ -458,17 +458,17 @@ function Posts() {
           </div>
 
           {/* 게시물 목록 */}
-          <div className="flex flex-col flex-1 min-w-0 py-4 max-w-4xl">
+          <div className="flex flex-col flex-1 min-w-0 py-2 lg:py-4 max-w-4xl">
 
             {/* 카테고리 + 정렬 */}
-            <div className="flex justify-between items-center p-4">
-              <div className="flex space-x-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4">
+              <div className="flex space-x-4 sm:space-x-8">
                 <button
                     onClick={() => {
                       setSelectedCategory("개발");
                       setCurrentPage(1);
                     }}
-                    className={`text-2xl font-semibold pb-2 border-b-2 transition-colors ${
+                    className={`text-lg sm:text-2xl font-semibold pb-2 border-b-2 transition-colors ${
                         selectedCategory === "개발"
                             ? "text-black border-black"
                             : "text-gray-400 border-transparent hover:text-gray-600"
@@ -481,7 +481,7 @@ function Posts() {
                       setSelectedCategory("코딩테스트");
                       setCurrentPage(1);
                     }}
-                    className={`text-2xl font-semibold pb-2 border-b-2 transition-colors ${
+                    className={`text-lg sm:text-2xl font-semibold pb-2 border-b-2 transition-colors ${
                         selectedCategory === "코딩테스트"
                             ? "text-black border-black"
                             : "text-gray-400 border-transparent hover:text-gray-600"
@@ -535,12 +535,12 @@ function Posts() {
               {currentPosts.map((post) => (
                   <div
                       key={post.id}
-                      className="bg-white border border-gray-300 p-6 rounded-xl hover:shadow-md transition-shadow"
+                      className="bg-white border border-gray-300 p-4 sm:p-6 rounded-xl hover:shadow-md transition-shadow"
                   >
                     {/* 프로필 */}
                     <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-gray-300 border flex items-center justify-center bg-green-100">
+                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-gray-300 border flex items-center justify-center bg-green-100 shrink-0">
                           <img
                             src={post.avatar}
                             alt={post.author}
@@ -550,11 +550,11 @@ function Posts() {
                             }}
                           />
                         </div>
-                        <div>
-                          <div className="font-semibold text-gray-900">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                             {post.author}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-xs sm:text-sm text-gray-500">
                             <IoMdTime className="inline-block mr-1" />
                             {post.timeAgo}
                           </div>
@@ -609,22 +609,22 @@ function Posts() {
                         className="mb-4 cursor-pointer"
                         onClick={() => handlePostClick(post.id)}
                     >
-                      <h2 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2 min-h-[2.5rem] hover:font-extrabold">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight line-clamp-2 min-h-[2.5rem] hover:font-extrabold">
                         {post.title}
                       </h2>
-                      <p className="text-gray-700 text-base leading-relaxed line-clamp-2 min-h-[3rem] max-h-[3rem]">
+                      <p className="text-gray-700 text-sm sm:text-base leading-relaxed line-clamp-2 min-h-[3rem] max-h-[3rem]">
                         {post.content}
                       </p>
                     </div>
 
                     {/* 태그 */}
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
                       {post.tags.map(
                           (tag, index) =>
                               tag && (
                                   <span
                                       key={index}
-                                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                      className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
                                           index === 0
                                               ? "bg-[#E9FFEA] text-[#00B834]"
                                               : "bg-[#00B834] text-white"
@@ -637,49 +637,49 @@ function Posts() {
                     </div>
 
                     {/* 액션 바 */}
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="flex items-center space-x-6">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-100 gap-2">
+                      <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-6 flex-wrap gap-1 sm:gap-2">
 
                         {/* 좋아요 */}
                         <button
                             onClick={() => toggleLike(post.id)}
-                            className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors"
+                            className="flex items-center space-x-1 sm:space-x-2 text-gray-600 hover:text-red-500 transition-colors"
                         >
                           {post.isLiked ? (
-                              <FaHeart className="text-red-500" />
+                              <FaHeart className="text-red-500 text-sm sm:text-base" />
                           ) : (
-                              <FaRegHeart />
+                              <FaRegHeart className="text-sm sm:text-base" />
                           )}
-                          <span className="text-sm font-medium">{post.likes}</span>
+                          <span className="text-xs sm:text-sm font-medium">{post.likes}</span>
                         </button>
 
                         {/* 북마크 */}
                         <button
                             onClick={() => toggleBookmark(post.id)}
-                            className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+                            className="flex items-center space-x-1 sm:space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
                         >
                           {post.isBookmarked ? (
-                              <FaBookmark className="text-blue-500" />
+                              <FaBookmark className="text-blue-500 text-sm sm:text-base" />
                           ) : (
-                              <FaRegBookmark />
+                              <FaRegBookmark className="text-sm sm:text-base" />
                           )}
-                          <span className="text-sm font-medium">
+                          <span className="text-xs sm:text-sm font-medium">
                         {post.bookmarks}
                       </span>
                         </button>
 
                         {/* 댓글 */}
-                        <button className="flex items-center space-x-2 text-gray-600">
-                          <FaComment />
-                          <span className="text-sm font-medium">
+                        <button className="flex items-center space-x-1 sm:space-x-2 text-gray-600">
+                          <FaComment className="text-sm sm:text-base" />
+                          <span className="text-xs sm:text-sm font-medium">
                         {post.comments}
                       </span>
                         </button>
 
                         {/* 조회수 */}
                         <div className="flex items-center space-x-1 text-gray-500">
-                          <FaEye />
-                          <span className="text-sm">{post.views}</span>
+                          <FaEye className="text-sm sm:text-base" />
+                          <span className="text-xs sm:text-sm">{post.views}</span>
                         </div>
 
                       </div>
@@ -690,8 +690,8 @@ function Posts() {
             </div>
 
             {/* 페이지네이션 */}
-            <div className="flex justify-center items-center mt-8">
-              <div className="flex items-center space-x-1">
+            <div className="flex justify-center items-center mt-6 sm:mt-8 overflow-x-auto pb-2">
+              <div className="flex items-center space-x-0.5 sm:space-x-1">
 
                 <button
                     onClick={goToFirstPage}
@@ -723,7 +723,7 @@ function Posts() {
                       <button
                           key={pageNumber}
                           onClick={() => goToPage(pageNumber)}
-                          className={`px-3 py-2 rounded text-sm font-medium ${
+                          className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium ${
                               pageNumber === currentPage
                                   ? "text-black font-extrabold"
                                   : "text-gray-400 hover:bg-gray-100"

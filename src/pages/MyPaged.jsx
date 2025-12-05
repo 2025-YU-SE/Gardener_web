@@ -630,9 +630,7 @@ function MyPaged() {
             {/* 프로필 정보 */}
             <div className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden">
               <div className="flex-1 min-w-0">
-                <h2 className="text-[22px] font-semibold mb-2">
-                  {profile.name}
-                </h2>
+                <h2 className="text-[22px] font-semibold mb-2">{profile.name}</h2>
                 <ul className="space-y-2 text-[14px]">
                   <Row
                     icon={<TbCoin className="text-[#4D4D4D]" size={18} />}

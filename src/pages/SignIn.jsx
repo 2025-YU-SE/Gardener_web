@@ -35,11 +35,12 @@ function SignIn() {
   };
 
   return (
-    <div className="w-full h-screen bg-gradient-to-r from-[#F0FDF4] to-[#BDF7D1]">
+    <div className="w-full min-h-screen bg-gradient-to-r from-[#F0FDF4] to-[#BDF7D1] flex flex-col">
       <HeaderAuth />
-      <div className="flex justify-center">
-        <div className="mt-20">
-          <div className="text-[30px] font-semibold">
+      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 px-4 sm:px-6 py-8 lg:py-12">
+        {/* 왼쪽: 일러스트레이션 영역 */}
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:w-auto">
+          <div className="text-xl sm:text-2xl lg:text-[30px] font-semibold mb-4 lg:mb-6">
             <h3 className="text-[#4D4D4D]">
               안녕하세요, 코드와 피드백이 자라는 정원
             </h3>
@@ -49,30 +50,41 @@ function SignIn() {
           <img
             src={illustration}
             alt="illust"
-            className="w-[673px] h-[449px]"
+            className="w-full max-w-[400px] sm:max-w-[500px] lg:max-w-[673px] h-auto"
           />
         </div>
 
-        <div className="flex flex-col items-center w-[499px] h-[562px] bg-white rounded-[16px] border border-[#B8B8B8] mt-12">
-          <h2 className="text-[30px] font-semibold mt-16 mb-12">로그인</h2>
+        {/* 오른쪽: 로그인 폼 */}
+        <div className="flex flex-col items-center w-full max-w-[499px] bg-white rounded-[16px] border border-[#B8B8B8] px-4 sm:px-0 py-8 sm:py-10">
+          <h2 className="text-2xl sm:text-[30px] font-semibold mb-8 sm:mb-12">로그인</h2>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center w-full">
             {/* 아이디 */}
             <input
               type="text"
               placeholder="아이디를 입력해 주세요"
-              className="w-[360px] h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[14px] focus:outline-none mb-4 placeholder:text-[#B8B8B8]"
+              className="w-full max-w-[360px] h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-sm sm:text-[14px] focus:outline-none focus:ring-2 focus:ring-[#00C839] focus:border-transparent mb-4 placeholder:text-[#B8B8B8]"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
             />
 
             {/* 비밀번호 */}
             <input
               type="password"
               placeholder="비밀번호를 입력해 주세요"
-              className="w-[360px] h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[14px] focus:outline-none mb-8 placeholder:text-[#B8B8B8]"
+              className="w-full max-w-[360px] h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-sm sm:text-[14px] focus:outline-none focus:ring-2 focus:ring-[#00C839] focus:border-transparent mb-8 placeholder:text-[#B8B8B8]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleLogin();
+                }
+              }}
             />
 
             {/* 로그인 버튼 */}
@@ -84,7 +96,7 @@ function SignIn() {
             </button>
           </div>
 
-          <p className="text-[10px] text-[#B8B8B8] mt-4">
+          <p className="text-[10px] text-[#B8B8B8] mt-6 mb-0">
             계정이 없으신가요?{" "}
             <a
               href="/sign-up"

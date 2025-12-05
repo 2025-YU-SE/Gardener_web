@@ -168,11 +168,11 @@ function Admin() {
   return (
     <div className="min-h-screen bg-[#f9f9f9]">
       <Header />
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold mb-8">관리자 페이지</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">관리자 페이지</h1>
 
         {/* 탭 */}
-        <div className="flex space-x-4 mb-6 border-b">
+        <div className="flex space-x-4 mb-4 sm:mb-6 border-b overflow-x-auto">
           <button
             onClick={() => setActiveTab("posts")}
             className={`px-4 py-2 font-semibold border-b-2 transition-colors ${
@@ -204,7 +204,7 @@ function Admin() {
               posts.map((post) => (
                 <div
                   key={post.id}
-                  className="bg-white border border-gray-300 p-6 rounded-xl"
+                  className="bg-white border border-gray-300 p-4 sm:p-6 rounded-xl"
                 >
                   {editingPost === post.id ? (
                     <div className="space-y-4">
@@ -306,13 +306,13 @@ function Admin() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h2 className="text-xl font-bold text-gray-900 mb-2">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 break-words">
                             {post.title}
                           </h2>
-                          <p className="text-gray-600 mb-2">{post.content}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <p className="text-sm sm:text-base text-gray-600 mb-2 break-words">{post.content}</p>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500">
                             <span>작성자: {post.author}</span>
                             <span>작성일: {post.timeAgo}</span>
                             <span>조회수: {post.views}</span>
@@ -367,7 +367,7 @@ function Admin() {
               feedbacks.map((feedback) => (
                 <div
                   key={feedback.id}
-                  className="bg-white border border-gray-300 p-6 rounded-xl"
+                  className="bg-white border border-gray-300 p-4 sm:p-6 rounded-xl"
                 >
                   {editingFeedback === feedback.id ? (
                     <div className="space-y-4">
@@ -426,17 +426,17 @@ function Admin() {
                     </div>
                   ) : (
                     <>
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 break-words">
                             {feedback.title || "제목 없음"}
                           </h3>
                           <div className="max-h-[200px] overflow-y-auto pr-2 mb-2">
-                            <p className="text-gray-700 whitespace-pre-wrap">
+                            <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap break-words">
                               {feedback.content}
                             </p>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mt-2">
                             <span>작성자: {feedback.author}</span>
                             <span>작성일: {feedback.timeAgo}</span>
                             <span>좋아요: {feedback.likes}</span>

@@ -5,27 +5,27 @@ import { Link } from "react-router-dom";
 // 로그인/회원가입 화면용 헤더
 const HeaderAuth = () => {
   return (
-    <div className="flex items-center justify-between w-full h-[60px] bg-transparent">
-      <Link className="flex items-center space-x-1 pl-[80px]" to="/landing">
-        <img src={logo} alt="logo" className="w-[60px] h-[60px]" />
-        <div className="text-[20px] font-semibold">Code Gardener</div>
+    <nav className="flex items-center justify-between w-full h-[60px] bg-transparent px-4 sm:px-6 md:px-8 lg:px-12">
+      <Link className="flex items-center space-x-2 shrink-0" to="/landing">
+        <img src={logo} alt="logo" className="w-10 h-10 sm:w-12 sm:h-12 md:w-[50px] md:h-[50px]" />
+        <div className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">Code Gardener</div>
       </Link>
 
-      <div className="flex space-x-8 pr-32">
+      <div className="flex items-center space-x-3 shrink-0">
         <Link
-          className="flex justify-center items-center text-[12px]"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:text-green-600 transition-colors"
           to="/sign-in"
         >
           로그인
         </Link>
         <Link
-          className="flex justify-center items-center w-[73px] h-[32px] bg-[#4D4D4D] hover:bg-[#212121] text-[12px] text-white rounded-[6px]"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-[#4D4D4D] hover:bg-[#212121] rounded-lg transition-colors"
           to="/sign-up"
         >
           회원가입
         </Link>
       </div>
-    </div>
+    </nav>
   );
 };
 

@@ -19,16 +19,16 @@ function SmallTopCard({ rank, name, score, profileImage, onClick }) {
   return (
     <div
       onClick={onClick}
-      className={`w-[160px] h-[160px] p-3 flex flex-col items-center justify-center 
+      className={`w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] lg:w-[160px] lg:h-[160px] p-2 sm:p-3 flex flex-col items-center justify-center 
       rounded-xl shadow-sm border ${toneClass} cursor-pointer`}
     >
       {/* 등수 */}
-      <div className="w-6 h-6 flex items-center justify-center rounded-full bg-white/70 text-[11px] font-bold border border-black/10">
+      <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-white/70 text-[10px] sm:text-[11px] font-bold border border-black/10">
         {rank}
       </div>
 
       {/* 프로필 */}
-      <div className="mt-3 w-12 h-12 rounded-full bg-white/50 flex items-center justify-center border border-black/10 overflow-hidden">
+      <div className="mt-2 sm:mt-3 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/50 flex items-center justify-center border border-black/10 overflow-hidden">
         <img
           src={finalImg}
           alt={`${name} profile`}
@@ -41,10 +41,10 @@ function SmallTopCard({ rank, name, score, profileImage, onClick }) {
       </div>
 
       {/* 이름 + 포인트 */}
-      <div className="mt-2 text-center">
-        <div className="text-[13px] font-semibold">{name}</div>
-        <div className="flex items-center justify-center gap-1 text-[12px] text-[#4D4D4D] mt-1">
-          <TbCoin size={12} />
+      <div className="mt-1 sm:mt-2 text-center">
+        <div className="text-[11px] sm:text-[12px] lg:text-[13px] font-semibold truncate w-full px-1">{name}</div>
+        <div className="flex items-center justify-center gap-1 text-[10px] sm:text-[11px] lg:text-[12px] text-[#4D4D4D] mt-1">
+          <TbCoin size={10} className="sm:w-[12px] sm:h-[12px]" />
           {Number(score || 0).toLocaleString()}
         </div>
       </div>
@@ -65,11 +65,11 @@ export default function MainTop3({ users = [] }) {
   };
 
   return (
-    <div className="mt-10">
-      <div className="flex items-end justify-center gap-3">
+    <div className="mt-6 sm:mt-8 lg:mt-10">
+      <div className="flex items-end justify-center gap-2 sm:gap-3">
         {/* 2등 */}
         {second && (
-          <div className="translate-y-1">
+          <div className="translate-y-1 sm:translate-y-2">
             <SmallTopCard
               rank={2}
               name={second.userName}
@@ -82,7 +82,7 @@ export default function MainTop3({ users = [] }) {
 
         {/* 1등 */}
         {first && (
-          <div className="-translate-y-2">
+          <div className="-translate-y-1 sm:-translate-y-2">
             <SmallTopCard
               rank={1}
               name={first.userName}
@@ -95,7 +95,7 @@ export default function MainTop3({ users = [] }) {
 
         {/* 3등 */}
         {third && (
-          <div className="translate-y-1">
+          <div className="translate-y-1 sm:translate-y-2">
             <SmallTopCard
               rank={3}
               name={third.userName}

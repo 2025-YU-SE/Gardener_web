@@ -222,11 +222,12 @@ function SignUp() {
   };
 
   return (
-    <div className="w-full h-screen bg-gradient-to-r from-[#F0FDF4] to-[#BDF7D1]">
+    <div className="w-full min-h-screen bg-gradient-to-r from-[#F0FDF4] to-[#BDF7D1] flex flex-col">
       <HeaderAuth />
-      <div className="flex justify-center">
-        <div className="mt-20">
-          <div className="text-[30px] font-semibold">
+      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 px-4 sm:px-6 py-8 lg:py-12">
+        {/* 왼쪽: 일러스트레이션 영역 */}
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:w-auto">
+          <div className="text-xl sm:text-2xl lg:text-[30px] font-semibold mb-4 lg:mb-6">
             <h3 className="text-[#4D4D4D]">
               안녕하세요, 코드와 피드백이 자라는 정원
             </h3>
@@ -236,23 +237,24 @@ function SignUp() {
           <img
             src={illustration}
             alt="illust"
-            className="w-[673px] h-[449px]"
+            className="w-full max-w-[400px] sm:max-w-[500px] lg:max-w-[673px] h-auto"
           />
         </div>
 
-        <div className="flex flex-col items-center w-[499px] h-[580px] bg-white rounded-[16px] border border-[#B8B8B8] mt-12">
-          <h2 className="text-[30px] font-semibold mt-16 mb-6">회원가입</h2>
-          <div className="flex flex-col items-center">
+        {/* 오른쪽: 회원가입 폼 */}
+        <div className="flex flex-col items-center w-full max-w-[499px] bg-white rounded-[16px] border border-[#B8B8B8] px-4 sm:px-0 py-8 sm:py-10 lg:pb-16">
+          <h2 className="text-2xl sm:text-[30px] font-semibold mb-8 sm:mb-12">회원가입</h2>
+          <div className="flex flex-col items-center w-full">
             {/* 아이디 */}
-            <div className="flex flex-col mb-4">
-              <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
+            <div className="flex flex-col mb-4 w-full max-w-[360px]">
+              <label className="flex items-center text-xs sm:text-[12px] font-medium text-[#4D4D4D] mb-1">
                 아이디 <p className="text-[#00C839]">*</p>
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full">
                 <input
                   type="text"
                   placeholder="아이디를 입력해 주세요 (5~12자, 영문+숫자)"
-                  className="w-[280px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
+                  className="flex-1 min-w-0 h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-sm sm:text-[14px] focus:outline-none focus:ring-2 focus:ring-[#00C839] focus:border-transparent placeholder:text-[#B8B8B8]"
                   value={userName}
                   onChange={(e) => {
                     setUserName(e.target.value);
@@ -263,9 +265,9 @@ function SignUp() {
                 />
                 <button
                   type="button"
-                  className="w-[69px] h-[40px] rounded-[6px] 
-             bg-[#4D4D4D] text-white text-[12px]
-             disabled:bg-[#CFCFCF] disabled:cursor-not-allowed"
+                  className="w-[69px] sm:w-[80px] h-[48px] rounded-[6px] 
+             bg-[#4D4D4D] text-white text-xs sm:text-[12px] font-medium
+             disabled:bg-[#CFCFCF] disabled:cursor-not-allowed shrink-0 hover:bg-[#3a3a3a] transition-colors"
                   onClick={handleCheckUsername}
                   disabled={isCheckingUsername || isUsernameAvailable === true}
                 >
@@ -274,14 +276,14 @@ function SignUp() {
               </div>
               {/* 아이디 규칙/에러 */}
               {usernameError && (
-                <p className="mt-1 ml-1 text-[10px] text-[#FF4D4F]">
+                <p className="mt-1 text-[10px] text-[#FF4D4F]">
                   {usernameError}
                 </p>
               )}
               {/* 아이디 중복 확인 결과 */}
               {usernameCheckMessage && (
                 <p
-                  className={`mt-1 ml-1 text-[10px] ${
+                  className={`mt-1 text-[10px] ${
                     isUsernameAvailable ? "text-[#00C839]" : "text-[#FF4D4F]"
                   }`}
                 >
@@ -291,15 +293,15 @@ function SignUp() {
             </div>
 
             {/* 이메일 */}
-            <div className="flex flex-col mb-4">
-              <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
+            <div className="flex flex-col mb-4 w-full max-w-[360px]">
+              <label className="flex items-center text-xs sm:text-[12px] font-medium text-[#4D4D4D] mb-1">
                 이메일 <p className="text-[#00C839]">*</p>
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full">
                 <input
                   type="text"
                   placeholder="이메일을 입력해 주세요"
-                  className="w-[280px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px]"
+                  className="flex-1 min-w-0 h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-sm sm:text-[14px] focus:outline-none focus:ring-2 focus:ring-[#00C839] focus:border-transparent placeholder:text-[#B8B8B8]"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -310,9 +312,9 @@ function SignUp() {
                 />
                 <button
                   type="button"
-                  className="w-[69px] h-[40px] rounded-[6px] 
-             bg-[#4D4D4D] text-white text-[12px]
-             disabled:bg-[#CFCFCF] disabled:cursor-not-allowed"
+                  className="w-[69px] sm:w-[80px] h-[48px] rounded-[6px] 
+             bg-[#4D4D4D] text-white text-xs sm:text-[12px] font-medium
+             disabled:bg-[#CFCFCF] disabled:cursor-not-allowed shrink-0 hover:bg-[#3a3a3a] transition-colors"
                   onClick={handleCheckEmail}
                   disabled={isCheckingEmail || isEmailAvailable === true}
                 >
@@ -321,14 +323,14 @@ function SignUp() {
               </div>
               {/* 이메일 형식 에러 */}
               {emailError && (
-                <p className="mt-1 ml-1 text-[10px] text-[#FF4D4F]">
+                <p className="mt-1 text-[10px] text-[#FF4D4F]">
                   {emailError}
                 </p>
               )}
               {/* 이메일 중복 확인 결과 */}
               {emailCheckMessage && (
                 <p
-                  className={`mt-1 ml-1 text-[10px] ${
+                  className={`mt-1 text-[10px] ${
                     isEmailAvailable ? "text-[#00C839]" : "text-[#FF4D4F]"
                   }`}
                 >
@@ -338,16 +340,16 @@ function SignUp() {
             </div>
 
             {/* 비밀번호 */}
-            <div className="flex flex-col mb-3">
-              <label className="flex items-center text-[12px] font-medium text-[#4D4D4D] ml-1 mb-1">
+            <div className="flex flex-col mb-4 w-full max-w-[360px]">
+              <label className="flex items-center text-xs sm:text-[12px] font-medium text-[#4D4D4D] mb-1">
                 비밀번호 <p className="text-[#00C839]">*</p>
               </label>
 
-              <div className="relative">
+              <div className="relative w-full">
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="영문자, 숫자 포함 8~12자"
-                  className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] pr-10"
+                  className="w-full h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-sm sm:text-[14px] pr-10 focus:outline-none focus:ring-2 focus:ring-[#00C839] focus:border-transparent placeholder:text-[#B8B8B8]"
                   value={password}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -374,19 +376,19 @@ function SignUp() {
                 </button>
               </div>
               {passwordError && (
-                <p className="mt-1 ml-1 text-[10px] text-[#FF4D4F]">
+                <p className="mt-1 text-[10px] text-[#FF4D4F]">
                   {passwordError}
                 </p>
               )}
             </div>
 
             {/* 비밀번호 확인 */}
-            <div className="flex flex-col mb-7">
-              <div className="relative">
+            <div className="flex flex-col mb-8 w-full max-w-[360px]">
+              <div className="relative w-full">
                 <input
                   type={showPasswordCheck ? "text" : "password"}
                   placeholder="비밀번호를 확인해주세요"
-                  className="w-[360px] h-[40px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-[12px] pr-10"
+                  className="w-full h-[48px] border border-[#B8B8B8] rounded-[6px] px-4 py-3 text-sm sm:text-[14px] pr-10 focus:outline-none focus:ring-2 focus:ring-[#00C839] focus:border-transparent placeholder:text-[#B8B8B8]"
                   value={passwordCheck}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -409,7 +411,7 @@ function SignUp() {
                 </button>
               </div>
               {passwordCheckError && (
-                <p className="mt-1 ml-1 text-[10px] text-[#FF4D4F]">
+                <p className="mt-1 text-[10px] text-[#FF4D4F]">
                   {passwordCheckError}
                 </p>
               )}
@@ -424,7 +426,7 @@ function SignUp() {
             </button>
 
             {/* 로그인 이동 */}
-            <p className="text-[10px] text-[#B8B8B8] mt-4">
+            <p className="text-[10px] text-[#B8B8B8] mt-6 mb-0">
               이미 계정이 있으신가요?{" "}
               <a
                 href="/sign-in"
