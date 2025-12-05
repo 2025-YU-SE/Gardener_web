@@ -18,7 +18,6 @@ const HeaderLoggedIn = () => {
     { path: "/posts", label: "코드 정원" },
     { path: "/upload", label: "코드 심기" },
     { path: "/leader-board", label: "리더보드" },
-    { path: "*", label: "메뉴4" },
   ];
 
   const isActive = (path) => location.pathname === path;
