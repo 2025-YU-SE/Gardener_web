@@ -12,6 +12,7 @@ import {
   FaStar,
   FaEdit,
   FaTrash,
+  FaGithub,
 } from "react-icons/fa";
 import { IoMdMore } from "react-icons/io";
 import Header from "../components/header/Header";
@@ -506,6 +507,28 @@ function PostDetail() {
               </span>
               ))}
             </div>
+
+            {/* GitHub 레포지토리 링크 */}
+            {post.githubRepoUrl && (() => {
+              // URL이 http:// 또는 https://로 시작하지 않으면 https://를 추가
+              const githubUrl = post.githubRepoUrl.startsWith('http://') || post.githubRepoUrl.startsWith('https://')
+                ? post.githubRepoUrl
+                : `https://${post.githubRepoUrl}`;
+              
+              return (
+                <div className="mb-4 sm:mb-6">
+                  <a
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm sm:text-base text-gray-600 hover:text-green-600 transition-colors"
+                  >
+                    <FaGithub className="text-lg sm:text-xl" />
+                    <span className="break-all">{post.githubRepoUrl}</span>
+                  </a>
+                </div>
+              );
+            })()}
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex items-center gap-4 sm:gap-6 flex-wrap">

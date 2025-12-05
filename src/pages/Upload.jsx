@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { BsSend } from "react-icons/bs"
 import { FaGithub } from "react-icons/fa"
-import { MdOutlineUploadFile } from "react-icons/md"
 import Header from '../components/header/Header'
 import language from '../components/filter/language'
 import stacks from '../components/filter/stacks'
@@ -464,7 +463,7 @@ function Upload() {
                 {/* 피드백 요청 */}
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                    총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청 *
+                    총점적으로 받고싶은 피드백이 있다면 그 부분에 대해서 피드백 요청
                   </label>
                   <div className="space-y-2">
                     <input 
@@ -494,32 +493,6 @@ function Upload() {
             </div>
           )}
 
-          {/* 선택사항 코딩테스트 탭에서 표시 */}
-          {activeTab === '코딩테스트' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-              <div className="flex items-center mb-6">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                <h2 className="text-xl font-bold text-gray-800">선택사항</h2>
-                <span className="text-sm text-gray-500 ml-2">(필요한 경우에만 입력하세요)</span>
-              </div>
-
-              <div className="space-y-6">
-                {/* 파일 업로드 (선택) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    파일 업로드
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 hover:bg-green-50 transition-colors">
-                    <div className="text-gray-400 mb-2 flex justify-center">
-                      <MdOutlineUploadFile size={48} />
-                    </div>
-                    <p className="text-gray-600">파일 업로드</p>
-                    <p className="text-sm text-gray-500 mt-1">문제 파일을 드래그하거나 클릭하여 업로드하세요</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* 선택사항 - 개발 탭에서만 표시 */}
           {activeTab === '개발' && (
@@ -531,20 +504,6 @@ function Upload() {
               </div>
               
               <div className="space-y-6">
-                {/* 파일 업로드 (선택) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    파일 업로드
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 hover:bg-green-50 transition-colors">
-                    <div className="text-gray-400 mb-2 flex justify-center">
-                      <MdOutlineUploadFile size={48} />
-                    </div>
-                    <p className="text-gray-600">파일 업로드</p>
-                    <p className="text-sm text-gray-500 mt-1">문제 파일을 드래그하거나 클릭하여 업로드하세요</p>
-                  </div>
-                </div>
-
                 {/* GitHub 레포지토리 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
