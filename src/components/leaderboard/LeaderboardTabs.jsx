@@ -20,21 +20,21 @@ function LeaderboardTabs({ currentCriteria, onCriteriaChange }) {
   );
 
   return (
-    <div className="mt-8 w-full bg-white rounded-[10px] p-2 shadow-sm border border-[#E5E7EB]">
+    <div className="mt-6 sm:mt-8 w-full bg-white rounded-[10px] p-1.5 sm:p-2 shadow-sm border border-[#E5E7EB]">
       <div className="bg-[#F3F4F6] p-1 rounded-[10px]">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2">
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => handleClick(tab)}
               className={[
-                "h-10 rounded-[10px] text-[14px] font-medium transition-all",
+                "h-9 sm:h-10 rounded-[10px] text-xs sm:text-[13px] lg:text-[14px] font-medium transition-all px-1",
                 activeTabName === tab
                   ? "bg-white"
                   : "bg-transparent text-[#4D4D4D] hover:bg-[#eeeff0]",
               ].join(" ")}
             >
-              {tab}
+              <span className="whitespace-nowrap">{tab}</span>
             </button>
           ))}
         </div>

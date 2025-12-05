@@ -144,18 +144,18 @@ function LeaderBoard() {
   return (
     <div className="min-h-screen bg-[#F9FAFB]">
       <Header />
-      <div className="mt-8">
+      <div className="mt-4 sm:mt-6 lg:mt-8">
         {/* 타이틀 + 소개 텍스트 */}
-        <div className="text-center">
-          <h1 className="text-[30px] font-semibold">리더보드</h1>
-          <p className="mt-2 text-[14px] text-[#4D4D4D]">
+        <div className="text-center px-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-[30px] font-semibold">리더보드</h1>
+          <p className="mt-2 text-xs sm:text-sm lg:text-[14px] text-[#4D4D4D] px-4">
             Code Gardener에서 가장 활발한 가드너들을 만나보세요
           </p>
         </div>
 
-        <div className="mx-auto max-w-[1080px] w-full">
+        <div className="mx-auto max-w-[1080px] w-full px-4 sm:px-6 lg:px-8">
           {/* 지표 카드 3개 */}
-          <div className="mt-8 mx-auto max-w-[900px] grid grid-cols-3 gap-5 place-items-center">
+          <div className="mt-6 sm:mt-8 mx-auto max-w-[900px] grid grid-cols-3 gap-4 sm:gap-5">
             {stats.map((item, idx) => (
               <StatCard
                 key={idx}
@@ -185,16 +185,16 @@ function LeaderBoard() {
           />
 
           {/* Footer */}
-          <div className="w-full flex justify-center my-8">
-            <div className="w-full max-w-[1248px] px-8 py-8 rounded-[10px] bg-gradient-to-r from-[#F0FDF4] to-[#EFF6FF] border border-[#E5E7EB] text-center shadow-sm">
+          <div className="w-full flex justify-center my-6 sm:my-8">
+            <div className="w-full max-w-[1248px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 rounded-[10px] bg-gradient-to-r from-[#F0FDF4] to-[#EFF6FF] border border-[#E5E7EB] text-center shadow-sm">
               <div className="flex justify-center items-center gap-2 mb-1">
-                <span className="text-[15px] font-medium text-[#4D4D4D]">
+                <span className="text-sm sm:text-[15px] font-medium text-[#4D4D4D]">
                   🌱 함께 성장하는
                   <span className="text-[#65C676]"> Code Gardener </span>
                   커뮤니티
                 </span>
               </div>
-              <p className="text-[12px] text-[#4A5565]">
+              <p className="text-xs sm:text-[12px] text-[#4A5565]">
                 총 {pagingInfo.totalElements}명의 개발자가 함께 코드를 키우고
                 있습니다
               </p>

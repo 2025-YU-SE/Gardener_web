@@ -79,7 +79,7 @@ function Main() {
       <div>
         <Header />
         <Banner {...bannerProps} />
-        <div className="max-w-[1080px] mx-auto px-4 mt-10">
+        <div className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 lg:mt-10">
           <p className="text-red-500">{error}</p>
         </div>
       </div>
@@ -91,22 +91,26 @@ function Main() {
       <Header />
       <Banner {...bannerProps} />
 
-      <div className="max-w-[1080px] mx-auto px-4 mt-10">
-        <h2 className="text-[20px] font-semibold mb-4">명예의 전당</h2>
-        <div className="grid grid-cols-2 gap-5">
+      <div className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 lg:mt-10">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">명예의 전당</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 lg:gap-8">
           {/* Top3 */}
-          <div>
+          <div className="w-full flex justify-center lg:justify-start">
             <MainTop3 users={mainData?.topPointUsers || []} />
           </div>
 
           {/* 4~7등 리스트 */}
-          <div className="flex justify-center">
+          <div className="w-full flex justify-center">
             <MainRankingList users={mainData?.topPointUsers || []} />
           </div>
         </div>
 
-        <PopularDevPosts posts={mainData?.popularDevPosts || []} />
-        <PopularCodingPosts posts={mainData?.popularCodingTestPosts || []} />
+        <div className="mt-6 sm:mt-8 lg:mt-10">
+          <PopularDevPosts posts={mainData?.popularDevPosts || []} />
+        </div>
+        <div className="mt-6 sm:mt-8 lg:mt-10">
+          <PopularCodingPosts posts={mainData?.popularCodingTestPosts || []} />
+        </div>
       </div>
     </div>
   );
