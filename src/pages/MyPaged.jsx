@@ -88,6 +88,14 @@ function MyPaged() {
 
   // API → 화면용 포스트 데이터 변환
   const mapApiToPostData = (apiPost) => {
+    const username = getCurrentUsername();
+    const likedKey = username
+      ? `postLiked:${username}:${apiPost.postId}`
+      : null;
+    const scrapKey = username
+      ? `postScrapped:${username}:${apiPost.postId}`
+      : null;
+
     return {
       id: apiPost.postId,
       title: apiPost.title,
@@ -98,15 +106,27 @@ function MyPaged() {
       stacks: apiPost.stacks
         ? apiPost.stacks.split(",").map((s) => s.trim())
         : [],
+
       likes: apiPost.likesCount,
       comments: apiPost.feedbackCount,
       views: apiPost.views,
       timeAgo: formatTimeAgo(apiPost.createdAt),
+
+      // ✅ 작성자는 항상 글 쓴 사람 기준으로
       author: apiPost.userName,
       avatar: apiPost.userPicture,
+
       createdAt: apiPost.createdAt,
-      liked: apiPost.liked ?? false,
-      scrapped: apiPost.scrapped ?? false,
+
+      // ✅ 서버 필드가 있으면 우선, 없으면 localStorage 기준
+      liked:
+        apiPost.liked ??
+        (likedKey ? localStorage.getItem(likedKey) === "true" : false),
+
+      scrapped:
+        apiPost.scrapped ??
+        (scrapKey ? localStorage.getItem(scrapKey) === "true" : false),
+
       scrapCount: apiPost.scrapCount ?? 0,
     };
   };
@@ -235,36 +255,60 @@ function MyPaged() {
 
   // 게시글 좋아요
   const handleTogglePostLike = async (postId) => {
+    const isAuthed = Boolean(localStorage.getItem("accessToken"));
+    if (!isAuthed) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+
     const username = getCurrentUsername();
     const likedKey = username ? `postLiked:${username}:${postId}` : null;
+    const wasLiked = likedKey && localStorage.getItem(likedKey) === "true";
 
-    setMyPosts((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const nextLiked = !p.liked;
-        const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
-        if (likedKey) {
-          if (nextLiked) localStorage.setItem(likedKey, "true");
-          else localStorage.removeItem(likedKey);
-        }
+    const willLike = !wasLiked;
 
-        return { ...p, liked: nextLiked, likes: nextLikes };
-      })
-    );
+    const updateOne = (p) => {
+      if (p.id !== postId) return p;
+      const nextLikes = Math.max(0, p.likes + (willLike ? 1 : -1));
+      return {
+        ...p,
+        liked: willLike,
+        likes: nextLikes,
+      };
+    };
 
-    setMyScraps((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const nextLiked = !p.liked;
-        const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
-        return { ...p, liked: nextLiked, likes: nextLikes };
-      })
-    );
+    setMyPosts((prev) => prev.map(updateOne));
+    setMyScraps((prev) => prev.map(updateOne));
+
+    if (likedKey) {
+      if (willLike) localStorage.setItem(likedKey, "true");
+      else localStorage.removeItem(likedKey);
+    }
 
     try {
       await likePost(postId);
-    } catch (error) {
-      console.error("게시글 좋아요 API 호출 실패:", error);
+    } catch (err) {
+      console.error("게시글 좋아요 API 호출 실패:", err);
+
+      const rollbackLike = wasLiked;
+      const rollbackUpdate = (p) => {
+        if (p.id !== postId) return p;
+        const nextLikes = Math.max(0, p.likes + (rollbackLike ? 1 : -1));
+        return {
+          ...p,
+          liked: rollbackLike,
+          likes: nextLikes,
+        };
+      };
+
+      setMyPosts((prev) => prev.map(rollbackUpdate));
+      setMyScraps((prev) => prev.map(rollbackUpdate));
+
+      if (likedKey) {
+        if (rollbackLike) localStorage.setItem(likedKey, "true");
+        else localStorage.removeItem(likedKey);
+      }
     }
   };
 
