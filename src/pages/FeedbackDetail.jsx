@@ -99,6 +99,16 @@ function FeedbackDetail() {
         setEditContent(f.content);
         setEditRating(f.rating);
         
+        // 초기 좋아요 상태 확인
+        if (isAuthed) {
+          const currentUsername = getCurrentUsername();
+          if (currentUsername) {
+            const likedKey = `feedbackLiked:${currentUsername}:${feedbackId}`;
+            const storedLiked = localStorage.getItem(likedKey);
+            setDetailLiked(storedLiked === "true");
+          }
+        }
+        
         // 라인 피드백을 수정용 형식으로 변환
         const mappedLineFeedbacks = lineFeedbacksData.map((lf) => ({
           id: lf.lineFeedbackId,
@@ -159,8 +169,7 @@ function FeedbackDetail() {
   // 2. 좋아요 / 수정 / 삭제 / 댓글 CRUD
   // ===================================================
 
-  const baseLikes = feedback?.likesCount ?? 0;
-  const detailLikes = baseLikes + (detailLiked ? 1 : 0);
+  const detailLikes = feedback?.likesCount ?? 0;
 
   // ===================================================
   // 피드백 수정/삭제 권한 체크
@@ -201,19 +210,71 @@ function FeedbackDetail() {
       return;
     }
     
+    const currentUsername = getCurrentUsername();
+    const likedKey = currentUsername ? `feedbackLiked:${currentUsername}:${feedbackId}` : null;
+    
+    // 이전 상태 저장
+    const wasLiked = detailLiked;
+    const willLike = !wasLiked;
+    const prevLikesCount = feedback.likesCount ?? 0;
+    
+    setDetailLiked(willLike);
+    setFeedback((prev) =>
+        prev
+            ? {
+              ...prev,
+              likesCount: Math.max(0, prevLikesCount + (willLike ? 1 : -1)),
+            }
+            : prev
+    );
+    
+    if (likedKey) {
+      if (willLike) {
+        localStorage.setItem(likedKey, "true");
+      } else {
+        localStorage.removeItem(likedKey);
+      }
+    }
+    
     try {
       await api.post(`/api/feedback/${feedbackId}/like`);
-      setDetailLiked((prev) => !prev);
+      
+      // 성공 시 피드백 상세를 다시 조회하여 정확한 상태로 업데이트
+      const fbRes = await getFeedbackDetail(feedbackId);
+      const f = fbRes?.data || fbRes;
+      
+      if (f) {
+        setFeedback((prev) => ({
+          ...prev,
+          ...f,
+          lineFeedbacks: prev?.lineFeedbacks || f.lineFeedbacks || [],
+        }));
+        // 상상태 동기화
+        setDetailLiked(willLike);
+      }
+    } catch (err) {
+      console.error("피드백 좋아요 토글 실패:", err);
+      
+      // 실패 시 이전 상태로 롤백
+      setDetailLiked(wasLiked);
       setFeedback((prev) =>
           prev
               ? {
                 ...prev,
-                likesCount: prev.likesCount + (detailLiked ? -1 : 1),
+                likesCount: prevLikesCount,
               }
               : prev
       );
-    } catch (err) {
-      console.error("피드백 좋아요 토글 실패:", err);
+      
+      if (likedKey) {
+        if (wasLiked) {
+          localStorage.setItem(likedKey, "true");
+        } else {
+          localStorage.removeItem(likedKey);
+        }
+      }
+      
+      alert("좋아요 처리 중 오류가 발생했습니다.");
     }
   };
 
@@ -773,7 +834,7 @@ function FeedbackDetail() {
                 ) : (
                     <FaRegHeart />
                 )}
-                <span className="text-sm font-medium">{detailLikes}</span>
+                <span className="text-sm font-medium">{feedback?.likesCount ?? 0}</span>
               </button>
               <div className="inline-flex items-center gap-1">
                 <FaComment /> {replyCount}
