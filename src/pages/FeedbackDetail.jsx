@@ -619,6 +619,12 @@ function FeedbackDetail() {
                     </span>
                     <span>·</span>
                     <span>{feedback.createdAt?.slice(0, 10) || ""}</span>
+                    {/* 채택 여부 표시 */}
+                    {feedback.adoptedTF && (
+                      <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100 ml-2">
+                        채택된 피드백
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     {/* 채택 버튼: 게시물 작성자이면서 아직 채택되지 않은 경우에만 노출 */}
