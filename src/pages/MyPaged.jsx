@@ -4,7 +4,7 @@ import Loading from "../components/Loading";
 import baseProfile from "../assets/baseProfile.png";
 import { TbCoin, TbMessage2Check, TbPencil } from "react-icons/tb";
 import { VscFeedback } from "react-icons/vsc";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PostCard from "../components/PostCard.jsx";
 import FeedbackCard from "../components/FeedbackCard.jsx";
 import {
@@ -41,6 +41,7 @@ const formatTimeAgo = (dateString) => {
 
 function MyPaged() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { userId: urlUserId } = useParams();
 
   // 로그인 ID 추출
@@ -232,7 +233,15 @@ function MyPaged() {
         setMyFeedbackAll(feedbacksRes.data);
       } catch (error) {
         console.error("데이터 로딩 중 오류 발생:", error);
-        alert("프로필 데이터를 불러오는 데 실패했습니다.");
+        const status = error?.response?.status;
+        if (status === 401 || status === 403) {
+          alert("로그인이 필요합니다.");
+          navigate("/sign-in", {
+            state: { from: location.pathname + location.search },
+          });
+        } else {
+          alert("프로필 데이터를 불러오는 데 실패했습니다.");
+        }
       } finally {
         setLoading(false);
       }
@@ -247,6 +256,8 @@ function MyPaged() {
     activeTab,
     isMyProfile,
     isLoggedIn,
+    location.pathname,
+    location.search,
   ]);
 
   const handlePostClick = (postId) => {
