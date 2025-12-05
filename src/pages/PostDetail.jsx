@@ -47,6 +47,7 @@ function PostDetail() {
 
   const [post, setPost] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackSort, setFeedbackSort] = useState("recent"); // recent | rating | likes
   const [displayedFeedbacksCount, setDisplayedFeedbacksCount] = useState(5);
   const [loading, setLoading] = useState(true);
 
@@ -54,10 +55,7 @@ function PostDetail() {
   // 피드백 작성 상태
   // -----------------------------
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false);
-  const [feedbackTitle, setFeedbackTitle] = useState(""); // ⬅ 추가됨
   const [feedbackContent, setFeedbackContent] = useState("");
-  const [selectedFeedbackType, setSelectedFeedbackType] =
-    useState("일반 피드백");
   const [rating, setRating] = useState(5);
 
   const [feedbackRanges, setFeedbackRanges] = useState([]);
@@ -163,16 +161,11 @@ function PostDetail() {
           rating: fb.rating,
           content: fb.content,
           timeAgo: fb.createdAt?.slice(0, 10),
+          createdAt: fb.createdAt ? new Date(fb.createdAt).getTime() : 0,
           likes: fb.likesCount,
           views: 0,
           adoptedTF: fb.adoptedTF === true,
         }));
-
-        // 채택된 피드백이 상단
-        mapped.sort((a, b) => {
-          if (a.adoptedTF === b.adoptedTF) return 0;
-          return a.adoptedTF ? -1 : 1;
-        });
 
         setFeedbacks(mapped);
       } catch (err) {
@@ -182,6 +175,26 @@ function PostDetail() {
 
     loadFeedbacks();
   }, [postId]);
+
+  const sortedFeedbacks = useMemo(() => {
+    const copied = [...feedbacks];
+    copied.sort((a, b) => {
+      // 채택된 피드백 우선
+      if (a.adoptedTF !== b.adoptedTF) return a.adoptedTF ? -1 : 1;
+
+      // 선택된 정렬 기준
+      switch (feedbackSort) {
+        case "rating":
+          return (b.rating || 0) - (a.rating || 0) || (b.createdAt || 0) - (a.createdAt || 0);
+        case "likes":
+          return (b.likes || 0) - (a.likes || 0) || (b.createdAt || 0) - (a.createdAt || 0);
+        case "recent":
+        default:
+          return (b.createdAt || 0) - (a.createdAt || 0);
+      }
+    });
+    return copied;
+  }, [feedbacks, feedbackSort]);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -210,6 +223,25 @@ function PostDetail() {
     if (!token) {
       alert("로그인이 필요합니다.");
       navigate("/sign-in", { state: { from: location.pathname } });
+      return;
+    }
+
+    if (!feedbackRanges || feedbackRanges.length === 0) {
+      alert("최소 한개 이상의 라인 피드백을 남겨주세요.");
+      return;
+    }
+
+    if (!feedbackContent || feedbackContent.trim().length === 0) {
+      alert("전체 피드백 내용을 입력해주세요.");
+      return;
+    }
+
+    const hasEmptyLineFeedback = feedbackRanges.some((r) => {
+      const rawText = r.text || r.content || "";
+      return rawText.trim().length === 0;
+    });
+    if (hasEmptyLineFeedback) {
+      alert("모든 라인 피드백에 내용을 입력해주세요.");
       return;
     }
 
@@ -627,8 +659,28 @@ function PostDetail() {
             </div>
           </div>
 
-          {/* 오른쪽: 피드백 작성 */}
+          {/* 오른쪽: 피드백 요청 + 피드백 작성 */}
           <div className="lg:col-span-1 space-y-6">
+            {/* 피드백 요청 섹션 */}
+            {post.summary && post.summary.trim() && (
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="font-bold text-lg mb-4">피드백 요청</h3>
+                <div className="space-y-2">
+                  {post.summary.split(',').map((item, index) => {
+                    const trimmed = item.trim();
+                    return trimmed ? (
+                      <div
+                        key={index}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        {trimmed}
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="bg-white border rounded-lg p-6">
               <h3 className="font-bold text-lg mb-4">피드백 작성</h3>
 
@@ -641,40 +693,6 @@ function PostDetail() {
                 </button>
               ) : (
                 <div className="space-y-4">
-                  {/* 🔥 피드백 제목 입력칸 추가됨 */}
-                  <div>
-                    <label className="block mb-1 text-sm font-semibold">
-                      피드백 제목
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border rounded-md px-3 py-2"
-                      placeholder="예: 코드 복잡도 개선 제안"
-                      value={feedbackTitle}
-                      onChange={(e) => setFeedbackTitle(e.target.value)}
-                    />
-                  </div>
-
-                  {/* 피드백 유형 */}
-                  <div>
-                    <label className="block mb-2 text-sm">피드백 유형</label>
-                    <div className="flex gap-2">
-                      {["일반 피드백", "개선 제안", "버그 신고"].map((type) => (
-                        <button
-                          key={type}
-                          onClick={() => setSelectedFeedbackType(type)}
-                          className={`px-3 py-1 rounded ${
-                            selectedFeedbackType === type
-                              ? "bg-green-600 text-white"
-                              : "bg-gray-200"
-                          }`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* 평점 */}
                   <div>
                     <label className="block mb-2 text-sm">평점</label>
@@ -721,8 +739,49 @@ function PostDetail() {
                 <p className="text-gray-500">아직 피드백이 없습니다.</p>
               ) : (
                 <>
+                  <div className="flex items-center justify-between mb-3 text-sm">
+                    <span className="text-gray-700 font-semibold">정렬</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackSort("recent")}
+                        className={`px-3 py-1 rounded-md border text-xs ${
+                          feedbackSort === "recent"
+                            ? "bg-green-600 text-white border-green-600"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        최신순
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackSort("rating")}
+                        className={`px-3 py-1 rounded-md border text-xs ${
+                          feedbackSort === "rating"
+                            ? "bg-green-600 text-white border-green-600"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        평점순
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFeedbackSort("likes")}
+                        className={`px-3 py-1 rounded-md border text-xs ${
+                          feedbackSort === "likes"
+                            ? "bg-green-600 text-white border-green-600"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        좋아요순
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
-                    {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
+                    {sortedFeedbacks
+                      .slice(0, displayedFeedbacksCount)
+                      .map((fb) => (
                       <div
                         key={fb.id}
                         className="border p-3 rounded-md cursor-pointer hover:bg-gray-50"
@@ -776,14 +835,14 @@ function PostDetail() {
                     ))}
                   </div>
 
-                  {feedbacks.length > displayedFeedbacksCount && (
+                  {sortedFeedbacks.length > displayedFeedbacksCount && (
                     <button
                       onClick={() =>
                         setDisplayedFeedbacksCount((prev) => prev + 5)
                       }
                       className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
                     >
-                      더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
+                      더보기 ({sortedFeedbacks.length - displayedFeedbacksCount}개 더)
                     </button>
                   )}
                 </>

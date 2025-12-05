@@ -1,17 +1,62 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/header/Header";
 import { Link } from "react-router-dom";
 import { IoCodeOutline } from "react-icons/io5";
 import { PiUsersFour } from "react-icons/pi";
 import { VscFeedback } from "react-icons/vsc";
+import { getPosts } from "../api/postApi";
+import { getFullLeaders } from "../api/leaderboardApi";
 
 function Landing() {
-  // 랜딩 페이지 통계 영역 데이터 (추후 백엔드 연동 예정)
-  const stats = [
-    { icon: IoCodeOutline, value: "1,234", label: "심어진 새싹" },
-    { icon: PiUsersFour, value: "567", label: "활성 가드너" },
-    { icon: VscFeedback, value: "8,901", label: "피드백" },
-  ];
+  const [stats, setStats] = useState([
+    { icon: IoCodeOutline, value: "0", label: "심어진 새싹" },
+    { icon: PiUsersFour, value: "0", label: "활성 가드너" },
+    { icon: VscFeedback, value: "0", label: "피드백" },
+  ]);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // 게시글 수 가져오기 - /api/posts는 인증 불필요
+        let postCount = 0;
+        let feedbackCount = 0;
+        try {
+          const postsRes = await getPosts();
+          // 페이지네이션 응답 구조: { content: [], totalElements: number }
+          postCount = postsRes?.data?.totalElements || 0;
+          
+          // 피드백 수는 게시글의 feedbackCount를 합산
+          const postsData = postsRes?.data?.content || [];
+          if (Array.isArray(postsData)) {
+            feedbackCount = postsData.reduce((sum, post) => {
+              return sum + (post.feedbackCount || 0);
+            }, 0);
+          }
+        } catch (err) {
+          console.error("게시글 통계 조회 실패:", err);
+        }
+
+        // 사용자 수 가져오기 - 리더보드의 totalElements 사용
+        let userCount = 0;
+        try {
+          const leadersRes = await getFullLeaders("points", 0, 1);
+          userCount = leadersRes?.totalElements || 0;
+        } catch (err) {
+          console.error("사용자 수 조회 실패:", err);
+        }
+
+        setStats([
+          { icon: IoCodeOutline, value: postCount.toLocaleString(), label: "심어진 새싹" },
+          { icon: PiUsersFour, value: userCount.toLocaleString(), label: "활성 가드너" },
+          { icon: VscFeedback, value: feedbackCount.toLocaleString(), label: "피드백" },
+        ]);
+      } catch (err) {
+        console.error("통계 데이터 로드 실패:", err);
+      }
+    };
+
+    loadStats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-[#F0FDF4] to-[#BDF7D1]">

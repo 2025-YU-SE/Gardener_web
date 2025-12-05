@@ -12,9 +12,11 @@ import LeaderBoard from './pages/LeaderBoard.jsx'
 import MyPaged from './pages/MyPaged.jsx'
 import Admin from './pages/Admin.jsx'
 import NotFound from './pages/NotFound.jsx'
+import { isAdmin } from './utils/jwtHelper'
 
 function App() {
   const isAuthed = localStorage.getItem("accessToken") ? true : false;
+  const adminAuthed = isAuthed && isAdmin();
 
   return (
     <BrowserRouter>
@@ -43,7 +45,17 @@ function App() {
         <Route path="/my-paged" element={<MyPaged />} />
         {/* 타인 프로필  */}
         <Route path="/my-paged/:userId" element={<MyPaged />} />
-        <Route path="/admin" element={<Admin />} />
+        {/* 관리자 페이지 - 관리자만 접근 가능 */}
+        <Route
+          path="/admin"
+          element={
+            !isAuthed
+              ? <Navigate to="/sign-in" replace />
+              : adminAuthed
+                ? <Admin />
+                : <Navigate to="/main" replace />
+          }
+        />
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>

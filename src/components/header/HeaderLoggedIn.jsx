@@ -3,9 +3,10 @@ import logo from "../../assets/logo.svg";
 import baseProfile from "../../assets/baseProfile.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { IoPersonCircle } from "react-icons/io5";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaUserShield } from "react-icons/fa";
 import { getUserProfile } from "../../api/userApi";
 import { makeAbsoluteImageUrl } from "../../utils/imageHelper";
+import { isAdmin } from "../../utils/jwtHelper";
 
 // 로그인한 사용자용 헤더
 const HeaderLoggedIn = () => {
@@ -13,6 +14,7 @@ const HeaderLoggedIn = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [adminMode, setAdminMode] = useState(false);
 
   const menuItems = [
     { path: "/posts", label: "코드 정원" },
@@ -21,6 +23,11 @@ const HeaderLoggedIn = () => {
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  // 관리자 여부 확인
+  useEffect(() => {
+    setAdminMode(isAdmin());
+  }, []);
 
   // 사용자 프로필 정보 가져오기
   useEffect(() => {
@@ -89,8 +96,17 @@ const HeaderLoggedIn = () => {
 
         {/* 우측 영역 */}
         <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 shrink-0">
-          {/* 데스크톱: 로그아웃 + 마이페이지 */}
+          {/* 데스크톱: 관리자 모드 + 로그아웃 + 마이페이지 */}
           <div className="hidden lg:flex items-center space-x-6">
+            {adminMode && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors whitespace-nowrap"
+              >
+                <FaUserShield />
+                관리자 모드
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex justify-center items-center text-sm cursor-pointer hover:text-green-600 transition whitespace-nowrap"
@@ -139,6 +155,16 @@ const HeaderLoggedIn = () => {
               </Link>
             ))}
             <div className="border-t border-gray-200 mt-4 pt-4">
+              {adminMode && (
+                <Link
+                  to="/admin"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-2 px-6 py-4 text-base font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors"
+                >
+                  <FaUserShield />
+                  관리자 모드
+                </Link>
+              )}
               <button
                 onClick={() => {
                   handleLogout();
