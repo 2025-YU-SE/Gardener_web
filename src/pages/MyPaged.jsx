@@ -20,6 +20,7 @@ import {
 } from "../api/userApi";
 import { likePost, bookmarkPost } from "../api/postApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
+import { getCurrentUsername } from "../utils/jwtHelper";
 
 // 날짜 포맷팅 함수
 const formatTimeAgo = (dateString) => {
@@ -85,8 +86,33 @@ function MyPaged() {
   const scrapsRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // API → 화면용 포스트 데이터 변환
+  const mapApiToPostData = (apiPost) => {
+    return {
+      id: apiPost.postId,
+      title: apiPost.title,
+      content: apiPost.content,
+      languages: apiPost.languages
+        ? apiPost.languages.split(",").map((s) => s.trim())
+        : [],
+      stacks: apiPost.stacks
+        ? apiPost.stacks.split(",").map((s) => s.trim())
+        : [],
+      likes: apiPost.likesCount,
+      comments: apiPost.feedbackCount,
+      views: apiPost.views,
+      timeAgo: formatTimeAgo(apiPost.createdAt),
+      author: apiPost.userName,
+      avatar: apiPost.userPicture,
+      createdAt: apiPost.createdAt,
+      liked: apiPost.liked ?? false,
+      scrapped: apiPost.scrapped ?? false,
+      scrapCount: apiPost.scrapCount ?? 0,
+    };
+  };
+
   useEffect(() => {
-    // 로그인 확인 및 리다이렉션
+    // 로그인 확인 및 리다이렉트
     if (!urlUserId && !isLoggedIn) {
       alert("로그인이 필요합니다.");
       navigate("/sign-in");
@@ -99,7 +125,7 @@ function MyPaged() {
       return;
     }
 
-    // 타인 프로필을 볼 때 스크랩 탭이 선택되어 있다면 게시글 탭으로 초기화
+    // 타인 프로필인데 스크랩 탭이면 게시글 탭으로
     if (!isMyProfile && activeTab === "scraps") {
       setActiveTab("posts");
     }
@@ -120,13 +146,13 @@ function MyPaged() {
 
         // 스크랩
         let scrapCount = 0;
+        let mappedScraps = [];
         if (isMyProfile) {
           // 최근 스크랩 4개
           const recentScrapsRes = await getUserRecentScraps(targetUserId);
-          const mappedScraps = recentScrapsRes.data.map((post) =>
+          mappedScraps = recentScrapsRes.data.map((post) =>
             mapApiToPostData(post, pData)
           );
-          setMyScraps(mappedScraps);
 
           // 전체 스크랩 개수
           try {
@@ -138,8 +164,33 @@ function MyPaged() {
             console.error("스크랩 개수 조회 실패:", e);
             scrapCount = mappedScraps.length;
           }
-        } else {
-          setMyScraps([]);
+        }
+
+        // 최근 게시글 조회
+        const postsRes = await getUserRecentPosts(targetUserId);
+        const mappedPosts = postsRes.data.map((post) =>
+          mapApiToPostData(post, pData)
+        );
+
+        const username = getCurrentUsername();
+        if (username) {
+          const syncLocalFromPosts = (items) => {
+            items.forEach((post) => {
+              const likedKey = `postLiked:${username}:${post.id}`;
+              const scrapKey = `postScrapped:${username}:${post.id}`;
+
+              if (post.liked) localStorage.setItem(likedKey, "true");
+              else localStorage.removeItem(likedKey);
+
+              if (post.scrapped) localStorage.setItem(scrapKey, "true");
+              else localStorage.removeItem(scrapKey);
+            });
+          };
+
+          syncLocalFromPosts(mappedPosts);
+          if (isMyProfile) {
+            syncLocalFromPosts(mappedScraps);
+          }
         }
 
         setProfile({
@@ -153,12 +204,8 @@ function MyPaged() {
           gradeLabel: pData.grade,
         });
 
-        // 최근 게시글 조회
-        const postsRes = await getUserRecentPosts(targetUserId);
-        const mappedPosts = postsRes.data.map((post) =>
-          mapApiToPostData(post, pData)
-        );
         setMyPosts(mappedPosts);
+        setMyScraps(isMyProfile ? mappedScraps : []);
 
         // 최근 피드백 조회
         const feedbacksRes = await getUserRecentFeedbacks(targetUserId);
@@ -179,31 +226,8 @@ function MyPaged() {
     urlUserId,
     activeTab,
     isMyProfile,
+    isLoggedIn,
   ]);
-
-  const mapApiToPostData = (apiPost, profileData) => {
-    return {
-      id: apiPost.postId,
-      title: apiPost.title,
-      content: apiPost.content,
-      languages: apiPost.languages
-        ? apiPost.languages.split(",").map((s) => s.trim())
-        : [],
-      stacks: apiPost.stacks
-        ? apiPost.stacks.split(",").map((s) => s.trim())
-        : [],
-      likes: apiPost.likesCount,
-      comments: apiPost.feedbackCount,
-      views: apiPost.views,
-      timeAgo: formatTimeAgo(apiPost.createdAt),
-      author: profileData.userName,
-      avatar: profileData.userPicture,
-      createdAt: apiPost.createdAt,
-      liked: apiPost.liked ?? false,
-      scrapped: apiPost.scrapped ?? false,
-      scrapCount: apiPost.scrapCount ?? 0,
-    };
-  };
 
   const handlePostClick = (postId) => {
     navigate(`/posts/${postId}`);
@@ -211,11 +235,19 @@ function MyPaged() {
 
   // 게시글 좋아요
   const handleTogglePostLike = async (postId) => {
+    const username = getCurrentUsername();
+    const likedKey = username ? `postLiked:${username}:${postId}` : null;
+
     setMyPosts((prev) =>
       prev.map((p) => {
         if (p.id !== postId) return p;
         const nextLiked = !p.liked;
         const nextLikes = Math.max(0, p.likes + (nextLiked ? 1 : -1));
+        if (likedKey) {
+          if (nextLiked) localStorage.setItem(likedKey, "true");
+          else localStorage.removeItem(likedKey);
+        }
+
         return { ...p, liked: nextLiked, likes: nextLikes };
       })
     );
@@ -238,50 +270,55 @@ function MyPaged() {
 
   // 게시글 스크랩
   const handleTogglePostBookmark = async (postId) => {
+    const username = getCurrentUsername();
+    const scrapKey = username ? `postScrapped:${username}:${postId}` : null;
+
     const current =
       myPosts.find((p) => p.id === postId) ||
       myScraps.find((p) => p.id === postId);
+
     const wasScrapped = current?.scrapped ?? false;
     const willScrap = !wasScrapped;
+    if (scrapKey) {
+      if (willScrap) localStorage.setItem(scrapKey, "true");
+      else localStorage.removeItem(scrapKey);
+    }
 
-    // 내 게시글 목록에 스크랩 상태 반영
+    // 내 게시글 목록 반영
     setMyPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, scrapped: willScrap } : p))
     );
 
-    // 내 스크랩 목록에 반영
+    // 스크랩 목록 반영
     setMyScraps((prev) => {
       if (willScrap) {
-        // 새로 스크랩한 경우
         if (prev.some((p) => p.id === postId)) {
-          // 이미 목록에 있으면 상태만 맞춰줌
           return prev.map((p) =>
             p.id === postId ? { ...p, scrapped: true } : p
           );
         }
 
-        // 목록에 없다면 myPosts / current 에서 기반 데이터 찾아서 추가
         const base =
           current ||
           myPosts.find((p) => p.id === postId) ||
           prev.find((p) => p.id === postId);
 
         if (!base) return prev;
-        // 새로 스크랩한 글을 맨 위에 추가
         return [{ ...base, scrapped: true }, ...prev];
       }
 
-      // 스크랩 해제 -> 해당 카드 제거 (스크랩 탭에서 바로 사라짐)
+      // 스크랩 해제 -> 제거
       return prev.filter((p) => p.id !== postId);
     });
 
-    // 프로필의 스크랩 개수 즉시 반영
+    // 상단 프로필의 스크랩 개수
     setProfile((prev) => {
       const next = Math.max(0, (prev.scrapCount || 0) + (willScrap ? 1 : -1));
       return { ...prev, scrapCount: next };
     });
 
     setMyScrapsCount((prev) => Math.max(0, prev + (willScrap ? 1 : -1)));
+
     try {
       await bookmarkPost(postId);
     } catch (error) {
@@ -340,7 +377,9 @@ function MyPaged() {
     }
   };
 
-  // 게시글 더보기 버튼 클릭 시 (전체/페이징 API 호출)
+  // 게시글 더보기
+  const INITIAL_COUNT_VAL = INITIAL_COUNT;
+
   const expandPosts = async () => {
     if (!hasFetchedAllPosts) {
       try {
@@ -363,11 +402,11 @@ function MyPaged() {
   };
 
   const collapsePosts = () => {
-    setMyPostsDisplayCount(INITIAL_COUNT);
+    setMyPostsDisplayCount(INITIAL_COUNT_VAL);
     postsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // 피드백 더보기 버튼 클릭 시
+  // 피드백 더보기
   const expandFeedback = async () => {
     if (!hasFetchedAllFeedbacks) {
       try {
@@ -390,17 +429,16 @@ function MyPaged() {
   };
 
   const collapseFeedback = () => {
-    setMyFeedbackCount(INITIAL_COUNT);
+    setMyFeedbackCount(INITIAL_COUNT_VAL);
     feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // 스크랩 더보기 버튼 클릭 시
+  // 스크랩 더보기
   const expandScraps = async () => {
     if (!isMyProfile) return;
 
     if (!hasFetchedAllScraps) {
       try {
-        //전체 스크랩 목록 조회
         const res = await getUserScraps(targetUserId, 0, profile.scrapCount);
         const contentList = res.data.content || [];
         const allScrapsMapped = contentList.map((post) =>
@@ -419,7 +457,7 @@ function MyPaged() {
   };
 
   const collapseScraps = () => {
-    setMyScrapsCount(INITIAL_COUNT);
+    setMyScrapsCount(INITIAL_COUNT_VAL);
     scrapsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -491,9 +529,9 @@ function MyPaged() {
       <Header />
       <div className="mx-auto max-w-[1100px] px-4 py-8">
         <div className="rounded-[10px] border border-gray-200 bg-white px-10 py-5 shadow-sm">
-          {/* 프로필 */}
+          {/* 프로필 영역 */}
           <div className="flex items-center gap-5 px-20 mb-10">
-            {/* 프로필 이미지 영역 */}
+            {/* 프로필 이미지 */}
             <div
               className={`h-full w-[132px] relative ${
                 isMyProfile ? "cursor-pointer" : ""
@@ -505,7 +543,6 @@ function MyPaged() {
                   isMyProfile ? "group" : ""
                 }`}
               >
-                {/* 이미지 태그 */}
                 <img
                   src={profileImgSrc}
                   alt={`${profile.name} 프로필`}
@@ -546,6 +583,7 @@ function MyPaged() {
               )}
             </div>
 
+            {/* 프로필 정보 */}
             <div className="flex-1 w-[825px] rounded-[10px] border border-[#ACACAC] bg-white pl-6 pr-3 py-4 flex items-center justify-between box-border overflow-hidden">
               <div className="flex-1 min-w-0">
                 <h2 className="text-[22px] font-semibold mb-2">
@@ -619,7 +657,7 @@ function MyPaged() {
             )}
           </div>
 
-          {/* 내 게시글 영역 */}
+          {/* 내 게시글 */}
           {activeTab === "posts" && (
             <section ref={postsRef} className="mb-10">
               <div className="flex items-center justify-between mb-4">
@@ -661,7 +699,7 @@ function MyPaged() {
               )}
 
               <div className="mt-6 flex items-center justify-center gap-2">
-                {profile.postCount > INITIAL_COUNT && !isPostsExpanded && (
+                {profile.postCount > INITIAL_COUNT_VAL && !isPostsExpanded && (
                   <button
                     onClick={expandPosts}
                     className="px-4 py-2 text-sm rounded-md border border-[#00B834] text-[#00B834] hover:bg-[#00B834]/5"
@@ -669,7 +707,7 @@ function MyPaged() {
                     더보기
                   </button>
                 )}
-                {profile.postCount > INITIAL_COUNT && isPostsExpanded && (
+                {profile.postCount > INITIAL_COUNT_VAL && isPostsExpanded && (
                   <button
                     onClick={collapsePosts}
                     className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -681,7 +719,7 @@ function MyPaged() {
             </section>
           )}
 
-          {/* 내 피드백 영역 */}
+          {/* 내 피드백 */}
           {activeTab === "feedback" && (
             <section ref={feedbackRef} className="mb-2">
               <div className="flex items-center justify-between mb-4">
@@ -711,7 +749,7 @@ function MyPaged() {
               )}
 
               <div className="mt-6 flex items-center justify-center gap-2">
-                {profile.feedbackCount > INITIAL_COUNT &&
+                {profile.feedbackCount > INITIAL_COUNT_VAL &&
                   !isFeedbackExpanded && (
                     <button
                       onClick={expandFeedback}
@@ -720,7 +758,7 @@ function MyPaged() {
                       더보기
                     </button>
                   )}
-                {profile.feedbackCount > INITIAL_COUNT &&
+                {profile.feedbackCount > INITIAL_COUNT_VAL &&
                   isFeedbackExpanded && (
                     <button
                       onClick={collapseFeedback}
@@ -733,7 +771,7 @@ function MyPaged() {
             </section>
           )}
 
-          {/* 내 스크랩 영역 (본인에게만 표시) */}
+          {/* 내 스크랩 (본인만) */}
           {activeTab === "scraps" && isMyProfile && (
             <section ref={scrapsRef} className="mb-10">
               <div className="flex items-center justify-between mb-4">
@@ -773,15 +811,16 @@ function MyPaged() {
               )}
 
               <div className="mt-6 flex items-center justify-center gap-2">
-                {profile.scrapCount > INITIAL_COUNT && !isScrapsExpanded && (
-                  <button
-                    onClick={expandScraps}
-                    className="px-4 py-2 text-sm rounded-md border border-[#00B834] text-[#00B834] hover:bg-[#00B834]/5"
-                  >
-                    더보기
-                  </button>
-                )}
-                {profile.scrapCount > INITIAL_COUNT && isScrapsExpanded && (
+                {profile.scrapCount > INITIAL_COUNT_VAL &&
+                  !isScrapsExpanded && (
+                    <button
+                      onClick={expandScraps}
+                      className="px-4 py-2 text-sm rounded-md border border-[#00B834] text-[#00B834] hover:bg-[#00B834]/5"
+                    >
+                      더보기
+                    </button>
+                  )}
+                {profile.scrapCount > INITIAL_COUNT_VAL && isScrapsExpanded && (
                   <button
                     onClick={collapseScraps}
                     className="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
