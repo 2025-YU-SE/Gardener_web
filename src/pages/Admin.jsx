@@ -8,7 +8,7 @@ import CollapsibleFilter from "../components/filter/CollapsibleFilter";
 import language from "../components/filter/language";
 import stacks from "../components/filter/stacks";
 import { getPosts, updatePost, deletePost } from "../api/postApi";
-import { getAllFeedbacks, updateFeedback, deleteFeedback } from "../api/feedbackApi";
+import { getFeedbacksByPost, updateFeedback, deleteFeedback } from "../api/feedbackApi";
 import { isAdmin } from "../utils/jwtHelper";
 
 const getLanguageCode = (languageName) => {
@@ -87,19 +87,45 @@ function Admin() {
         }));
         setPosts(mapped);
       } else {
-        const data = await getAllFeedbacks();
-        const list = Array.isArray(data) ? data : data?.content || data || [];
-        const mapped = list.map((fb) => ({
-          id: fb.feedbackId,
-          postId: fb.postId,
-          author: fb.userName || "익명",
-          title: fb.title || "",
-          content: fb.content || "",
-          rating: fb.rating || 0,
-          timeAgo: fb.createdAt ? fb.createdAt.slice(0, 10) : "",
-          likes: fb.likesCount || 0,
-        }));
-        setFeedbacks(mapped);
+        try {
+          // 모든 게시글을 가져온 후 각 게시글의 피드백을 합산
+          const postsRes = await getPosts();
+          const postsData = postsRes?.data?.content || [];
+          
+          // 모든 게시글의 피드백을 병렬로 가져오기
+          const feedbackPromises = postsData.map(async (post) => {
+            try {
+              const feedbacks = await getFeedbacksByPost(post.postId);
+              return Array.isArray(feedbacks) ? feedbacks : [];
+            } catch (err) {
+              console.error(`게시글 ${post.postId}의 피드백 조회 실패:`, err);
+              return [];
+            }
+          });
+          
+          const allFeedbacksArrays = await Promise.all(feedbackPromises);
+          const allFeedbacks = allFeedbacksArrays.flat();
+          
+          console.log("전체 피드백 수:", allFeedbacks.length);
+          
+          const mapped = allFeedbacks.map((fb) => ({
+            id: fb.feedbackId || fb.id,
+            postId: fb.postId,
+            author: fb.userName || fb.author || "익명",
+            title: fb.title || "",
+            content: fb.content || "",
+            rating: fb.rating || 0,
+            timeAgo: fb.createdAt ? fb.createdAt.slice(0, 10) : "",
+            likes: fb.likesCount || fb.likes || 0,
+          }));
+          
+          setFeedbacks(mapped);
+        } catch (feedbackErr) {
+          console.error("피드백 로드 실패:", feedbackErr);
+          console.error("에러 상세:", feedbackErr.response?.data || feedbackErr.message);
+          alert(`피드백을 불러오는데 실패했습니다: ${feedbackErr.response?.data?.message || feedbackErr.message}`);
+          setFeedbacks([]);
+        }
       }
     } catch (err) {
       console.error("데이터 로드 실패:", err);
