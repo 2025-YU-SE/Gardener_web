@@ -30,7 +30,11 @@ import {
   likePost,
   bookmarkPost,
 } from "../api/postApi";
-import { getFeedbacksByPost, createFeedback, createLineFeedback } from "../api/feedbackApi";
+import {
+  getFeedbacksByPost,
+  createFeedback,
+  createLineFeedback,
+} from "../api/feedbackApi";
 import { makeAbsoluteImageUrl } from "../utils/imageHelper";
 import { getCurrentUsername, isAdmin } from "../utils/jwtHelper";
 import baseProfile from "../assets/baseProfile.png";
@@ -52,7 +56,8 @@ function PostDetail() {
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false);
   const [feedbackTitle, setFeedbackTitle] = useState(""); // ⬅ 추가됨
   const [feedbackContent, setFeedbackContent] = useState("");
-  const [selectedFeedbackType, setSelectedFeedbackType] = useState("일반 피드백");
+  const [selectedFeedbackType, setSelectedFeedbackType] =
+    useState("일반 피드백");
   const [rating, setRating] = useState(5);
 
   const [feedbackRanges, setFeedbackRanges] = useState([]);
@@ -122,7 +127,6 @@ function PostDetail() {
 
         setAiFeedback(p.aiFeedback || "");
 
-
         const username = getCurrentUsername();
         if (username) {
           const likedKey = `postLiked:${username}:${postId}`;
@@ -151,8 +155,6 @@ function PostDetail() {
       try {
         const res = await getFeedbacksByPost(postId);
         const list = Array.isArray(res) ? res : res.data || [];
-
-
 
         const mapped = list.map((fb) => ({
           id: fb.feedbackId,
@@ -221,25 +223,25 @@ function PostDetail() {
       const createdFeedback = await createFeedback(feedbackPayload);
       const feedbackId = createdFeedback.feedbackId || createdFeedback.id;
 
-        // 2. 각 라인 피드백을 개별적으로 등록
-        if (feedbackRanges && feedbackRanges.length > 0) {
-          // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
-          const lineFeedbackPromises = feedbackRanges.map((r) => {
-            // text 필드 확인 (text 또는 content 필드 모두 확인)
-            const rawText = r.text || r.content || "";
-            const content = rawText.trim();
-            
-            const payload = {
-              lineNumber: r.start,
-              endLineNumber: r.end,
-              content: content,
-            };
-            
-            return createLineFeedback(feedbackId, payload);
-          });
+      // 2. 각 라인 피드백을 개별적으로 등록
+      if (feedbackRanges && feedbackRanges.length > 0) {
+        // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
+        const lineFeedbackPromises = feedbackRanges.map((r) => {
+          // text 필드 확인 (text 또는 content 필드 모두 확인)
+          const rawText = r.text || r.content || "";
+          const content = rawText.trim();
 
-          await Promise.all(lineFeedbackPromises);
-        }
+          const payload = {
+            lineNumber: r.start,
+            endLineNumber: r.end,
+            content: content,
+          };
+
+          return createLineFeedback(feedbackId, payload);
+        });
+
+        await Promise.all(lineFeedbackPromises);
+      }
 
       alert("피드백이 등록되었습니다!");
       window.location.reload();
@@ -249,7 +251,10 @@ function PostDetail() {
         localStorage.removeItem("accessToken");
         navigate("/sign-in", { state: { from: location.pathname } });
       } else {
-        alert("피드백 등록 실패: " + (err.response?.data?.message || err.message || "알 수 없는 오류"));
+        alert(
+          "피드백 등록 실패: " +
+            (err.response?.data?.message || err.message || "알 수 없는 오류")
+        );
       }
     }
   };
@@ -275,8 +280,19 @@ function PostDetail() {
 
     const username = getCurrentUsername();
     const likedKey = username ? `postLiked:${username}:${postId}` : null;
-    const wasLiked = likedKey ? localStorage.getItem(likedKey) === "true" : false;
+
+    const wasLiked = postLiked;
     const willLike = !wasLiked;
+
+    let prevLikes = post?.likes ?? 0;
+
+    setPost((prev) => {
+      if (!prev) return prev;
+      prevLikes = prev.likes;
+      const nextLikes = Math.max(0, prev.likes + (willLike ? 1 : -1));
+      return { ...prev, likes: nextLikes };
+    });
+    setPostLiked(willLike);
 
     try {
       await likePost(postId);
@@ -285,18 +301,17 @@ function PostDetail() {
         if (willLike) localStorage.setItem(likedKey, "true");
         else localStorage.removeItem(likedKey);
       }
-
-      setPostLiked(willLike);
-      setPost((prev) =>
-        prev
-          ? {
-              ...prev,
-              likes: Math.max(0, prev.likes + (willLike ? 1 : -1)),
-            }
-          : prev
-      );
     } catch (err) {
       console.error("게시글 좋아요 토글 실패:", err);
+
+      setPost((prev) => (prev ? { ...prev, likes: prevLikes } : prev));
+      setPostLiked(wasLiked);
+
+      if (likedKey) {
+        if (wasLiked) localStorage.setItem(likedKey, "true");
+        else localStorage.removeItem(likedKey);
+      }
+
       alert("좋아요 처리 중 오류가 발생했습니다.");
     }
   };
@@ -309,8 +324,19 @@ function PostDetail() {
 
     const username = getCurrentUsername();
     const scrapKey = username ? `postScrapped:${username}:${postId}` : null;
-    const wasScrapped = scrapKey ? localStorage.getItem(scrapKey) === "true" : false;
+
+    const wasScrapped = postBookmarked;
     const willScrap = !wasScrapped;
+
+    let prevBookmarks = post?.bookmarks ?? 0;
+
+    setPost((prev) => {
+      if (!prev) return prev;
+      prevBookmarks = prev.bookmarks;
+      const nextBookmarks = Math.max(0, prev.bookmarks + (willScrap ? 1 : -1));
+      return { ...prev, bookmarks: nextBookmarks };
+    });
+    setPostBookmarked(willScrap);
 
     try {
       await bookmarkPost(postId);
@@ -319,18 +345,17 @@ function PostDetail() {
         if (willScrap) localStorage.setItem(scrapKey, "true");
         else localStorage.removeItem(scrapKey);
       }
-
-      setPostBookmarked(willScrap);
-      setPost((prev) =>
-        prev
-          ? {
-              ...prev,
-              bookmarks: Math.max(0, prev.bookmarks + (willScrap ? 1 : -1)),
-            }
-          : prev
-      );
     } catch (err) {
       console.error("게시글 스크랩 토글 실패:", err);
+
+      setPost((prev) => (prev ? { ...prev, bookmarks: prevBookmarks } : prev));
+      setPostBookmarked(wasScrapped);
+
+      if (scrapKey) {
+        if (wasScrapped) localStorage.setItem(scrapKey, "true");
+        else localStorage.removeItem(scrapKey);
+      }
+
       alert("스크랩 처리 중 오류가 발생했습니다.");
     }
   };
@@ -371,9 +396,7 @@ function PostDetail() {
       const text = dto?.aiFeedback || "";
       setAiFeedback(text);
 
-      setPost((prev) =>
-        prev ? { ...prev, aiFeedback: text } : prev
-      );
+      setPost((prev) => (prev ? { ...prev, aiFeedback: text } : prev));
     } catch (err) {
       console.error("AI 피드백 재생성 실패:", err);
       setAiError("AI 피드백 재생성에 실패했습니다.");
@@ -387,13 +410,13 @@ function PostDetail() {
   // ===================================================
   const canEditOrDelete = () => {
     if (!isAuthed || !post) return false;
-    
+
     const currentUsername = getCurrentUsername();
     if (!currentUsername) return false;
-    
+
     // 관리자는 항상 수정/삭제 가능
     if (isAdmin()) return true;
-    
+
     // 게시글 작성자만 수정/삭제 가능
     return post.author === currentUsername;
   };
@@ -431,364 +454,379 @@ function PostDetail() {
       if (err.response?.status === 403) {
         alert("삭제 권한이 없습니다.");
       } else {
-        alert("게시글 삭제에 실패했습니다: " + (err.response?.data?.message || err.message));
+        alert(
+          "게시글 삭제에 실패했습니다: " +
+            (err.response?.data?.message || err.message)
+        );
       }
     }
   };
 
   return (
-      <div className="min-h-screen bg-[#F9FAFB]">
-        <Header />
+    <div className="min-h-screen bg-[#F9FAFB]">
+      <Header />
 
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* -------------------------------- */}
-          {/* 게시글 카드 */}
-          {/* -------------------------------- */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-            <div className="flex items-start justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-800 flex-1">{post.title}</h1>
-              
-              {/* 드롭다운 메뉴 */}
-              {canEditOrDelete() && (
-                <div className="relative post-menu-container ml-4">
-                  <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                  >
-                    <IoMdMore size={24} />
-                  </button>
-                  
-                  {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          handleEditPost();
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                      >
-                        <FaEdit className="text-blue-600" />
-                        <span>수정</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          handleDeletePost();
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
-                      >
-                        <FaTrash />
-                        <span>삭제</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* -------------------------------- */}
+        {/* 게시글 카드 */}
+        {/* -------------------------------- */}
+        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+          <div className="flex items-start justify-between mb-2">
+            <h1 className="text-2xl font-bold text-gray-800 flex-1">
+              {post.title}
+            </h1>
 
-            <p className="text-gray-600 mb-6">{post.content}</p>
+            {/* 드롭다운 메뉴 */}
+            {canEditOrDelete() && (
+              <div className="relative post-menu-container ml-4">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <IoMdMore size={24} />
+                </button>
 
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
-                <img
-                  src={post.avatar}
-                  alt={post.author}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = baseProfile;
-                  }}
-                />
+                {isMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleEditPost();
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                    >
+                      <FaEdit className="text-blue-600" />
+                      <span>수정</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleDeletePost();
+                      }}
+                      className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                    >
+                      <FaTrash />
+                      <span>삭제</span>
+                    </button>
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="font-semibold">{post.author}</p>
-                <p className="text-sm text-gray-500">{post.timeAgo}</p>
-              </div>
-            </div>
+            )}
+          </div>
 
-            <div className="flex gap-2 mb-4">
-              {post.tags?.filter(Boolean).map((tag) => (
-                  <span
-                      key={tag}
-                      className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-                  >
+          <p className="text-gray-600 mb-6">{post.content}</p>
+
+          <div className="flex items-center mb-6">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
+              <img
+                src={post.avatar}
+                alt={post.author}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = baseProfile;
+                }}
+              />
+            </div>
+            <div>
+              <p className="font-semibold">{post.author}</p>
+              <p className="text-sm text-gray-500">{post.timeAgo}</p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mb-4">
+            {post.tags?.filter(Boolean).map((tag) => (
+              <span
+                key={tag}
+                className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+              >
                 {tag}
               </span>
-              ))}
-            </div>
+            ))}
+          </div>
 
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-6">
-                <button
-                    onClick={handleToggleLike}
-                    className="flex items-center gap-1 text-gray-600"
-                >
-                  {postLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
-                  <span>{post.likes}</span>
-                </button>
-
-                <button
-                    onClick={handleToggleBookmark}
-                    className="flex items-center gap-1 text-gray-600"
-                >
-                  {postBookmarked ? (
-                      <FaBookmark className="text-blue-500" />
-                  ) : (
-                      <FaRegBookmark />
-                  )}
-                  <span>{post.bookmarks}</span>
-                </button>
-
-                <span className="flex items-center gap-1 text-gray-600">
-                <FaComment />
-                  {post.comments}
-              </span>
-
-                <span className="flex items-center gap-1 text-gray-600">
-                <FaEye />
-                  {post.views}
-              </span>
-              </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-6">
+              <button
+                onClick={handleToggleLike}
+                className="flex items-center gap-1 text-gray-600"
+              >
+                {postLiked ? (
+                  <FaHeart className="text-red-500" />
+                ) : (
+                  <FaRegHeart />
+                )}
+                <span>{post.likes}</span>
+              </button>
 
               <button
-                onClick={handleToggleAIFeedback}
-                className="bg-green-600 text-white px-4 py-2 rounded-md"
+                onClick={handleToggleBookmark}
+                className="flex items-center gap-1 text-gray-600"
               >
-                {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
+                {postBookmarked ? (
+                  <FaBookmark className="text-blue-500" />
+                ) : (
+                  <FaRegBookmark />
+                )}
+                <span>{post.bookmarks}</span>
               </button>
+
+              <span className="flex items-center gap-1 text-gray-600">
+                <FaComment />
+                {post.comments}
+              </span>
+
+              <span className="flex items-center gap-1 text-gray-600">
+                <FaEye />
+                {post.views}
+              </span>
+            </div>
+
+            <button
+              onClick={handleToggleAIFeedback}
+              className="bg-green-600 text-white px-4 py-2 rounded-md"
+            >
+              {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
+            </button>
+          </div>
+        </div>
+
+        {/* -------------------------------- */}
+        {/* 코드 영역 + 피드백 */}
+        {/* -------------------------------- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* 코드 */}
+          <div className="lg:col-span-2">
+            <div className="bg-white border rounded-lg p-6">
+              {isFeedbackFormOpen ? (
+                <FeedbackCodeEditor
+                  value={post.code}
+                  language={editorLanguage}
+                  title="라인 피드백 입력"
+                  initialFeedbacks={[]}
+                  onAddFeedbackRange={(range) => {
+                    setFeedbackRanges((prev) => [...prev, range]);
+                  }}
+                  onSaveFeedback={(item) => {
+                    setFeedbackRanges((prev) => {
+                      const exists = prev.some((r) => r.id === item.id);
+                      if (exists) {
+                        return prev.map((r) => (r.id === item.id ? item : r));
+                      } else {
+                        return [...prev, item];
+                      }
+                    });
+                  }}
+                />
+              ) : (
+                <ReadonlyCodeEditor
+                  value={post.code}
+                  language={editorLanguage}
+                  title="코드"
+                />
+              )}
             </div>
           </div>
 
-          {/* -------------------------------- */}
-          {/* 코드 영역 + 피드백 */}
-          {/* -------------------------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* 코드 */}
-            <div className="lg:col-span-2">
-              <div className="bg-white border rounded-lg p-6">
-                {isFeedbackFormOpen ? (
-                  <FeedbackCodeEditor
-                    value={post.code}
-                    language={editorLanguage}
-                    title="라인 피드백 입력"
-                    initialFeedbacks={[]}
-                    onAddFeedbackRange={(range) => {
-                      setFeedbackRanges((prev) => [...prev, range]);
-                    }}
-                    onSaveFeedback={(item) => {
-                      setFeedbackRanges((prev) => {
-                        const exists = prev.some((r) => r.id === item.id);
-                        if (exists) {
-                          return prev.map((r) => (r.id === item.id ? item : r));
-                        } else {
-                          return [...prev, item];
-                        }
-                      });
-                    }}
-                  />
-                ) : (
-                  <ReadonlyCodeEditor
-                    value={post.code}
-                    language={editorLanguage}
-                    title="코드"
-                  />
-                )}
-              </div>
-            </div>
+          {/* 오른쪽: 피드백 작성 */}
+          <div className="lg:col-span-1 space-y-6">
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="font-bold text-lg mb-4">피드백 작성</h3>
 
-            {/* 오른쪽: 피드백 작성 */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="font-bold text-lg mb-4">피드백 작성</h3>
-
-                {!isFeedbackFormOpen ? (
-                    <button
-                        onClick={handleFeedbackButtonClick}
-                        className="w-full bg-green-600 text-white py-2 rounded-md"
-                    >
-                      피드백 작성하기
-                    </button>
-                ) : (
-                    <div className="space-y-4">
-                      {/* 🔥 피드백 제목 입력칸 추가됨 */}
-                      <div>
-                        <label className="block mb-1 text-sm font-semibold">피드백 제목</label>
-                        <input
-                            type="text"
-                            className="w-full border rounded-md px-3 py-2"
-                            placeholder="예: 코드 복잡도 개선 제안"
-                            value={feedbackTitle}
-                            onChange={(e) => setFeedbackTitle(e.target.value)}
-                        />
-                      </div>
-
-                      {/* 피드백 유형 */}
-                      <div>
-                        <label className="block mb-2 text-sm">피드백 유형</label>
-                        <div className="flex gap-2">
-                          {["일반 피드백", "개선 제안", "버그 신고"].map((type) => (
-                              <button
-                                  key={type}
-                                  onClick={() => setSelectedFeedbackType(type)}
-                                  className={`px-3 py-1 rounded ${
-                                      selectedFeedbackType === type
-                                          ? "bg-green-600 text-white"
-                                          : "bg-gray-200"
-                                  }`}
-                              >
-                                {type}
-                              </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 평점 */}
-                      <div>
-                        <label className="block mb-2 text-sm">평점</label>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                              <FaStar
-                                  key={star}
-                                  className={`text-2xl cursor-pointer ${
-                                      star <= rating ? "text-yellow-400" : "text-gray-300"
-                                  }`}
-                                  onClick={() => setRating(star)}
-                              />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 내용 */}
-                      <div>
-                    <textarea
-                        className="w-full border rounded-md p-2"
-                        rows="4"
-                        placeholder="피드백 내용을 작성해주세요."
-                        value={feedbackContent}
-                        onChange={(e) => setFeedbackContent(e.target.value)}
-                    />
-                      </div>
-
-                      {/* 제출 */}
-                      <button
-                          onClick={handleSubmitFeedback}
-                          className="w-full bg-green-600 text-white py-2 rounded-md"
-                      >
-                        피드백 제출
-                      </button>
-                    </div>
-                )}
-              </div>
-
-              {/* 기존 피드백 */}
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="font-bold text-lg mb-4">기존 피드백</h3>
-
-                {feedbacks.length === 0 ? (
-                    <p className="text-gray-500">아직 피드백이 없습니다.</p>
-                ) : (
-                    <>
-                      <div className="space-y-3">
-                        {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
-                            <div
-                                key={fb.id}
-                                className="border p-3 rounded-md cursor-pointer hover:bg-gray-50"
-                                onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
-                            >
-                              <div className="flex items-center mb-1">
-                                <div className="w-8 h-8 rounded-full overflow-hidden flex justify-center items-center mr-2 bg-green-100 border border-gray-300">
-                                  <img
-                                    src={fb.avatar}
-                                    alt={fb.author}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.target.src = baseProfile;
-                                    }}
-                                  />
-                                </div>
-                                <div>
-                                  <p className="font-semibold text-sm">{fb.author}</p>
-                                  <p className="text-xs text-gray-500">{fb.timeAgo}</p>
-                                </div>
-                              </div>
-
-                              <div className="flex mb-2">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <FaStar
-                                        key={star}
-                                        className={`text-sm ${
-                                            star <= fb.rating
-                                                ? "text-yellow-400"
-                                                : "text-gray-300"
-                                        }`}
-                                    />
-                                ))}
-                              </div>
-
-                          {/* 채택 여부 표시 */}
-                          {fb.adoptedTF && (
-                            <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100 mb-1">
-                              채택된 피드백
-                            </div>
-                          )}
-
-                              <div className="max-h-[150px] overflow-y-auto pr-2">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{fb.content}</p>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                      
-                      {feedbacks.length > displayedFeedbacksCount && (
-                          <button
-                              onClick={() => setDisplayedFeedbacksCount(prev => prev + 5)}
-                              className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
-                          >
-                            더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
-                          </button>
-                      )}
-                    </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* AI 피드백 */}
-          {isAIFeedbackOpen && (
-            <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  AI 피드백
-                </h2>
+              {!isFeedbackFormOpen ? (
                 <button
-                  type="button"
-                  onClick={handleRegenerateAIFeedback}
-                  className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
+                  onClick={handleFeedbackButtonClick}
+                  className="w-full bg-green-600 text-white py-2 rounded-md"
                 >
-                  다시 생성
+                  피드백 작성하기
                 </button>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* 🔥 피드백 제목 입력칸 추가됨 */}
+                  <div>
+                    <label className="block mb-1 text-sm font-semibold">
+                      피드백 제목
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border rounded-md px-3 py-2"
+                      placeholder="예: 코드 복잡도 개선 제안"
+                      value={feedbackTitle}
+                      onChange={(e) => setFeedbackTitle(e.target.value)}
+                    />
+                  </div>
 
-              {aiLoading && (
-                <p className="text-sm text-gray-500">AI 피드백 생성 중...</p>
-              )}
+                  {/* 피드백 유형 */}
+                  <div>
+                    <label className="block mb-2 text-sm">피드백 유형</label>
+                    <div className="flex gap-2">
+                      {["일반 피드백", "개선 제안", "버그 신고"].map((type) => (
+                        <button
+                          key={type}
+                          onClick={() => setSelectedFeedbackType(type)}
+                          className={`px-3 py-1 rounded ${
+                            selectedFeedbackType === type
+                              ? "bg-green-600 text-white"
+                              : "bg-gray-200"
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              {!aiLoading && aiError && (
-                <p className="text-sm text-red-500">{aiError}</p>
-              )}
+                  {/* 평점 */}
+                  <div>
+                    <label className="block mb-2 text-sm">평점</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={`text-2xl cursor-pointer ${
+                            star <= rating ? "text-yellow-400" : "text-gray-300"
+                          }`}
+                          onClick={() => setRating(star)}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-              {!aiLoading && !aiError && (
-                <div className="mt-2 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
-                  <p className="whitespace-pre-wrap text-sm text-gray-800">
-                    {aiFeedback && aiFeedback.trim()
-                      ? aiFeedback
-                      : "AI 피드백이 아직 생성되지 않았습니다."}
-                  </p>
+                  {/* 내용 */}
+                  <div>
+                    <textarea
+                      className="w-full border rounded-md p-2"
+                      rows="4"
+                      placeholder="피드백 내용을 작성해주세요."
+                      value={feedbackContent}
+                      onChange={(e) => setFeedbackContent(e.target.value)}
+                    />
+                  </div>
+
+                  {/* 제출 */}
+                  <button
+                    onClick={handleSubmitFeedback}
+                    className="w-full bg-green-600 text-white py-2 rounded-md"
+                  >
+                    피드백 제출
+                  </button>
                 </div>
               )}
             </div>
-          )}
+
+            {/* 기존 피드백 */}
+            <div className="bg-white border rounded-lg p-6">
+              <h3 className="font-bold text-lg mb-4">기존 피드백</h3>
+
+              {feedbacks.length === 0 ? (
+                <p className="text-gray-500">아직 피드백이 없습니다.</p>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {feedbacks.slice(0, displayedFeedbacksCount).map((fb) => (
+                      <div
+                        key={fb.id}
+                        className="border p-3 rounded-md cursor-pointer hover:bg-gray-50"
+                        onClick={() => navigate(`/posts/${post.id}/${fb.id}`)}
+                      >
+                        <div className="flex items-center mb-1">
+                          <div className="w-8 h-8 rounded-full overflow-hidden flex justify-center items-center mr-2 bg-green-100 border border-gray-300">
+                            <img
+                              src={fb.avatar}
+                              alt={fb.author}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.src = baseProfile;
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">{fb.author}</p>
+                            <p className="text-xs text-gray-500">
+                              {fb.timeAgo}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex mb-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <FaStar
+                              key={star}
+                              className={`text-sm ${
+                                star <= fb.rating
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+
+                        {/* 채택 여부 표시 */}
+                        {fb.adoptedTF && (
+                          <div className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-semibold border border-green-100 mb-1">
+                            채택된 피드백
+                          </div>
+                        )}
+
+                        <div className="max-h-[150px] overflow-y-auto pr-2">
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                            {fb.content}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {feedbacks.length > displayedFeedbacksCount && (
+                    <button
+                      onClick={() =>
+                        setDisplayedFeedbacksCount((prev) => prev + 5)
+                      }
+                      className="w-full mt-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      더보기 ({feedbacks.length - displayedFeedbacksCount}개 더)
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
+
+        {/* AI 피드백 */}
+        {isAIFeedbackOpen && (
+          <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-800">AI 피드백</h2>
+              <button
+                type="button"
+                onClick={handleRegenerateAIFeedback}
+                className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
+              >
+                다시 생성
+              </button>
+            </div>
+
+            {aiLoading && (
+              <p className="text-sm text-gray-500">AI 피드백 생성 중...</p>
+            )}
+
+            {!aiLoading && aiError && (
+              <p className="text-sm text-red-500">{aiError}</p>
+            )}
+
+            {!aiLoading && !aiError && (
+              <div className="mt-2 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
+                <p className="whitespace-pre-wrap text-sm text-gray-800">
+                  {aiFeedback && aiFeedback.trim()
+                    ? aiFeedback
+                    : "AI 피드백이 아직 생성되지 않았습니다."}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+    </div>
   );
 }
 
