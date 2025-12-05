@@ -68,7 +68,7 @@ function Landing() {
             새싹을 심고, 함께 가꾸고, 함께 성장하세요
           </h2>
           <span className="flex justify-center text-sm sm:text-base lg:text-[20px] text-[#626262] pt-4 sm:pt-6 px-4 text-center">
-            AI와 동료 개발자들과 함께 새싹를 리뷰하고 피드백을 받으며, 더 나은
+            AI와 동료 개발자들과 함께 코드를 리뷰하고 피드백을 받으며, 더 나은
             개발자로 성장해보세요.
           </span>
           <span className="flex justify-center text-sm sm:text-base lg:text-[20px] text-[#626262] px-4 text-center">
