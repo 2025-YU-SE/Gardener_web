@@ -36,6 +36,7 @@ function Upload() {
   const [searchParams] = useSearchParams();
   const editPostId = searchParams.get('edit');
   const isEditMode = !!editPostId;
+  const isAuthed = Boolean(localStorage.getItem('accessToken'));
   
   const [activeTab, setActiveTab] = useState('개발')
   const [selectedLanguage, setSelectedLanguage] = useState('JavaScript')
@@ -56,6 +57,14 @@ function Upload() {
   const [codingFeedbackRequests, setCodingFeedbackRequests] = useState(['', '', ''])
   
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // 접근 권한 체크: 로그인 필수
+  useEffect(() => {
+    if (!isAuthed) {
+      alert('로그인이 필요합니다.');
+      navigate('/sign-in', { state: { from: location.pathname + location.search } });
+    }
+  }, [isAuthed, navigate, location.pathname, location.search]);
 
   // 수정 모드 - 기존 게시글 데이터 불러오기
   useEffect(() => {
