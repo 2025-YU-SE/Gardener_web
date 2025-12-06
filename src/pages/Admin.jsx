@@ -12,21 +12,26 @@ import { getFeedbacksByPost, updateFeedback, deleteFeedback } from "../api/feedb
 import { isAdmin } from "../utils/jwtHelper";
 
 const getLanguageCode = (languageName) => {
-  const languageMap = {
-    'JavaScript': 'javascript',
-    'Python': 'python',
-    'Java': 'java',
-    'C': 'c',
-    'C++': 'cpp',
-    'C#': 'csharp',
-    'Ruby': 'ruby',
-    'Go': 'go',
-    'PHP': 'php',
-    'Swift': 'swift',
-    'Kotlin': 'kotlin',
-    'TypeScript': 'typescript',
-  };
-  return languageMap[languageName] || 'javascript';
+  if (!languageName) return 'javascript';
+  
+  // 대소문자 구분 없이 비교하기 위해 소문자로 변환
+  const normalized = String(languageName).toLowerCase().trim();
+  
+  // 언어 매핑 (대소문자 구분 없음)
+  if (normalized === 'javascript' || normalized === 'js') return 'javascript';
+  if (normalized === 'typescript' || normalized === 'ts') return 'typescript';
+  if (normalized === 'python' || normalized === 'py') return 'python';
+  if (normalized === 'java') return 'java';
+  if (normalized === 'c++' || normalized === 'cpp') return 'cpp';
+  if (normalized === 'c#' || normalized === 'csharp') return 'csharp';
+  if (normalized === 'c') return 'c';
+  if (normalized === 'ruby') return 'ruby';
+  if (normalized === 'go') return 'go';
+  if (normalized === 'php') return 'php';
+  if (normalized === 'swift') return 'swift';
+  if (normalized === 'kotlin') return 'kotlin';
+  
+  return 'javascript';
 };
 
 function Admin() {
@@ -135,12 +140,41 @@ function Admin() {
     }
   };
 
+  // 언어 이름을 정규화하는 함수 (language.jsx 형식에 맞게)
+  const normalizeLanguage = (lang) => {
+    if (!lang) return "JavaScript";
+    const normalized = String(lang).toLowerCase().trim();
+    
+    // language.jsx의 형식에 맞게 대문자로 시작하는 형식으로 변환
+    const languageMap = {
+      'javascript': 'JavaScript',
+      'js': 'JavaScript',
+      'typescript': 'TypeScript',
+      'ts': 'TypeScript',
+      'python': 'Python',
+      'py': 'Python',
+      'java': 'Java',
+      'c++': 'C++',
+      'cpp': 'C++',
+      'c#': 'C#',
+      'csharp': 'C#',
+      'c': 'C',
+      'ruby': 'Ruby',
+      'go': 'Go',
+      'php': 'PHP',
+      'swift': 'Swift',
+      'kotlin': 'Kotlin',
+    };
+    
+    return languageMap[normalized] || 'JavaScript';
+  };
+
   const handleEditPost = (post) => {
     setEditingPost(post.id);
     setEditForm({
       title: post.title,
       content: post.content,
-      languages: post.languages || "JavaScript",
+      languages: normalizeLanguage(post.languages),
       stacks: post.stacks ? [post.stacks] : [],
       category: post.category || "개발",
       code: post.code || "",
