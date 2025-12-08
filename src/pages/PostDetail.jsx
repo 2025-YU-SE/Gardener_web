@@ -1,6 +1,3 @@
-// -----------------------------------------
-// PostDetail.jsx (완전 수정본 — UI 유지 + 기능추가)
-// -----------------------------------------
 import React, { useState, useEffect, useMemo } from "react";
 import {
   FaHeart,
@@ -12,6 +9,7 @@ import {
   FaStar,
   FaEdit,
   FaTrash,
+  FaGithub,
 } from "react-icons/fa";
 import { IoMdMore } from "react-icons/io";
 import Header from "../components/header/Header";
@@ -51,9 +49,7 @@ function PostDetail() {
   const [displayedFeedbacksCount, setDisplayedFeedbacksCount] = useState(5);
   const [loading, setLoading] = useState(true);
 
-  // -----------------------------
   // 피드백 작성 상태
-  // -----------------------------
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState(false);
   const [feedbackContent, setFeedbackContent] = useState("");
   const [rating, setRating] = useState(5);
@@ -69,9 +65,7 @@ function PostDetail() {
   const [postBookmarked, setPostBookmarked] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // ---------------------------------------------------
   // 코드 에디터 언어 감지
-  // ---------------------------------------------------
   const editorLanguage = useMemo(() => {
     const lang = post?.languages;
     if (!lang) return "javascript";
@@ -90,9 +84,7 @@ function PostDetail() {
     return "javascript";
   }, [post?.languages]);
 
-  // ===================================================
-  // 1. 게시물 상세 불러오기
-  // ===================================================
+  // 게시물 상세 불러오기
   useEffect(() => {
     const loadPost = async () => {
       try {
@@ -145,9 +137,7 @@ function PostDetail() {
     loadPost();
   }, [postId]);
 
-  // ===================================================
-  // 2. 게시물의 피드백 목록 불러오기
-  // ===================================================
+  // 게시물의 피드백 목록 불러오기
   useEffect(() => {
     const loadFeedbacks = async () => {
       try {
@@ -214,11 +204,8 @@ function PostDetail() {
     return <Loading message="게시글을 불러오는 중입니다..." />;
   }
 
-  // ===================================================
-  // 🔥 피드백 등록
-  // ===================================================
+  // 피드백 등록
   const handleSubmitFeedback = async () => {
-    // 인증 확인
     const token = localStorage.getItem("accessToken");
     if (!token) {
       alert("로그인이 필요합니다.");
@@ -255,7 +242,7 @@ function PostDetail() {
       const createdFeedback = await createFeedback(feedbackPayload);
       const feedbackId = createdFeedback.feedbackId || createdFeedback.id;
 
-      // 2. 각 라인 피드백을 개별적으로 등록
+      // 각 라인 피드백을 개별적으로 등록
       if (feedbackRanges && feedbackRanges.length > 0) {
         // 모든 라인 피드백을 등록 (내용이 없어도 라인 번호는 저장)
         const lineFeedbackPromises = feedbackRanges.map((r) => {
@@ -300,9 +287,7 @@ function PostDetail() {
     setIsFeedbackFormOpen(true);
   };
 
-  // ===================================================
-  // 🔥 좋아요 / 스크랩
-  // ===================================================
+  // 좋아요 / 스크랩
 
   const handleToggleLike = async () => {
     if (!isAuthed) {
@@ -392,10 +377,7 @@ function PostDetail() {
     }
   };
 
-  // ===================================================
-  // 🔥 AI 피드백 불러오기 / 재생성
-  // ===================================================
-
+// AI 피드백 불러오기 / 재생성
   const fetchAiFeedback = async () => {
     try {
       setAiLoading(true);
@@ -437,9 +419,7 @@ function PostDetail() {
     }
   };
 
-  // ===================================================
-  // 🔥 게시글 수정/삭제 권한 체크
-  // ===================================================
+  // 게시글 수정/삭제 권한 체크
   const canEditOrDelete = () => {
     if (!isAuthed || !post) return false;
 
@@ -453,9 +433,7 @@ function PostDetail() {
     return post.author === currentUsername;
   };
 
-  // ===================================================
-  // 🔥 게시글 수정
-  // ===================================================
+  // 게시글 수정
   const handleEditPost = () => {
     if (!canEditOrDelete()) {
       alert("수정 권한이 없습니다.");
@@ -464,9 +442,7 @@ function PostDetail() {
     navigate(`/upload?edit=${postId}`, { state: { post } });
   };
 
-  // ===================================================
-  // 🔥 게시글 삭제
-  // ===================================================
+  // 게시글 삭제
   const handleDeletePost = async () => {
     if (!canEditOrDelete()) {
       alert("삭제 권한이 없습니다.");
@@ -499,9 +475,7 @@ function PostDetail() {
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* -------------------------------- */}
         {/* 게시글 카드 */}
-        {/* -------------------------------- */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
           <div className="flex items-start justify-between mb-2">
             <h1 className="text-2xl font-bold text-gray-800 flex-1">
@@ -546,7 +520,7 @@ function PostDetail() {
             )}
           </div>
 
-          <p className="text-gray-600 mb-6">{post.content}</p>
+                    <p className="text-gray-600 mb-6">{post.content}</p>
 
           <div className="flex items-center mb-6">
             <div className="w-10 h-10 rounded-full overflow-hidden flex justify-center items-center mr-3 bg-green-100 border border-gray-300">
@@ -577,6 +551,7 @@ function PostDetail() {
           </div>
 
           <div className="flex justify-between items-center">
+            {/* 왼쪽: 좋아요/스크랩/댓글/조회수 */}
             <div className="flex items-center gap-6">
               <button
                 onClick={handleToggleLike}
@@ -613,18 +588,38 @@ function PostDetail() {
               </span>
             </div>
 
-            <button
-              onClick={handleToggleAIFeedback}
-              className="bg-green-600 text-white px-4 py-2 rounded-md"
-            >
-              {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
-            </button>
+            {/* 오른쪽: GitHub 링크 + AI 피드백 버튼 */}
+            <div className="flex items-center gap-3">
+              {post.githubRepoUrl && post.githubRepoUrl.trim() && (
+                <a
+                  href={
+                    post.githubRepoUrl.startsWith("http")
+                      ? post.githubRepoUrl
+                      : `https://${post.githubRepoUrl}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-[#111827] px-3 py-2 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100 hover:border-gray-300 transition-colors"
+                >
+                  <FaGithub className="text-lg" />
+                  <span className="underline truncate">
+                    {post.githubRepoUrl}
+                  </span>
+                </a>
+              )}
+
+              <button
+                onClick={handleToggleAIFeedback}
+                className="bg-green-600 text-white px-4 py-2 rounded-md"
+              >
+                {isAIFeedbackOpen ? "AI 피드백 닫기" : "AI 피드백"}
+              </button>
+            </div>
           </div>
+
         </div>
 
-        {/* -------------------------------- */}
         {/* 코드 영역 + 피드백 */}
-        {/* -------------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* 코드 */}
           <div className="lg:col-span-2">
