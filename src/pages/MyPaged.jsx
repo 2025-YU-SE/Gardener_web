@@ -265,6 +265,10 @@ function MyPaged() {
     navigate(`/posts/${postId}`);
   };
 
+  const handleFeedBackClick = (postId, feedbackId) => {
+    navigate(`/posts/${postId}/${feedbackId}`)
+  }
+
   // 게시글 좋아요
   const handleTogglePostLike = async (postId) => {
     const isAuthed = Boolean(localStorage.getItem("accessToken"));
@@ -831,7 +835,7 @@ function MyPaged() {
                       feedback={feedback}
                       userName={profile.name}
                       userAvatar={profileImgSrc}
-                      onClick={() => handlePostClick(feedback.postId)}
+                      onClick={() => handleFeedBackClick(feedback.postId, feedback.feedbackId)}
                     />
                   ))}
                 </div>
