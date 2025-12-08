@@ -19,6 +19,14 @@ const getGradeBadgeStyle = (grade) => {
   }
 };
 
+// 포인트 값에 따른 등급 계산 함수
+const getGradeByPoints = (points = 0) => {
+  if (points >= 10000) return "숲의 현자";     // 10000 이상
+  if (points >= 5000) return "나무 개발자";    // 5000 ~ 9999
+  if (points >= 2000) return "잎새 개발자";    // 2000 ~ 4999
+  return "새싹 개발자";                        // 0 ~ 1999
+};
+
 function RankingBoard({
   leaders,
   loading,
@@ -250,7 +258,8 @@ function RankingBoard({
                 item.totalFeedbackCount
               }
               profileImage={item.userPicture}
-              grade={item.grade}
+              // 포인트 값으로 등급 계산해서 전달
+              grade={getGradeByPoints(item.points != null ? item.points : 0)}
               userId={item.userId}
             />
           ))}
