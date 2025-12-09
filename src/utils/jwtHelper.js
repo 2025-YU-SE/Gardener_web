@@ -32,12 +32,36 @@ export const getCurrentUserRole = () => {
   if (!token) return null;
   
   const decoded = decodeJWT(token);
-  return decoded?.role || null;
+  // 백엔드 토큰마다 role 표현 방식이 다를 수 있으므로 가변적으로 파싱
+  const role =
+    decoded?.role ||
+    decoded?.roles ||
+    decoded?.authorities ||
+    decoded?.auth ||
+    null;
+  return role;
 };
 
 // 현재 사용자가 관리자인지 확인
 export const isAdmin = () => {
   const role = getCurrentUserRole();
-  return role === 'ADMIN';
+  
+  // 문자열 단일 역할
+  if (typeof role === 'string') {
+    return role === 'ADMIN' || role === 'ROLE_ADMIN';
+  }
+  
+  // 배열 형태의 권한
+  if (Array.isArray(role)) {
+    return role.includes('ADMIN') || role.includes('ROLE_ADMIN');
+  }
+
+  // 객체(예: { role: 'ADMIN' }) 형태
+  if (role && typeof role === 'object') {
+    const values = Object.values(role);
+    return values.includes('ADMIN') || values.includes('ROLE_ADMIN');
+  }
+  
+  return false;
 };
 

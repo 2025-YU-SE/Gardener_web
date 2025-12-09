@@ -26,8 +26,8 @@ export const createLineFeedback = async (feedbackId, lineFeedback) => {
 };
 
 // ⭐ 특정 게시물의 피드백 목록 조회 (일관성 유지 위해 api 사용)
-export const getFeedbacksByPost = async (postId) => {
-  const response = await api.get(`/api/feedback/post/${postId}`);
+export const getFeedbacksByPost = async (postId, params) => {
+  const response = await api.get(`/api/feedback/post/${postId}`, { params });
   return response.data;
 };
 
@@ -62,7 +62,7 @@ export const deleteFeedback = async (feedbackId) => {
 };
 
 // ⭐ 모든 피드백 목록 조회 (관리자용)
-export const getAllFeedbacks = async () => {
-  const response = await api.get("/api/feedback");
+export const getAllFeedbacks = async (params) => {
+  const response = await api.get("/api/feedback", { params });
   return response.data;
 };
