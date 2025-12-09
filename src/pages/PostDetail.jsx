@@ -7,7 +7,6 @@ import {
   FaComment,
   FaEye,
   FaStar,
-  FaEdit,
   FaTrash,
   FaGithub,
 } from "react-icons/fa";
@@ -45,6 +44,7 @@ function PostDetail() {
 
   const [post, setPost] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackError, setFeedbackError] = useState("");
   const [feedbackSort, setFeedbackSort] = useState("recent"); // recent | rating | likes
   const [displayedFeedbacksCount, setDisplayedFeedbacksCount] = useState(5);
   const [loading, setLoading] = useState(true);
@@ -139,9 +139,10 @@ function PostDetail() {
 
   // 게시물의 피드백 목록 불러오기
   useEffect(() => {
+    let isMounted = true;
     const loadFeedbacks = async () => {
       try {
-        const res = await getFeedbacksByPost(postId);
+        const res = await getFeedbacksByPost(postId, { page: 0, size: 200 });
         const list = Array.isArray(res) ? res : res.data || [];
 
         const mapped = list.map((fb) => ({
@@ -157,13 +158,21 @@ function PostDetail() {
           adoptedTF: fb.adoptedTF === true,
         }));
 
-        setFeedbacks(mapped);
+        if (isMounted) setFeedbacks(mapped);
       } catch (err) {
         console.error("피드백 로드 실패:", err);
+        if (isMounted) {
+          // 403 등 권한 문제일 때는 빈 배열로 두고 메시지 표시
+          setFeedbacks([]);
+          setFeedbackError("피드백을 불러올 권한이 없습니다. 관리자에게 문의해주세요.");
+        }
       }
     };
 
     loadFeedbacks();
+    return () => {
+      isMounted = false;
+    };
   }, [postId]);
 
   const sortedFeedbacks = useMemo(() => {
@@ -185,6 +194,8 @@ function PostDetail() {
     });
     return copied;
   }, [feedbacks, feedbackSort]);
+
+  const expectedFeedbackCount = post?.comments || 0;
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -433,15 +444,6 @@ function PostDetail() {
     return post.author === currentUsername;
   };
 
-  // 게시글 수정
-  const handleEditPost = () => {
-    if (!canEditOrDelete()) {
-      alert("수정 권한이 없습니다.");
-      return;
-    }
-    navigate(`/upload?edit=${postId}`, { state: { post } });
-  };
-
   // 게시글 삭제
   const handleDeletePost = async () => {
     if (!canEditOrDelete()) {
@@ -494,16 +496,6 @@ function PostDetail() {
 
                 {isMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        handleEditPost();
-                      }}
-                      className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                    >
-                      <FaEdit className="text-blue-600" />
-                      <span>수정</span>
-                    </button>
                     <button
                       onClick={() => {
                         setIsMenuOpen(false);
@@ -773,6 +765,24 @@ function PostDetail() {
                     </div>
                   </div>
 
+                  {feedbackError && (
+                    <div className="mb-3 p-3 rounded-md border border-red-200 bg-red-50 text-sm text-red-700">
+                      {feedbackError}
+                      {expectedFeedbackCount > 0 && (
+                        <span className="block mt-1 text-xs text-red-600">
+                          예상 피드백 수: {expectedFeedbackCount}개
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {!feedbackError &&
+                    sortedFeedbacks.length === 0 &&
+                    expectedFeedbackCount > 0 && (
+                      <div className="mb-3 p-3 rounded-md border border-yellow-200 bg-yellow-50 text-sm text-yellow-700">
+                        피드백이 {expectedFeedbackCount}개 존재하지만 불러올 수 없습니다.
+                        로그인 상태와 권한을 확인해 주세요.
+                      </div>
+                    )}
                   <div className="space-y-3">
                     {sortedFeedbacks
                       .slice(0, displayedFeedbacksCount)

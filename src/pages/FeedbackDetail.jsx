@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Header from "../components/header/Header";
 import Loading from "../components/Loading";
 import { FiChevronLeft } from "react-icons/fi";
-import { FaHeart, FaRegHeart, FaComment, FaStar, FaEdit, FaTrash } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaComment, FaStar, FaTrash } from "react-icons/fa";
 import { IoMdMore } from "react-icons/io";
 import { BsSend } from "react-icons/bs";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -149,7 +149,7 @@ function FeedbackDetail() {
     };
 
     loadData();
-  }, [postId, feedbackId]);
+  }, [postId, feedbackId, isAuthed]);
 
   // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
@@ -168,8 +168,6 @@ function FeedbackDetail() {
   // ===================================================
   // 2. 좋아요 / 수정 / 삭제 / 댓글 CRUD
   // ===================================================
-
-  const detailLikes = feedback?.likesCount ?? 0;
 
   // ===================================================
   // 피드백 수정/삭제 권한 체크
@@ -650,27 +648,6 @@ function FeedbackDetail() {
                         
                         {isMenuOpen && (
                           <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                            <button
-                              onClick={() => {
-                                setIsMenuOpen(false);
-                                setIsEditing(true);
-                                // 수정 모드 진입 시 현재 라인 피드백을 편집용으로 설정
-                                const mapped = (feedback.lineFeedbacks || []).map((lf) => ({
-                                  id: lf.lineFeedbackId,
-                                  start: Number(lf.lineNumber) || 0,
-                                  end: Number(lf.endLineNumber) || Number(lf.lineNumber) || 0,
-                                  text: lf.content || "",
-                                  editing: false,
-                                  createdAt: lf.createdAt,
-                                  lineFeedbackId: lf.lineFeedbackId,
-                                }));
-                                setEditLineFeedbacks(mapped);
-                              }}
-                              className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                            >
-                              <FaEdit className="text-blue-600" />
-                              <span>수정</span>
-                            </button>
                             <button
                               onClick={() => {
                                 setIsMenuOpen(false);

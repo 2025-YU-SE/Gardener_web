@@ -12,9 +12,8 @@ import {
   FaAngleDoubleRight,
   FaAngleLeft,
   FaAngleRight,
-  FaChevronDown,
-  FaEdit,
-  FaTrash,
+   FaChevronDown,
+   FaTrash,
 } from "react-icons/fa";
 import { IoMdMore, IoMdTime } from "react-icons/io";
 import Header from "../components/header/Header";
@@ -378,17 +377,6 @@ function Posts() {
   };
 
   // ===================================================
-  // 🔥 게시글 수정
-  // ===================================================
-  const handleEditPost = (post) => {
-    if (!canEditOrDelete(post)) {
-      alert("수정 권한이 없습니다.");
-      return;
-    }
-    navigate(`/upload?edit=${post.id}`, { state: { post } });
-  };
-
-  // ===================================================
   // 🔥 게시글 삭제
   // ===================================================
   const handleDeletePost = async (post) => {
@@ -576,17 +564,6 @@ function Posts() {
                           
                           {openMenuId === post.id && (
                             <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(null);
-                                  handleEditPost(post);
-                                }}
-                                className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                              >
-                                <FaEdit className="text-blue-600" />
-                                <span>수정</span>
-                              </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
