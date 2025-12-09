@@ -40,6 +40,14 @@ const formatTimeAgo = (dateString) => {
   )}.${String(date.getDate()).padStart(2, "0")}`;
 };
 
+// 포인트 → 등급 라벨 계산
+const getGradeLabelByPoints = (points = 0) => {
+  if (points >= 10000) return "숲의 현자";
+  if (points >= 5000) return "나무 개발자";
+  if (points >= 2000) return "잎새 개발자";
+  return "새싹 개발자";
+};
+
 function MyPaged() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -166,6 +174,9 @@ function MyPaged() {
               )
             : 0;
 
+        // 포인트 기준으로 등급 라벨 계산
+        const gradeLabel = getGradeLabelByPoints(pData.points || 0);
+
         // 스크랩
         let scrapCount = 0;
         let mappedScraps = [];
@@ -223,7 +234,7 @@ function MyPaged() {
           postCount: pData.postCount,
           feedbackCount: pData.totalFeedbackCount,
           scrapCount: isMyProfile ? scrapCount : 0,
-          gradeLabel: pData.grade,
+          gradeLabel,
         });
 
         setMyPosts(mappedPosts);
@@ -266,8 +277,8 @@ function MyPaged() {
   };
 
   const handleFeedBackClick = (postId, feedbackId) => {
-    navigate(`/posts/${postId}/${feedbackId}`)
-  }
+    navigate(`/posts/${postId}/${feedbackId}`);
+  };
 
   // 게시글 좋아요
   const handleTogglePostLike = async (postId) => {
@@ -681,7 +692,9 @@ function MyPaged() {
             {/* 프로필 정보 */}
             <div className="flex-1 min-w-0 w-full rounded-[10px] border border-[#ACACAC] bg-white pl-4 sm:pl-6 pr-4 sm:pr-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 box-border">
               <div className="flex-1 min-w-0 w-full sm:w-auto">
-                <h2 className="text-lg sm:text-[22px] font-semibold mb-2 break-words">{profile.name}</h2>
+                <h2 className="text-lg sm:text-[22px] font-semibold mb-2 break-words">
+                  {profile.name}
+                </h2>
                 <ul className="space-y-2 text-xs sm:text-[14px]">
                   <Row
                     icon={<TbCoin className="text-[#4D4D4D]" size={18} />}
@@ -690,7 +703,10 @@ function MyPaged() {
                   />
                   <Row
                     icon={
-                      <TbMessage2Check className="text-[#4D4D4D]" size={18} />
+                      <TbMessage2Check
+                        className="text-[#4D4D4D]"
+                        size={18}
+                      />
                     }
                     label="피드백 채택률"
                     value={`${profile.selectRate}%`}
@@ -835,7 +851,12 @@ function MyPaged() {
                       feedback={feedback}
                       userName={profile.name}
                       userAvatar={profileImgSrc}
-                      onClick={() => handleFeedBackClick(feedback.postId, feedback.feedbackId)}
+                      onClick={() =>
+                        handleFeedBackClick(
+                          feedback.postId,
+                          feedback.feedbackId
+                        )
+                      }
                     />
                   ))}
                 </div>
@@ -937,7 +958,9 @@ function Row({ icon, label, value }) {
         <span className="shrink-0 flex-shrink-0">{icon}</span>
         <span className="font-medium whitespace-nowrap">{label}</span>
       </div>
-      <span className="font-semibold text-gray-900 shrink-0 flex-shrink-0 whitespace-nowrap">{value}</span>
+      <span className="font-semibold text-gray-900 shrink-0 flex-shrink-0 whitespace-nowrap">
+        {value}
+      </span>
     </li>
   );
 }
