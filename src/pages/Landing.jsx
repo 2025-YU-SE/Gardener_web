@@ -21,7 +21,7 @@ function Landing() {
         let postCount = 0;
         let feedbackCount = 0;
         try {
-          const postsRes = await getPosts();
+          const postsRes = await getPosts({ params: { page: 0, size: 100 } });
           // 페이지네이션 응답 구조: { content: [], totalElements: number }
           postCount = postsRes?.data?.totalElements || 0;
           
@@ -32,6 +32,7 @@ function Landing() {
               return sum + (post.feedbackCount || 0);
             }, 0);
           }
+
         } catch (err) {
           console.error("게시글 통계 조회 실패:", err);
         }
@@ -95,19 +96,22 @@ function Landing() {
 
         {/* 통계 영역 */}
         <div className="flex flex-col sm:flex-row justify-center items-center gap-8 sm:gap-12 lg:gap-44 pt-12 sm:pt-16 lg:pt-20 px-4">
-          {stats.map(({ icon: Icon, value, label }) => (
-            <div key={label} className="flex flex-col items-center">
-              <div className="flex justify-center items-center w-[60px] h-[60px] sm:w-[80px] sm:h-[80px] bg-white rounded-[12px] shadow-sm">
-                <Icon size={30} className="sm:w-[40px] sm:h-[40px] text-[#16A34A]" />
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div key={stat.label} className="flex flex-col items-center">
+                <div className="flex justify-center items-center w-[60px] h-[60px] sm:w-[80px] sm:h-[80px] bg-white rounded-[12px] shadow-sm">
+                  <Icon size={30} className="sm:w-[40px] sm:h-[40px] text-[#16A34A]" />
+                </div>
+                <div className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-black pt-2">
+                  {stat.value}
+                </div>
+                <div className="text-[#4D4D4D] text-base sm:text-lg lg:text-[24px] font-semibold">
+                  {stat.label}
+                </div>
               </div>
-              <div className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-black pt-2">
-                {value}
-              </div>
-              <div className="text-[#4D4D4D] text-base sm:text-lg lg:text-[24px] font-semibold">
-                {label}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

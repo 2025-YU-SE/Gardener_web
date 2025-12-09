@@ -1,8 +1,8 @@
 import api from "./axios";
 
 // 📌 게시글 목록 조회 (GET /api/posts)
-export const getPosts = () => {
-  return api.get("/api/posts");
+export const getPosts = (config = {}) => {
+  return api.get("/api/posts", config);
 };
 
 // 📌 게시글 상세 조회 (GET /api/posts/{postId})
