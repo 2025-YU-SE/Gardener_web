@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaEdit, FaTrash, FaStar } from "react-icons/fa";
+import { FaTrash, FaStar } from "react-icons/fa";
 import Header from "../components/header/Header";
 import Loading from "../components/Loading";
 import WriteCodeEditor from "../components/WriteCodeEditor";
@@ -412,13 +412,7 @@ function Admin() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditPost(post)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
-                            title="수정"
-                          >
-                            <FaEdit />
-                          </button>
+
                           <button
                             onClick={() => handleDeletePost(post.id)}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-md"
@@ -542,10 +536,10 @@ function Admin() {
                         <div className="flex gap-2 ml-4">
                           <button
                             onClick={() => handleEditFeedback(feedback)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
+                            className="px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-md text-sm font-semibold"
                             title="수정"
                           >
-                            <FaEdit />
+                            수정
                           </button>
                           <button
                             onClick={() => handleDeleteFeedback(feedback.id)}
