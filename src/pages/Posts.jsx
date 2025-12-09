@@ -211,7 +211,7 @@ function Posts() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await getPosts(); // GET /api/posts
+        const res = await getPosts({ params: { page: 0, size: 100 } });
         const data = res.data?.content || [];
 
         // 🔥 프론트에서 사용하기 위한 매핑
