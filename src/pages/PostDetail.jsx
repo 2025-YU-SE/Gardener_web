@@ -432,6 +432,12 @@ function PostDetail() {
   };
 
   const handleRegenerateAIFeedback = async () => {
+    const aiText = aiFeedback?.trim() || "";
+    const placeholderText = "AI 피드백이 아직 생성되지 않았습니다.";
+    const isError = aiText.startsWith("AI 피드백 생성 실패");
+    const isPlaceholder = aiText === placeholderText;
+    const isGenerated = !!aiText && !isError && !isPlaceholder;
+    if (isGenerated || aiLoading) return;
     try {
       if (!window.confirm("AI 피드백을 다시 생성하시겠습니까?")) return;
       setAiLoading(true);
@@ -881,13 +887,29 @@ function PostDetail() {
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-gray-800">AI 피드백</h2>
-              <button
-                type="button"
-                onClick={handleRegenerateAIFeedback}
-                className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
-              >
-                다시 생성
-              </button>
+              {(() => {
+                const aiText = aiFeedback?.trim() || "";
+                const placeholderText = "AI 피드백이 아직 생성되지 않았습니다.";
+                const isError = aiText.startsWith("AI 피드백 생성 실패");
+                const isPlaceholder = aiText === placeholderText;
+                const isGenerated = !!aiText && !isError && !isPlaceholder;
+                const disabled = isGenerated || aiLoading;
+                const label = isGenerated ? "생성 완료" : aiLoading ? "생성 중..." : "다시 생성";
+                return (
+                  <button
+                    type="button"
+                    onClick={handleRegenerateAIFeedback}
+                    disabled={disabled}
+                    className={`text-sm px-3 py-1 rounded-md border ${
+                      disabled
+                        ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                        : "border-green-500 text-green-600 hover:bg-green-50"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })()}
             </div>
 
             {aiLoading && (
