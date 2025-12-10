@@ -53,7 +53,6 @@ function Upload() {
   const [codingTitle, setCodingTitle] = useState('')
   const [problem, setProblem] = useState('')
   const [codingCode, setCodingCode] = useState('// 코딩테스트 코드를 입력하세요\nfunction solution() {\n  // 여기에 코드를 작성하세요\n  return;\n}')
-  const [codeExplanation, setCodeExplanation] = useState('')
   const [codingFeedbackRequests, setCodingFeedbackRequests] = useState(['', '', ''])
   
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -98,7 +97,6 @@ function Upload() {
             setCodingTitle(post.title || '');
             setProblem(post.problemStatement || post.content || '');
             setCodingCode(post.code || '');
-            setCodeExplanation(post.summary || '');
           } else {
             setActiveTab('개발');
             if (post.summary) {
@@ -132,7 +130,6 @@ function Upload() {
             setCodingTitle(postData.title || '');
             setProblem(postData.problemStatement || postData.content || '');
             setCodingCode(postData.code || '');
-            setCodeExplanation(postData.summary || '');
           } else {
             setActiveTab('개발');
             if (postData.summary) {
@@ -174,7 +171,7 @@ function Upload() {
           return
         }
       } else {
-        if (!codingTitle.trim() || !problem.trim() || !codingCode.trim() || !codeExplanation.trim()) {
+        if (!codingTitle.trim() || !problem.trim() || !codingCode.trim()) {
           alert('필수 항목을 모두 입력해주세요.')
           setIsSubmitting(false)
           return
@@ -453,20 +450,6 @@ function Upload() {
                     value={codingCode}
                     onChange={setCodingCode}
                   />
-                </div>
-
-                {/* 코드 설명 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    코드를 설명하는 창 (간단한 설명, 구현 의도 등) *
-                  </label>
-                  <textarea 
-                    placeholder="코드의 목적, 구현 방식, 특별한 고려사항 등을 설명해주세요"
-                    rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none"
-                    value={codeExplanation}
-                    onChange={(e) => setCodeExplanation(e.target.value)}
-                  ></textarea>
                 </div>
 
                 {/* 피드백 요청 */}
