@@ -395,7 +395,27 @@ function PostDetail() {
       setAiError("");
       const res = await getAiFeedback(postId);
       const text = res?.data ?? res;
-      setAiFeedback(text || "");
+      const result = text || "";
+
+      // 코딩테스트 게시물에서 초기 500 에러 문자열이 내려올 경우 자동 재시도
+      if (
+        post?.contentsType === false &&
+        typeof result === "string" &&
+        result.startsWith("AI 피드백 생성 실패")
+      ) {
+        try {
+          const retry = await regenerateAiFeedback(postId);
+          const retryText = retry?.data ?? retry;
+          setAiFeedback(retryText || "");
+          return;
+        } catch (retryErr) {
+          console.error("AI 피드백 자동 재생성 실패:", retryErr);
+          setAiFeedback(result);
+          return;
+        }
+      }
+
+      setAiFeedback(result);
     } catch (err) {
       console.error("AI 피드백 조회 실패:", err);
       setAiError("AI 피드백을 불러오지 못했습니다.");
@@ -412,6 +432,12 @@ function PostDetail() {
   };
 
   const handleRegenerateAIFeedback = async () => {
+    const aiText = aiFeedback?.trim() || "";
+    const placeholderText = "AI 피드백이 아직 생성되지 않았습니다.";
+    const isError = aiText.startsWith("AI 피드백 생성 실패");
+    const isPlaceholder = aiText === placeholderText;
+    const isGenerated = !!aiText && !isError && !isPlaceholder;
+    if (isGenerated || aiLoading) return;
     try {
       if (!window.confirm("AI 피드백을 다시 생성하시겠습니까?")) return;
       setAiLoading(true);
@@ -653,17 +679,22 @@ function PostDetail() {
               <div className="bg-white border rounded-lg p-6">
                 <h3 className="font-bold text-lg mb-4">피드백 요청</h3>
                 <div className="space-y-2">
-                  {post.summary.split(',').map((item, index) => {
-                    const trimmed = item.trim();
-                    return trimmed ? (
+                  {(() => {
+                    const raw = (post.summary || '').replace(/\r?\n/g, ' ');
+                    const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+                    const items =
+                      parts.length > 3
+                        ? [parts[0], parts[1], parts.slice(2).join(' ')]
+                        : parts.slice(0, 3);
+                    return items.map((item, index) => (
                       <div
                         key={index}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        {trimmed}
+                        {item}
                       </div>
-                    ) : null;
-                  })}
+                    ));
+                  })()}
                 </div>
               </div>
             )}
@@ -861,13 +892,29 @@ function PostDetail() {
           <div className="bg-white rounded-lg shadow-sm border p-6 mb-8 mt-8">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-gray-800">AI 피드백</h2>
-              <button
-                type="button"
-                onClick={handleRegenerateAIFeedback}
-                className="text-sm px-3 py-1 rounded-md border border-green-500 text-green-600 hover:bg-green-50"
-              >
-                다시 생성
-              </button>
+              {(() => {
+                const aiText = aiFeedback?.trim() || "";
+                const placeholderText = "AI 피드백이 아직 생성되지 않았습니다.";
+                const isError = aiText.startsWith("AI 피드백 생성 실패");
+                const isPlaceholder = aiText === placeholderText;
+                const isGenerated = !!aiText && !isError && !isPlaceholder;
+                const disabled = isGenerated || aiLoading;
+                const label = isGenerated ? "생성 완료" : aiLoading ? "생성 중..." : "다시 생성";
+                return (
+                  <button
+                    type="button"
+                    onClick={handleRegenerateAIFeedback}
+                    disabled={disabled}
+                    className={`text-sm px-3 py-1 rounded-md border ${
+                      disabled
+                        ? "border-gray-300 text-gray-400 bg-gray-100 cursor-not-allowed"
+                        : "border-green-500 text-green-600 hover:bg-green-50"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })()}
             </div>
 
             {aiLoading && (

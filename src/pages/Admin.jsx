@@ -4,7 +4,7 @@ import { FaTrash, FaStar } from "react-icons/fa";
 import Header from "../components/header/Header";
 import Loading from "../components/Loading";
 import { getPosts, deletePost } from "../api/postApi";
-import { getAllFeedbacks, getFeedbacksByPost, deleteFeedback } from "../api/feedbackApi";
+import { getFeedbacksByPost, deleteFeedback } from "../api/feedbackApi";
 import { isAdmin } from "../utils/jwtHelper";
 
 function Admin() {
@@ -63,71 +63,38 @@ function Admin() {
         setPosts(mapped);
       } else {
         try {
-          // 1차: 관리자 전용 전체 피드백 조회 (권한 403 시 다음 단계로 fallback)
-          const feedbackRes = await getAllFeedbacks({ page: 0, size: 200 });
-          const list =
-            feedbackRes?.content ||
-            feedbackRes?.data ||
-            (Array.isArray(feedbackRes) ? feedbackRes : []);
-
-          // 게시글 제목 매핑
-          const postResForTitle = await getPosts({ params: { page: 0, size: 200 } });
+          const postsRes = await getPosts({ params: { page: 0, size: 200 } });
+          const postsData = postsRes?.data?.content || [];
           const postTitleMap = {};
-          (postResForTitle?.data?.content || []).forEach((p) => {
+          postsData.forEach((p) => {
             postTitleMap[p.postId] = p.title;
           });
-
-          const mapped = list.map((fb) => ({
+          const feedbackPromises = postsData.map(async (post) => {
+            try {
+              const feedbacks = await getFeedbacksByPost(post.postId, {
+                page: 0,
+                size: 200,
+              });
+              return Array.isArray(feedbacks) ? feedbacks : [];
+            } catch {
+              return [];
+            }
+          });
+          const allFeedbacksArrays = await Promise.all(feedbackPromises);
+          const allFeedbacks = allFeedbacksArrays.flat();
+          const mapped = allFeedbacks.map((fb) => ({
             id: fb.feedbackId || fb.id,
             postId: fb.postId,
             author: fb.userName || fb.author || "익명",
-            // 피드백 제목 대신 해당 게시글 제목 사용
             title: postTitleMap[fb.postId] || fb.title || "",
             content: fb.content || "",
             rating: fb.rating || 0,
             timeAgo: fb.createdAt ? fb.createdAt.slice(0, 10) : "",
             likes: fb.likesCount || fb.likes || 0,
           }));
-
           setFeedbacks(mapped);
         } catch {
-          // 403 등의 경우 기존 per-post 조회로 우회 (로그 미출력)
-          try {
-            // 게시글을 넉넉히 받아서 누락 방지
-            const postsRes = await getPosts({ params: { page: 0, size: 200 } });
-            const postsData = postsRes?.data?.content || [];
-            const postTitleMap = {};
-            postsData.forEach((p) => {
-              postTitleMap[p.postId] = p.title;
-            });
-            const feedbackPromises = postsData.map(async (post) => {
-              try {
-                const feedbacks = await getFeedbacksByPost(post.postId, {
-                  page: 0,
-                  size: 200,
-                });
-                return Array.isArray(feedbacks) ? feedbacks : [];
-              } catch {
-                return [];
-              }
-            });
-            const allFeedbacksArrays = await Promise.all(feedbackPromises);
-            const allFeedbacks = allFeedbacksArrays.flat();
-            const mapped = allFeedbacks.map((fb) => ({
-              id: fb.feedbackId || fb.id,
-              postId: fb.postId,
-              author: fb.userName || fb.author || "익명",
-              // 피드백 제목 대신 해당 게시글 제목 사용
-              title: postTitleMap[fb.postId] || fb.title || "",
-              content: fb.content || "",
-              rating: fb.rating || 0,
-              timeAgo: fb.createdAt ? fb.createdAt.slice(0, 10) : "",
-              likes: fb.likesCount || fb.likes || 0,
-            }));
-            setFeedbacks(mapped);
-          } catch {
-            setFeedbacks([]);
-          }
+          setFeedbacks([]);
         }
       }
     } catch {
