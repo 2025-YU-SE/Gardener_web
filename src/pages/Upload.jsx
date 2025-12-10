@@ -100,8 +100,17 @@ function Upload() {
           } else {
             setActiveTab('개발');
             if (post.summary) {
-              const requests = post.summary.split(',').map(s => s.trim()).filter(Boolean);
-              setFeedbackRequests(requests.length > 0 ? requests : ['', '', '']);
+              const raw = post.summary.replace(/\r?\n/g, ' ');
+              const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+              const requests =
+                parts.length > 3
+                  ? [parts[0], parts[1], parts.slice(2).join(' ')]
+                  : parts;
+              setFeedbackRequests([
+                requests[0] || '',
+                requests[1] || '',
+                requests[2] || '',
+              ]);
             }
           }
         } else {
@@ -133,8 +142,17 @@ function Upload() {
           } else {
             setActiveTab('개발');
             if (postData.summary) {
-              const requests = postData.summary.split(',').map(s => s.trim()).filter(Boolean);
-              setFeedbackRequests(requests.length > 0 ? requests : ['', '', '']);
+              const raw = postData.summary.replace(/\r?\n/g, ' ');
+              const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+              const requests =
+                parts.length > 3
+                  ? [parts[0], parts[1], parts.slice(2).join(' ')]
+                  : parts;
+              setFeedbackRequests([
+                requests[0] || '',
+                requests[1] || '',
+                requests[2] || '',
+              ]);
             }
           }
         }
@@ -178,10 +196,16 @@ function Upload() {
         }
       }
 
-      // summary 생성 (피드백 요청 필드들을 합쳐서)
+      // summary 생성 (입력 3칸을 | 구분자로 합침, 줄바꿈 제거)
+      const joinWithPipe = (arr) =>
+        arr
+          .map(f => f.replace(/\r?\n/g, ' ').trim())
+          .join('|')
+          .trim();
+
       const summary = activeTab === '개발' 
-        ? feedbackRequests.filter(f => f.trim()).join(', ') || '전반적인 피드백'
-        : codingFeedbackRequests.filter(f => f.trim()).join(', ') || '전반적인 피드백'
+        ? joinWithPipe(feedbackRequests) || '전반적인 피드백'
+        : joinWithPipe(codingFeedbackRequests) || '전반적인 피드백'
 
       // JSON 객체로 변경 (백엔드는 @RequestBody로 JSON을 기대함)
       const postData = {

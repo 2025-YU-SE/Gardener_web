@@ -679,17 +679,22 @@ function PostDetail() {
               <div className="bg-white border rounded-lg p-6">
                 <h3 className="font-bold text-lg mb-4">피드백 요청</h3>
                 <div className="space-y-2">
-                  {post.summary.split(',').map((item, index) => {
-                    const trimmed = item.trim();
-                    return trimmed ? (
+                  {(() => {
+                    const raw = (post.summary || '').replace(/\r?\n/g, ' ');
+                    const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+                    const items =
+                      parts.length > 3
+                        ? [parts[0], parts[1], parts.slice(2).join(' ')]
+                        : parts.slice(0, 3);
+                    return items.map((item, index) => (
                       <div
                         key={index}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       >
-                        {trimmed}
+                        {item}
                       </div>
-                    ) : null;
-                  })}
+                    ));
+                  })()}
                 </div>
               </div>
             )}
