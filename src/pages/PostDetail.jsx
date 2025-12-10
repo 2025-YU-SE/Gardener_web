@@ -395,7 +395,27 @@ function PostDetail() {
       setAiError("");
       const res = await getAiFeedback(postId);
       const text = res?.data ?? res;
-      setAiFeedback(text || "");
+      const result = text || "";
+
+      // 코딩테스트 게시물에서 초기 500 에러 문자열이 내려올 경우 자동 재시도
+      if (
+        post?.contentsType === false &&
+        typeof result === "string" &&
+        result.startsWith("AI 피드백 생성 실패")
+      ) {
+        try {
+          const retry = await regenerateAiFeedback(postId);
+          const retryText = retry?.data ?? retry;
+          setAiFeedback(retryText || "");
+          return;
+        } catch (retryErr) {
+          console.error("AI 피드백 자동 재생성 실패:", retryErr);
+          setAiFeedback(result);
+          return;
+        }
+      }
+
+      setAiFeedback(result);
     } catch (err) {
       console.error("AI 피드백 조회 실패:", err);
       setAiError("AI 피드백을 불러오지 못했습니다.");
